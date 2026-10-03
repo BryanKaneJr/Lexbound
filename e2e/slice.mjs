@@ -1,7 +1,9 @@
-// Plays the vertical slice (bible §75) in the browser the way a new player
-// would: meet Milo, explore Whisperwood, learn acqua at the stream, win the
-// first battle with ACQUA, hear Milo retell it, report to Maren. Then checks
-// the journal and that the save survives a reload.
+// Plays Chapter One in the browser the way a new player would: meet Milo,
+// feed him on the first night, explore Whisperwood, learn acqua at the
+// stream, feed a hungry Pebblit that uses Milo's word, win the first battle
+// by listening (ACQUA for "Fuoco!", TERRA for "All'attacco!"), hear Milo
+// retell it, and catch Pip misreading Bluster. Then checks the journal and
+// that the save survives a reload.
 import { bodyText, button, check, launch, snap, until, URL, visible } from './helpers.mjs';
 
 const { browser, page, errors } = await launch();
@@ -19,8 +21,21 @@ try {
   await button(page, 'Go to camp').click();
   await page.waitForTimeout(800);
 
-  // Camp: tap Milo, then head for Whisperwood.
+  // The first night: Milo is starving. The stick first (he says no), then the sunberries.
   await snap(page, 'camp');
+  await button(page, 'Milo wants to tell you something').click();
+  await until(page, () => visible(button(page, 'Give Sunberries')), 'the first meal');
+  await snap(page, 'fame');
+  await button(page, 'Give Good Stick').click();
+  await until(page, () => visible(button(page, 'Give Sunberries')), 'the first meal again');
+  await button(page, 'Give Sunberries').click();
+  await until(page, async () => (await bodyText(page)).includes('Mi ricordo'), "Milo's memory");
+  await snap(page, 'first-night');
+  await until(page, () => visible(button(page, 'Back to camp')), 'the end of the first night');
+  await button(page, 'Back to camp').click();
+  await page.waitForTimeout(600);
+
+  // Camp: tap Milo, then head for Whisperwood.
   await button(page, 'Milo').click();
   await page.waitForTimeout(600);
   await snap(page, 'camp-milo-talks');
@@ -46,6 +61,14 @@ try {
   await until(page, () => visible(button(page, 'Keep exploring')), 'end of the stream');
   await button(page, 'Keep exploring').click();
 
+  // A wild Pebblit says Milo's word for hunger.
+  await until(page, async () => (await bodyText(page)).includes('Ho fame'), 'the Pebblit saying "Ho fame..."');
+  await snap(page, 'ho-fame');
+  await until(page, () => visible(button(page, 'Give Sunberries')), 'the hungry Pebblit');
+  await button(page, 'Give Sunberries').click();
+  await until(page, () => visible(button(page, 'Keep exploring')), 'end of the Pebblit');
+  await button(page, 'Keep exploring').click();
+
   // The hot path: Milo asks for acqua. The stick first (he says no), then the flask.
   await until(page, () => visible(button(page, 'Give Water Flask')), 'the give tray');
   await snap(page, 'thirsty');
@@ -55,18 +78,20 @@ try {
   await until(page, () => visible(button(page, 'Keep exploring')), 'end of the hot path');
   await button(page, 'Keep exploring').click();
 
-  // The Emberhog: four tiles; ACQUA wins.
+  // The Emberhog announces each move. Listening pays: ACQUA when it shouts "Fuoco!",
+  // TERRA when it shouts "All'attacco!" (its pattern opens fire, charge, fire).
   await until(page, () => visible(button(page, 'ACQUA')), 'the battle');
   for (const word of ['ACQUA', 'FUOCO', 'TERRA', 'VENTO']) check(await visible(button(page, word)), `missing the ${word} tile`);
-  await page.waitForTimeout(6000);
+  await page.waitForFunction(() => /your call/i.test(document.body.innerText), null, { timeout: 30_000 });
   await snap(page, 'battle');
-  for (let round = 0; round < 8 && !(await visible(button(page, 'Continue'))); round++) {
-    await button(page, 'ACQUA').click({ timeout: 30_000 });
+  for (const [round, word] of ['ACQUA', 'TERRA', 'ACQUA'].entries()) {
+    await button(page, word).click({ timeout: 30_000 });
     await page.waitForTimeout(1500);
-    if (round === 0) await snap(page, 'battle-acqua');
+    if (round === 1) await snap(page, 'battle-terra-wall');
     await page.waitForFunction(() => /your call|backs off/i.test(document.body.innerText), null, { timeout: 30_000 });
   }
-  check((await bodyText(page)).includes('backs off'), 'ACQUA should beat the Emberhog');
+  check((await bodyText(page)).includes('backs off'), 'listening should beat the Emberhog in three rounds');
+  check((await bodyText(page)).includes('40 / 40'), 'nothing should have landed on Milo');
   await snap(page, 'victory');
   await button(page, 'Continue').click();
   await until(page, () => visible(button(page, 'Back to camp')), 'after the battle');
@@ -82,13 +107,13 @@ try {
   await button(page, 'Back to camp').click();
   await page.waitForTimeout(600);
 
-  // The Lodge: Maren, Pip and Bluster. You understand Bluster better than Pip does.
+  // The Lodge: Pip says Bluster is restless. Bluster says "Ho fame."
   await button(page, "Go to Translators' Lodge").click();
   await page.waitForTimeout(500);
   await button(page, 'Visit Maren').click();
-  await until(page, () => visible(button(page, '“He wants water.”')), 'Pip and Bluster');
+  await until(page, () => visible(button(page, 'Offer Bluster a sunberry')), 'Pip and Bluster');
   await snap(page, 'pip-bluster');
-  await button(page, '“He wants water.”').click();
+  await button(page, 'Offer Bluster a sunberry').click();
   await until(page, async () => (await bodyText(page)).includes('End of Chapter One'), 'the end of chapter one');
   await snap(page, 'chapter-one');
   await until(page, () => visible(button(page, 'Back to camp')), 'the end panel');
@@ -99,9 +124,14 @@ try {
   await page.getByRole('tab', { name: 'Journal' }).click();
   await page.waitForTimeout(500);
   await snap(page, 'journal');
+  await page.getByRole('tab', { name: 'Field notes' }).click();
+  await page.waitForTimeout(300);
+  check((await bodyText(page)).includes('A wild Pebblit said “fame”'), 'field notes should record the Pebblit using Milo\'s word');
+  await snap(page, 'field-notes');
   await page.getByRole('tab', { name: 'Strange things' }).click();
   await page.waitForTimeout(300);
   check((await bodyText(page)).includes('Sei tu'), 'the journal should keep "Sei tu... Ti abbiamo trovato."');
+  check((await bodyText(page)).includes('Mi ricordo'), "the journal should keep Milo's memory");
   await snap(page, 'journal-strange');
   await page.getByRole('tab', { name: 'Lexlings' }).click();
   await page.waitForTimeout(300);

@@ -165,6 +165,39 @@ export const PROPS: Record<string, PropDef> = {
       </G>
     ),
   },
+  pouch: {
+    aspect: 1,
+    viewBox: '0 0 60 60',
+    draw: () => (
+      <G>
+        <Ellipse cx={30} cy={57} rx={22} ry={3} fill="#000" opacity={0.15} />
+        <Path d="M12 26 Q8 54 30 56 Q52 54 48 26 Z" fill="#B07E45" stroke="#7A5634" strokeWidth={2} />
+        <Path d="M14 26 Q30 18 46 26 Q30 32 14 26 Z" fill="#9A6B37" />
+        <Path d="M18 22 Q30 30 42 22" stroke="#5A3820" strokeWidth={2.5} fill="none" />
+        <Circle cx={24} cy={20} r={6} fill="#F2A33A" />
+        <Circle cx={34} cy={18} r={6} fill="#E8862C" />
+        <Circle cx={30} cy={13} r={5} fill="#F6B54A" />
+        <Circle cx={22} cy={18} r={1.6} fill="#fff" opacity={0.7} />
+      </G>
+    ),
+  },
+  bowl: {
+    aspect: 120 / 130,
+    viewBox: '0 0 120 130',
+    draw: () => (
+      <G>
+        <Ellipse cx={60} cy={126} rx={50} ry={4} fill="#000" opacity={0.15} />
+        <Rect x={22} y={70} width={10} height={56} fill="#7A5634" />
+        <Rect x={88} y={70} width={10} height={56} fill="#7A5634" />
+        <Rect x={8} y={60} width={104} height={14} rx={4} fill="#9A6B37" stroke="#5A3820" strokeWidth={2} />
+        <Circle cx={46} cy={40} r={8} fill="#F2A33A" />
+        <Circle cx={60} cy={36} r={8} fill="#E8862C" />
+        <Circle cx={74} cy={40} r={8} fill="#F6B54A" />
+        <Circle cx={54} cy={28} r={7} fill="#F2A33A" />
+        <Path d="M30 42 Q60 70 90 42 Z" fill="#E7DCC8" stroke="#B9A88A" strokeWidth={2} />
+      </G>
+    ),
+  },
   well: {
     aspect: 120 / 150,
     viewBox: '0 0 120 150',

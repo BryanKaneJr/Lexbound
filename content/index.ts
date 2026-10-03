@@ -7,6 +7,7 @@ import lodge from './data/it/encounters/lodge.json';
 import whisperwood from './data/it/encounters/whisperwood.json';
 import language from './data/it/language.json';
 import lines from './data/it/lines.json';
+import notes from './data/it/notes.json';
 import words from './data/it/words.json';
 import items from './data/items.json';
 import journal from './data/journal.json';
@@ -34,6 +35,7 @@ export const raw = {
   items,
   locations,
   journal,
+  notes,
   encounters: [...lodge, ...camp, ...whisperwood],
 };
 

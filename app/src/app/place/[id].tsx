@@ -63,7 +63,7 @@ export default function Place() {
               {quiet && <Txt style={[type.body, { color: color.inkSoft, fontStyle: 'italic' }]}>{loc.quiet ?? 'Nothing happening right now.'}</Txt>}
             </>
           ) : (
-            <Txt style={[type.body, { color: color.inkSoft, fontStyle: 'italic' }]}>{loc.comingSoon ? 'Not yet. Maybe Milo will lead you here someday.' : 'You need to meet Milo first.'}</Txt>
+            <Txt style={[type.body, { color: color.inkSoft, fontStyle: 'italic' }]}>{loc.comingSoon ? 'Not yet. Maybe Milo will lead you here someday.' : (loc.locked ?? 'Not yet.')}</Txt>
           )}
           {locals.length > 0 && (
             <Card style={{ gap: space.md }}>

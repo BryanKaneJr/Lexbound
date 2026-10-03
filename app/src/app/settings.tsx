@@ -77,7 +77,7 @@ export default function SettingsScreen() {
               { value: 'adaptive', label: 'Sound first when I know them' },
             ]}
           />
-          <Toggle label="Keep element pictures" detail="Command tiles and speech always show their pictures." value={s.persistentIcons} onChange={(persistentIcons) => set({ persistentIcons })} />
+          <Toggle label="Keep element pictures" detail="Command tiles and speech keep their pictures, and enemies keep their obvious wind-ups." value={s.persistentIcons} onChange={(persistentIcons) => set({ persistentIcons })} />
           <Toggle label="Stronger hints" detail="Help starts with a clue instead of a repeat." value={s.strongHints} onChange={(strongHints) => set({ strongHints })} />
         </Card>
         <Card>

@@ -1,3 +1,4 @@
+import { visibleNotes } from '@lexbound/core';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Icon } from '@/art/icons';
@@ -13,9 +14,10 @@ import { color, radius, space, type } from '@/theme/tokens';
  * bestiary, with the lines you've heard each one say), places, and strange
  * things heard. Never a vocabulary table.
  */
-type Tab = 'story' | 'lexlings' | 'places' | 'strange';
+type Tab = 'story' | 'notes' | 'lexlings' | 'places' | 'strange';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'story', label: 'Story' },
+  { id: 'notes', label: 'Field notes' },
   { id: 'lexlings', label: 'Lexlings' },
   { id: 'places', label: 'Places' },
   { id: 'strange', label: 'Strange things' },
@@ -33,6 +35,7 @@ export default function Journal() {
   const [tab, setTab] = useState<Tab>('story');
   const entries = save.journal.entries.map((id) => content.entry.get(id)).filter((e) => !!e);
   const strange = Object.keys(save.journal.heard).filter((id) => content.line.get(id)?.journal === 'strange');
+  const notes = visibleNotes(content, save);
   return (
     <Screen>
       <View style={{ padding: space.lg, paddingBottom: 0, gap: space.md }}>
@@ -68,6 +71,24 @@ export default function Journal() {
                 </Card>
               ))
           ))}
+
+        {tab === 'notes' && (
+          <>
+            <Txt style={[type.body, { color: color.inkSoft }]}>{"Things I've noticed about how Lexlings talk."}</Txt>
+            {notes.length === 0 ? (
+              <Txt style={[type.body, { color: color.inkMuted }]}>Nothing yet. Keep listening.</Txt>
+            ) : (
+              <Card style={{ gap: space.md }}>
+                {notes.map((n) => (
+                  <View key={n.id} style={{ flexDirection: 'row', gap: space.sm }}>
+                    <Txt style={[type.body, { color: color.amberDeep }]}>•</Txt>
+                    <Txt style={[type.body, { flex: 1, fontStyle: 'italic' }]}>{n.text}</Txt>
+                  </View>
+                ))}
+              </Card>
+            )}
+          </>
+        )}
 
         {tab === 'lexlings' &&
           content.lexlings.map((l) => {

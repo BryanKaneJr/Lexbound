@@ -26,7 +26,7 @@ export type Beat =
   | { type: 'hit'; target: 'milo' | 'foe'; amount: number; effect: Effectiveness; element: string | null }
   | { type: 'heal'; target: 'milo' | 'foe'; amount: number }
   | { type: 'fanned' }
-  | { type: 'countered'; ability: string }
+  | { type: 'countered'; ability: string; by: string | null }
   | { type: 'foeMove'; ability: string; element: string | null; boosted: boolean }
   | { type: 'end'; result: 'win' | 'lose' };
 
@@ -202,10 +202,16 @@ export function chooseCommand(content: Content, prev: BattleState, commandId: st
     else if (state.foe.hp > 0 && effect === 'weak') react(content, state, 'weak', beats, events, rng);
   }
 
-  // Did Milo's element put out what the foe was winding up? (Water douses a fire move.)
+  // Did Milo's move stop what the foe announced? (Water douses a fire move; a stone wall stops a charge.)
   const move = foe.battle.moves[state.intent];
   const moveAbility = move ? content.ability.get(move.ability) : undefined;
-  const countered = !!moveAbility && chartEntry(content, ability.element, moveAbility.element).multiplier >= 2;
+  const countered = !!moveAbility && ability.counters.includes(moveAbility.element ?? 'physical');
+  // Countering an announced move with something other than the obvious matchup is strong evidence
+  // the player understood the announcement (language bible §30, §34). Picking the counter anyway
+  // explains nothing: it was the right call before the enemy said a word.
+  if (countered && move?.telegraph && !bestCommands(content, state.foe.element).includes(cmd.id)) {
+    for (const c of content.line.get(move.telegraph)?.concepts ?? []) events.push({ type: 'evidence', concept: c, result: 'success', context: state.context });
+  }
 
   if (state.foe.hp <= 0) {
     state.outcome = 'win';
@@ -217,7 +223,7 @@ export function chooseCommand(content: Content, prev: BattleState, commandId: st
   }
 
   if (countered && moveAbility) {
-    beats.push({ type: 'countered', ability: moveAbility.id });
+    beats.push({ type: 'countered', ability: moveAbility.id, by: ability.element });
     react(content, state, 'countered', beats, events, rng, 'milo');
     state.boost = 1;
   } else if (moveAbility) {

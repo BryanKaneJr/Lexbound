@@ -13,7 +13,7 @@ describe('battle engine', () => {
     expect(beats.find((b) => b.type === 'windup')).toMatchObject({ move: 'spit', element: 'fire' });
     expect(beats).toContainEqual({ type: 'say', speaker: 'hog', line: 'hog.fuoco' });
     expect(events).toContainEqual({ type: 'heard', line: 'hog.fuoco', context: 'test' });
-    expect([...state.order].sort()).toEqual(['fire', 'water', 'wind']);
+    expect([...state.order].sort()).toEqual(['earth', 'fire', 'water', 'wind']);
   });
 
   it('knows the counter', () => {
@@ -27,11 +27,27 @@ describe('battle engine', () => {
     const hit = r.beats.find((b) => b.type === 'hit' && b.target === 'foe');
     expect(hit).toMatchObject({ effect: 'strong' });
     expect(hit && hit.type === 'hit' && hit.amount).toBeGreaterThanOrEqual(18);
-    expect(r.beats).toContainEqual({ type: 'countered', ability: 'spit' });
+    expect(r.beats).toContainEqual({ type: 'countered', ability: 'spit', by: 'water' });
     expect(r.beats.some((b) => b.type === 'foeMove')).toBe(false);
     expect(r.state.milo.hp).toBe(30);
     expect(r.events).toContainEqual({ type: 'evidence', concept: 'water', result: 'success', context: 'test' });
     expect(r.beats).toContainEqual({ type: 'say', speaker: 'hog', line: 'hog.ahi' });
+  });
+
+  it('enemy speech pays: countering an announced charge with earth blocks it and shows understanding', () => {
+    const first = chooseCommand(content, begin().state, 'water');
+    expect(first.state.intent).toBe(1);
+    expect(first.beats).toContainEqual({ type: 'say', speaker: 'hog', line: 'hog.attacco' });
+    // Water is the obvious matchup: it hits hard, but the charge lands, and it proves nothing about the announcement.
+    const spam = chooseCommand(content, first.state, 'water');
+    expect(spam.beats.some((b) => b.type === 'foeMove')).toBe(true);
+    expect(spam.events.filter((e) => e.type === 'evidence' && e.concept === 'attack')).toEqual([]);
+    // Earth answers the announcement: the charge is stopped, and that is evidence for "attacca".
+    const wall = chooseCommand(content, first.state, 'earth');
+    expect(wall.beats).toContainEqual({ type: 'countered', ability: 'tackle', by: 'earth' });
+    expect(wall.beats.some((b) => b.type === 'foeMove')).toBe(false);
+    expect(wall.state.milo.hp).toBe(first.state.milo.hp);
+    expect(wall.events).toContainEqual({ type: 'evidence', concept: 'attack', result: 'success', context: 'test' });
   });
 
   it('fire on fire: absorbed, the hog heals and says thanks; no evidence either way', () => {

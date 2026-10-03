@@ -1,4 +1,5 @@
-import type { Content, Effects, Encounter } from './schema';
+import type { Content, Effects, Encounter, Step } from './schema';
+import { validateLanguage } from './validate-language';
 
 /**
  * Cross-reference checks the schema can't express: every id points at
@@ -90,7 +91,71 @@ export function validateContent(content: Content, art?: { backgrounds: Set<strin
   }
 
   for (const enc of content.encounters) problems.push(...validateEncounter(content, enc, art));
+
+  // Every flag something waits for must be set somewhere, or that content can never be reached.
+  const set = new Set<string>();
+  const needed: { flag: string; where: string }[] = [];
+  for (const enc of content.encounters) {
+    for (const f of enc.requires?.flags ?? []) needed.push({ flag: f, where: `encounter ${enc.id}` });
+    for (const step of enc.steps) {
+      for (const e of effectsOf(step)) for (const f of e.flags ?? []) set.add(f);
+      if (step.type === 'branch') for (const f of step.if.flags ?? []) needed.push({ flag: f, where: `encounter ${enc.id}` });
+    }
+  }
+  for (const loc of content.locations) for (const f of loc.requires?.flags ?? []) needed.push({ flag: f, where: `location ${loc.id}` });
+  for (const n of needed) if (!set.has(n.flag)) say(n.where, `waits for flag "${n.flag}", which nothing sets`);
+
+  problems.push(...validateLanguage(content));
   return problems;
+}
+
+function effectsOf(step: Step): Effects[] {
+  const out: (Effects | undefined)[] = [];
+  if (step.type === 'reward') out.push(step.effects);
+  if (step.type === 'choice') out.push(...step.options.map((o) => o.effects));
+  if (step.type === 'tap') out.push(...step.targets.map((t) => t.effects), step.otherwise?.effects);
+  if (step.type === 'give') out.push(...step.items.map((i) => i.effects));
+  return out.filter((e): e is Effects => !!e);
+}
+
+/** Indices of steps reachable from the first one. */
+function reachable(enc: Encounter): Set<number> {
+  const index = new Map(enc.steps.flatMap((s, i) => (s.id ? [[s.id, i] as const] : [])));
+  const seen = new Set<number>();
+  const queue = [0];
+  while (queue.length) {
+    const i = queue.pop()!;
+    const step = enc.steps[i];
+    if (!step || seen.has(i)) continue;
+    seen.add(i);
+    const after = step.next ? index.get(step.next) : i + 1;
+    const to = (target: string | undefined) => (target ? index.get(target) : after);
+    const targets: (number | undefined)[] = [];
+    switch (step.type) {
+      case 'end':
+        break;
+      case 'choice':
+        targets.push(...step.options.map((o) => to(o.goto)));
+        break;
+      case 'tap':
+        targets.push(...step.targets.map((t) => to(t.goto)));
+        if (step.otherwise) targets.push(to(step.otherwise.goto));
+        break;
+      case 'give':
+        targets.push(...step.items.map((it) => to(it.goto)));
+        break;
+      case 'battle':
+        targets.push(to(step.win), to(step.lose));
+        break;
+      case 'branch':
+        targets.push(index.get(step.then), to(step.else));
+        break;
+      default:
+        targets.push(after);
+    }
+    for (const t of targets) if (t !== undefined) queue.push(t);
+  }
+  return seen;
 }
 
 function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds: Set<string>; props: Set<string>; actors: Set<string> }): string[] {
@@ -202,6 +267,10 @@ function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds
     }
   });
   if (ends === 0) say('has no end step');
+  const live = reachable(enc);
+  enc.steps.forEach((s, i) => {
+    if (!live.has(i)) say(`step ${s.id ?? i} (${s.type}) can never be reached`);
+  });
   if (art) for (const b of backgrounds) if (!art.backgrounds.has(b)) say(`no background art "${b}"`);
   return problems;
 }

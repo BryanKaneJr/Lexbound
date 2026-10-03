@@ -1,11 +1,14 @@
 [
-  { "id": "story.met_milo", "section": "story", "title": "A Lexling in a basket", "text": "A basket turned up at the Lodge with a tag that said MILO and nothing else. He picked me in about four seconds. Maren says that never happens, and that she's never seen a Lexling like him." },
-  { "id": "story.whisperwood", "section": "story", "title": "Into Whisperwood", "text": "Maren says Whisperwood is safe for beginners. Milo seems to think everything is safe, which is not the same thing." },
-  { "id": "story.emberhog", "section": "story", "title": "The Emberhog", "text": "An Emberhog came at us by the stream. Milo put its fire out. Afterwards it looked at Milo and said something slow and careful, like it meant every word. Then it ran." },
-  { "id": "story.report", "section": "story", "title": "One element. One.", "text": "Maren went very quiet when I told her what Milo can do. \"Lexlings have one element,\" she said. \"One.\" She wants us to keep our ears open in Whisperwood. Lexlings have been restless all season, and she thinks they're talking to each other." },
-  { "id": "places.camp", "section": "places", "title": "Camp", "text": "A tent, a fire ring and a very good log for sitting. Home." },
-  { "id": "places.lodge", "section": "places", "title": "Translators' Lodge", "text": "Creaky floors, a hundred notebooks and Lexlings in the rafters. Maren runs it." },
-  { "id": "places.whisperwood", "section": "places", "title": "Whisperwood", "text": "Tall trees, a cold stream and lots of small sounds you can't place. Milo can place all of them." },
-  { "id": "milo.first_word", "section": "milo", "title": "First word", "text": "The first thing Milo ever said to me is the first thing he says to everyone." },
-  { "id": "milo.retell", "section": "milo", "title": "Milo tells it his way", "text": "Back at camp Milo acted out the whole Emberhog fight. In his version he was much taller." }
+  {"id": "story.met_milo", "section": "story", "title": "A Lexling in a basket", "text": "A basket turned up at the Lodge with a tag that said MILO and nothing else. He picked me in about four seconds. Maren says that never happens, and that she's never seen a Lexling like him."},
+  {"id": "story.first_night", "section": "story", "title": "A long first night", "text": "Milo ate half the sunberries, then looked up at the stars and said something slow and soft, like it mattered. I didn't understand a word. He fell asleep on my foot."},
+  {"id": "story.whisperwood", "section": "story", "title": "Into Whisperwood", "text": "Maren says Whisperwood is safe for beginners. Milo seems to think everything is safe, which is not the same thing."},
+  {"id": "story.pebblit", "section": "story", "title": "The hungry Pebblit", "text": "A Pebblit was stuck under a berry bush it couldn't climb. We shared our sunberries. Before it left, it looked at Milo for a long time."},
+  {"id": "story.emberhog", "section": "story", "title": "The Emberhog", "text": "An Emberhog came at us by the stream. Milo put its fire out. Afterwards it looked at Milo and said something slow and careful, like it meant every word. Then it ran."},
+  {"id": "story.whispers", "section": "story", "title": "Whispers", "text": "Two Puffkins in the trees went quiet when they saw Milo, then whispered to each other. Milo stayed close to me for the rest of the walk."},
+  {"id": "story.report", "section": "story", "title": "One element. One.", "text": "Maren went very quiet when I told her what Milo can do. \"Lexlings have one element,\" she said. \"One.\" She wants us to keep our ears open in Whisperwood. Lexlings have been restless all season, and she thinks they're talking to each other."},
+  {"id": "places.camp", "section": "places", "title": "Camp", "text": "A tent, a fire ring and a very good log for sitting. Home."},
+  {"id": "places.lodge", "section": "places", "title": "Translators' Lodge", "text": "Creaky floors, a hundred notebooks and Lexlings in the rafters. Maren runs it."},
+  {"id": "places.whisperwood", "section": "places", "title": "Whisperwood", "text": "Tall trees, a cold stream and lots of small sounds you can't place. Milo can place all of them."},
+  {"id": "milo.first_word", "section": "milo", "title": "First word", "text": "The first thing Milo ever said to me is the first thing he says to everyone."},
+  {"id": "milo.retell", "section": "milo", "title": "Milo tells it his way", "text": "Back at camp Milo acted out the whole Emberhog fight. In his version he was much taller."}
 ]

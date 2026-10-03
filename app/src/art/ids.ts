@@ -28,9 +28,11 @@ export const PROP_ART: Record<string, { height: number; idle: Idle }> = {
   campfire: { height: 0.16, idle: 'flicker' },
   puddle: { height: 0.05, idle: 'none' },
   well: { height: 0.25, idle: 'none' },
+  pouch: { height: 0.06, idle: 'none' },
+  bowl: { height: 0.2, idle: 'none' },
 };
 
-export const BACKGROUND_ART = ['lodge', 'camp', 'forest_path', 'forest_stream', 'forest_clearing', 'sunny_path'];
+export const BACKGROUND_ART = ['lodge', 'camp', 'camp_night', 'forest_path', 'forest_stream', 'forest_clearing', 'sunny_path'];
 
 export const ART_IDS = {
   backgrounds: new Set(BACKGROUND_ART),

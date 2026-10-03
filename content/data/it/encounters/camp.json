@@ -1,20 +1,89 @@
 [
   {
+    "id": "camp.first_meal",
+    "location": "camp",
+    "title": "A long first night",
+    "kind": "story",
+    "order": 2,
+    "requires": { "flags": ["intro.done"] },
+    "teaching": {
+      "purpose": "Milo's first evening at camp. He is starving, and once he's fed he tries to tell you something about where he came from.",
+      "introduces": ["hungry", "tasty", "thanks", "no"],
+      "grounding": [
+        { "concept": "hungry", "type": "gesture", "how": "He rubs his belly and stares at the sunberry pouch while his stomach growls." },
+        { "concept": "tasty", "type": "consequence", "how": "He says it with his mouth full of sunberries, eyes closed with joy." },
+        { "concept": "thanks", "type": "gesture", "how": "He finishes eating and gives you a small, serious bow." },
+        { "concept": "no", "type": "gesture", "how": "Handed the stick, he shakes his head and pushes it away." }
+      ]
+    },
+    "scene": {
+      "background": "camp",
+      "props": [
+        { "id": "log", "art": "log", "x": 0.22, "y": 0.93, "scale": 0.8 },
+        { "id": "pouch", "art": "pouch", "x": 0.2, "y": 0.86 },
+        { "id": "fire", "art": "campfire", "x": 0.78, "y": 0.92, "scale": 0.85 }
+      ],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.5, "y": 0.88, "mood": "curious" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Your camp, at last. Milo inspects every corner, sniffs the fire ring twice, and sits down hard." },
+      { "type": "act", "actor": "milo", "anim": "slump", "mood": "tired", "text": "His belly gives a long, sad growl." },
+      { "type": "say", "line": "milo.fame.soft", "anim": "rub", "mood": "tired", "look": "pouch" },
+      {
+        "id": "give",
+        "type": "give",
+        "items": [
+          { "item": "sunberries", "goto": "eat", "evidence": [{ "concept": "hungry", "result": "success" }] },
+          { "item": "flask", "goto": "drink", "evidence": [{ "concept": "hungry", "result": "fail" }] },
+          { "item": "stick", "goto": "stick", "evidence": [{ "concept": "hungry", "result": "fail" }] }
+        ]
+      },
+      { "id": "drink", "type": "act", "actor": "milo", "anim": "drink", "mood": "tired", "text": "Milo takes a polite sip. His belly growls even louder." },
+      { "type": "say", "line": "milo.fame.soft", "anim": "rub", "mood": "sad", "look": "pouch", "next": "give" },
+      { "id": "stick", "type": "act", "actor": "milo", "anim": "tilt", "mood": "confused", "text": "Milo looks at the stick. Then at you. Then, pointedly, at the pouch." },
+      { "type": "say", "line": "milo.no", "anim": "shake", "mood": "annoyed" },
+      { "type": "say", "line": "milo.fame.soft", "anim": "rub", "mood": "sad", "look": "pouch", "next": "give" },
+      { "id": "eat", "type": "act", "actor": "milo", "anim": "eat", "mood": "happy", "text": "Milo eats sunberries by the pawful." },
+      { "type": "say", "line": "milo.buono", "anim": "eat", "mood": "happy" },
+      { "type": "say", "line": "milo.grazie", "anim": "bow", "mood": "happy" },
+      { "type": "reward", "effects": { "bond": 2 } },
+      { "type": "stage", "background": "camp_night", "move": [{ "id": "milo", "x": 0.42 }] },
+      { "type": "narrate", "text": "Night falls. The fire crackles. Milo leans against you and looks up at the stars for a long time." },
+      { "type": "say", "line": "milo.memory", "mood": "sad" },
+      { "type": "narrate", "text": "He says it softly, like it matters. You have no idea what it means. Then he curls up on your foot and falls asleep." },
+      { "type": "reward", "effects": { "flags": ["camp.first_meal.done"], "journal": ["story.first_night"] } },
+      { "type": "end" }
+    ]
+  },
+  {
     "id": "camp.retell",
     "location": "camp",
     "title": "Milo tells it his way",
     "kind": "story",
-    "order": 1,
+    "order": 8,
     "requires": { "flags": ["ww.emberhog.won"] },
+    "teaching": {
+      "purpose": "Back at camp, Milo acts out the whole Emberhog fight for you, playing every part.",
+      "introduces": ["good", "friend"],
+      "reinforces": ["fire", "attack", "water"],
+      "grounding": [
+        { "concept": "good", "type": "gesture", "how": "He springs up, points at you and claps his paws." },
+        { "concept": "friend", "type": "gesture", "how": "He hugs your leg and won't let go." }
+      ]
+    },
     "scene": {
       "background": "camp",
-      "props": [{ "id": "fire", "art": "campfire", "x": 0.74, "y": 0.9, "scale": 0.9 }],
-      "actors": [{ "id": "milo", "art": "milo", "x": 0.4, "y": 0.86, "mood": "excited" }]
+      "props": [
+        { "id": "log", "art": "log", "x": 0.2, "y": 0.93, "scale": 0.8 },
+        { "id": "fire", "art": "campfire", "x": 0.78, "y": 0.92, "scale": 0.85 }
+      ],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.46, "y": 0.86, "mood": "excited" }]
     },
     "steps": [
       { "type": "narrate", "text": "Back at camp, Milo can't sit still." },
       { "type": "say", "line": "milo.fuoco.grrr", "anim": "puff", "mood": "fierce" },
-      { "type": "act", "actor": "milo", "anim": "cast", "mood": "excited", "text": "He flings his paws out wide, like he's throwing a wave." },
+      { "type": "say", "line": "milo.attacco", "anim": "stomp", "mood": "fierce", "look": "log" },
+      { "type": "act", "actor": "milo", "anim": "cast", "mood": "excited", "text": "Now he's himself again, flinging his paws out wide like he's throwing a wave." },
       { "type": "say", "line": "milo.acqua.acqua", "anim": "splash", "mood": "excited" },
       { "type": "act", "actor": "milo", "anim": "slump", "mood": "tired", "text": "Then he flops onto his back: a very soggy Emberhog." },
       { "type": "act", "actor": "milo", "anim": "hop", "mood": "proud", "text": "He springs up and points at you." },

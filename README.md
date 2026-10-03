@@ -13,16 +13,18 @@ The Lexlings' language is real Italian. The game never says so; it just becomes 
 
 ## What's playable
 
-The vertical slice from the bible (§75), on real engines:
+Chapter One, on real engines:
 
 1. **The Lodge.** Maren, a basket, a Lexling who says "Ciao!".
-2. **Whisperwood.** Milo says "Guarda!" and points; "Vieni!" and runs ahead.
-3. **The stream.** Milo splashes and says "Acqua!". No translation anywhere.
-4. **The hot path.** Milo asks for "Acqua..."; the stick doesn't help, the flask does.
-5. **The Emberhog.** It shouts "Fuoco!" and winds up. Four tiles: by now ACQUA has lost its icon, and the words you haven't learned still have theirs. Water douses its fire; fire heals it ("Mmm... grazie!"); wind fans it.
-6. **After.** It looks at Milo and says something you can't follow yet. Milo retells the fight at camp. At the Lodge you understand Pip's Puffkin better than Pip does, and Maren learns what Milo can do.
+2. **The first night.** Milo is starving: "Fame..." He eats, then looks at the stars and says something nobody can follow yet.
+3. **Whisperwood.** "Guarda!" and he points; "Vieni!" and he runs ahead.
+4. **The stream.** Milo splashes and says "Acqua!". No translation anywhere.
+5. **A hungry Pebblit.** A wild Lexling says "Ho fame...", and you realise it's Milo's word.
+6. **The hot path.** Milo asks for "Acqua..."; the stick doesn't help, the flask does.
+7. **The Emberhog.** It shouts before every move. ACQUA puts out "Fuoco!"; TERRA walls off "All'attacco!". By now ACQUA has lost its icon; the words you haven't used still have theirs. Listen, and nothing lands on Milo.
+8. **After.** The Emberhog says something to Milo you can't follow yet. Two Puffkins whisper about him. Milo acts out the fight at camp. At the Lodge, Pip insists his Puffkin is restless; you can hear it's hungry.
 
-Then Whisperwood keeps going: seven repeatable encounters picked by a scheduler that brings back the words you're starting to forget. Camp, map, Milo's page, a journal with a bestiary and remembered lines, a bag, accessibility settings and developer tools come with it.
+Then Whisperwood keeps going: seven repeatable encounters picked by a scheduler that brings back the words you're losing, in new situations and from new voices. Camp, map, Milo's page, a journal (story, field notes, a bestiary with remembered lines, strange things heard), a bag, accessibility settings and developer tools come with it.
 
 ## Run it
 
@@ -50,8 +52,8 @@ npm run screens      # the same, saving screenshots to ./screens
 | `content` | The game as data: concepts, Italian lines, Lexlings, places, encounters. Its tests validate every reference and play the slice. |
 | `app` | The Expo app. Art is drawn in code (`app/src/art`). |
 | `e2e` | Playwright: plays the slice in a browser build. |
-| `docs` | `game-bible.md` (the vision), `decisions.md` (how it was built and what changed), `content-guide.md` (writing encounters). |
+| `docs` | `language-design.md` (the language contract), `game-bible.md` (the vision), `decisions.md` (how it was built and what changed), `content-guide.md` (writing encounters). |
 
 ## Not yet
 
-Command composition ("ATTACCA + CON + ACQUA", bible Phase 9), more regions, recorded voices (creature lines use the device's Italian text-to-speech for now), and a native Italian speaker's review of every line. See `docs/decisions.md`.
+Command composition ("ATTACCA + CON + ACQUA"), constructions like "voglio / non voglio", written Lexling language, more Lexling species and regions, recorded voices (creature lines use the device's Italian text-to-speech for now), and a native Italian speaker's review of every line. See `docs/decisions.md`.

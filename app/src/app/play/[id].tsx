@@ -160,6 +160,7 @@ function Play({ encounterId }: { encounterId: string }) {
             onTap={(prop) => send({ type: 'tap', prop })}
             speaker={speaker}
             bubble={bubble}
+            highlight={step?.type === 'say' && hint >= 2 ? step.look : undefined}
           />
           {/* The opening scene can't be skipped: it's where you meet Milo. */}
           {!run.done && encounter.id !== 'lodge.intro' && <IconButton icon="close" label="Leave" onPress={leave} tint={color.paper} style={styles.close} size={18} />}

@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/art/icons';
 import { ELEMENT_SFX, playSfx } from '@/audio/sfx';
 import { speakLine } from '@/audio/voice';
-import { content, conceptLevel, elementColor, wordFor } from '@/game/content';
+import { content, conceptLevel, elementColor, lineScaffold, wordFor } from '@/game/content';
 import { useNow } from '@/game/useNow';
 import { takeSeed, useGame } from '@/state/store';
 import { color, radius, shadow, space, type } from '@/theme/tokens';
@@ -33,7 +33,7 @@ const ND = Platform.OS !== 'web';
 const MILO = { x: 0.27, y: 0.9 };
 const FOE = { x: 0.73, y: 0.84 };
 
-type Fx = { key: number; element: string | null; from: 'milo' | 'foe'; kind: 'shot' | 'steam' };
+type Fx = { key: number; element: string | null; from: 'milo' | 'foe'; kind: 'shot' | 'steam' | 'wall' };
 type Popup = { key: number; target: 'milo' | 'foe'; text: string; tint: string; big: boolean };
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -97,11 +97,13 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
             animate(b.speaker, b.speaker === 'milo' ? 'hop' : 'stomp');
             await wait(readTime(b.line));
             break;
-          case 'windup':
-            setWindup(b.windup);
-            animate(enemy, b.windup === 'paw' ? 'stomp' : 'crouch');
+          case 'windup': {
+            const tell = windupTell(enemy, b.move, b.windup);
+            setWindup(tell);
+            animate(enemy, tell === 'paw' ? 'stomp' : 'crouch');
             await wait(650);
             break;
+          }
           case 'command':
             setBubble(null);
             animate('milo', 'attack');
@@ -153,8 +155,8 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
             break;
           case 'countered':
             setWindup(null);
-            setFx({ key: ++keys.current, element: null, from: 'foe', kind: 'steam' });
-            playSfx('steam');
+            setFx({ key: ++keys.current, element: b.by, from: 'foe', kind: b.by === 'earth' ? 'wall' : 'steam' });
+            playSfx(b.by === 'earth' ? 'earth' : 'steam');
             await wait(650);
             break;
           case 'foeMove':
@@ -255,7 +257,9 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
             bubble={bubble ? <SpeechBubble lineId={bubble.line} icons={false} audioFirst={false} /> : null}>
             {windup === 'embers' && <Embers at={{ x: foeBox.left + foeBox.width * 0.06, y: foeBox.top + foeBox.height * 0.72 }} reduced={reduced} />}
             {windup === 'paw' && <Dust at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height }} reduced={reduced} />}
-            {fx && (
+            {windup === 'ready' && <Smoke at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height * 0.2 }} reduced={reduced} />}
+            {fx?.kind === 'wall' && <Wall key={fx.key} at={{ x: (miloBox.left + miloBox.width + foeBox.left) / 2, y: foeBox.top + foeBox.height }} height={foeBox.height * 0.9} reduced={reduced} />}
+            {fx && fx.kind !== 'wall' && (
               <Shot
                 key={fx.key}
                 fx={fx}
@@ -349,6 +353,20 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
   );
 }
 
+/**
+ * How clearly the enemy shows what's coming. While the word it shouts is new
+ * to the player, the wind-up is a strong visual tell (embers, pawing). Once
+ * the player has acted on that word, the tell becomes a generic "about to
+ * strike" and the word carries the information (language bible §31, §57;
+ * game bible Phase 10). "Keep element pictures" keeps the strong tells.
+ */
+function windupTell(enemy: string, ability: string, windup: string): string {
+  const { save } = useGame.getState();
+  const move = content.lexling.get(enemy)?.battle?.moves.find((m) => m.ability === ability);
+  if (!move?.telegraph || save.settings.persistentIcons) return windup;
+  return lineScaffold(save.concepts, move.telegraph, Date.now()) >= 2 ? windup : 'ready';
+}
+
 function hpTint(v: number, max: number) {
   const p = v / max;
   return p > 0.5 ? color.hp : p > 0.25 ? color.hpLow : color.hpCrit;
@@ -425,6 +443,53 @@ function Dust({ at, reduced }: { at: { x: number; y: number }; reduced: boolean 
         <Animated.View key={i} style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#C9B48F', opacity: t.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }), transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, -14 - i * 4] }) }] }} />
       ))}
     </View>
+  );
+}
+
+function Smoke({ at, reduced }: { at: { x: number; y: number }; reduced: boolean }) {
+  const [t] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (reduced) return;
+    const a = Animated.loop(Animated.timing(t, { toValue: 1, duration: 900, useNativeDriver: ND }));
+    a.start();
+    return () => a.stop();
+  }, [t, reduced]);
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: at.x - 36, top: at.y - 10, flexDirection: 'row', gap: 6 }}>
+      {[0, 1, 2].map((i) => (
+        <Animated.View key={i} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#8D8A87', opacity: t.interpolate({ inputRange: [0, 1], outputRange: [0.7, 0] }), transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, -18 - i * 6] }) }] }} />
+      ))}
+    </View>
+  );
+}
+
+/** A stone wall shooting up between Milo and a charging foe. */
+function Wall({ at, height, reduced }: { at: { x: number; y: number }; height: number; reduced: boolean }) {
+  const [t] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const a = Animated.timing(t, { toValue: 1, duration: reduced ? 1 : 900, useNativeDriver: ND });
+    a.start();
+    return () => a.stop();
+  }, [t, reduced]);
+  const w = height * 0.45;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: at.x - w / 2,
+        top: at.y - height,
+        width: w,
+        height,
+        opacity: t.interpolate({ inputRange: [0, 0.15, 0.8, 1], outputRange: [0, 1, 1, 0] }),
+        transform: [{ translateY: t.interpolate({ inputRange: [0, 0.25, 1], outputRange: [height * 0.6, 0, 0] }) }],
+      }}>
+      <View style={{ flex: 1, borderTopLeftRadius: 10, borderTopRightRadius: 14, backgroundColor: elementColor('earth'), borderWidth: 3, borderColor: '#6B5132', overflow: 'hidden' }}>
+        {[0.25, 0.55, 0.8].map((y) => (
+          <View key={y} style={{ position: 'absolute', left: 0, right: 0, top: `${y * 100}%`, height: 3, backgroundColor: '#6B5132', opacity: 0.6 }} />
+        ))}
+      </View>
+    </Animated.View>
   );
 }
 

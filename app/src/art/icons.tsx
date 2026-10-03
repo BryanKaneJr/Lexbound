@@ -71,6 +71,13 @@ const ICONS: Record<string, (c?: string) => React.ReactNode> = {
       <Path d="M16 20 L19 17" stroke="#fff" strokeWidth={3} strokeLinecap="round" />
     </G>
   ),
+  pebble: () => (
+    <G>
+      <Ellipse cx={24} cy={40} rx={16} ry={4} fill="#000" opacity={0.12} />
+      <Ellipse cx={24} cy={27} rx={16} ry={14} fill="#A9A298" stroke="#7C7366" strokeWidth={2} />
+      <Ellipse cx={18} cy={21} rx={5} ry={3} fill="#fff" opacity={0.5} />
+    </G>
+  ),
   feather: () => (
     <G>
       <Path d="M24 44 Q22 30 24 12" stroke="#8DBF9A" strokeWidth={2.5} fill="none" />

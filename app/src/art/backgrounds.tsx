@@ -126,6 +126,39 @@ const BACKGROUNDS: Record<string, Bg> = {
     </G>
   ),
 
+  camp_night: (g) => (
+    <G>
+      {sky(g, '#16233A', '#3A4A6B')}
+      {[
+        [40, 40],
+        [90, 80],
+        [140, 30],
+        [200, 60],
+        [250, 25],
+        [300, 70],
+        [360, 40],
+        [60, 120],
+        [180, 110],
+        [330, 130],
+        [230, 150],
+        [120, 160],
+      ].map(([x, y], i) => (
+        <Circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.2 : 1.4} fill="#FFF6D8" opacity={0.9} />
+      ))}
+      <Circle cx={320} cy={90} r={22} fill="#F4EBC8" />
+      <Circle cx={312} cy={84} r={22} fill="#16233A" opacity={0.25} />
+      <Path d="M0 260 Q100 190 200 240 T400 220 L400 460 L0 460 Z" fill="#2E4A3A" />
+      <Path d="M0 300 Q120 250 240 290 T400 280 L400 460 L0 460 Z" fill="#2A4434" />
+      {canopy(56, 170, 46, '#1F3A2C')}
+      <Rect x={50} y={190} width={12} height={110} fill="#2E2218" />
+      <Polygon points="230,330 300,200 370,330" fill="#8A5E26" />
+      <Polygon points="300,200 370,330 330,330" fill="#6E4A1E" />
+      <Polygon points="280,330 300,268 320,330" fill="#1E1408" />
+      <Rect x={0} y={360} width={400} height={100} fill="#24402F" />
+      <Ellipse cx={312} cy={420} rx={110} ry={60} fill="#FFB347" opacity={0.12} />
+    </G>
+  ),
+
   forest_path: (g) => (
     <G>
       {sky(g, '#CFEBD6', '#EAF6E4')}

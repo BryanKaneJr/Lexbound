@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(fileURLToPath(import.meta.url), '..', '..');
 const SKIP = new Set(['node_modules', '.git', '.expo', 'dist', 'screens', 'ios', 'android']);
+// The owner's own documents, kept verbatim.
+const VERBATIM = new Set(['docs/language-design.md']);
 const EXT = /\.(ts|tsx|js|mjs|json|md|sh|yml)$/;
 const DASH = String.fromCharCode(0x2014);
 let bad = 0;
@@ -15,6 +17,7 @@ function walk(dir) {
   for (const name of readdirSync(dir)) {
     if (SKIP.has(name) || name === 'package-lock.json') continue;
     const path = join(dir, name);
+    if (VERBATIM.has(relative(root, path))) continue;
     if (statSync(path).isDirectory()) walk(path);
     else if (EXT.test(name)) {
       readFileSync(path, 'utf8')

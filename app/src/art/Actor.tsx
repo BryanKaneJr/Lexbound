@@ -189,6 +189,8 @@ export const ASPECT: Record<string, number> = {
   campfire: 1,
   puddle: 200 / 50,
   well: 120 / 150,
+  pouch: 1,
+  bowl: 120 / 130,
 };
 
 export function artWidth(art: string, height: number): number {

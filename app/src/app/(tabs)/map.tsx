@@ -65,6 +65,8 @@ export default function MapScreen() {
           <Parchment w={w} h={h} />
           {content.locations.map((loc) => {
             const open = !loc.comingSoon && meets(save, loc.requires);
+            // A place that's only waiting on the story can still be visited, to read why it's locked.
+            const visitable = open || !loc.comingSoon;
             const story = open && !!nextStory(content, save, loc.id);
             const go = () => {
               tapFeedback();
@@ -74,7 +76,7 @@ export default function MapScreen() {
             return (
               <Pressable
                 key={loc.id}
-                disabled={!open}
+                disabled={!visitable}
                 accessibilityRole="button"
                 accessibilityLabel={open ? loc.name : `${loc.name} (not yet)`}
                 onPress={go}

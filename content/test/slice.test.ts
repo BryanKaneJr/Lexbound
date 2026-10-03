@@ -4,8 +4,10 @@ import {
   applyEvents,
   chooseCommand,
   chooseEncounter,
+  comprehension,
   createRng,
   currentStep,
+  isTransfer,
   miloLevel,
   miloMaxHp,
   newSave,
@@ -14,6 +16,7 @@ import {
   startBattle,
   startEncounter,
   tilePresentation,
+  visibleNotes,
   type EncounterInput,
   type EncounterRun,
   type GameEvent,
@@ -22,11 +25,13 @@ import {
 import { content } from '../index';
 
 /**
- * Plays the vertical slice (bible §75) through the real engines and content,
- * the way a first-time player would, and checks the moments that matter:
- * acqua is learned in context before the battle, the ACQUA tile has lost its
- * icon by then while the untaught elements keep theirs, water wins, and the
- * story moves on.
+ * Plays Chapter One through the real engines and content, the way a
+ * first-time player would, and checks the moments the language design
+ * bible asks the MVP to prove (§79): acqua is inferred in context before the
+ * battle and its icon is gone by then; Milo's word for hunger comes back
+ * from a wild Pebblit (cross-creature transfer); a Translator misreads his
+ * own Lexling; enemy speech pays in battle; and the strange lines wait in
+ * the journal.
  */
 
 let now = 1_700_000_000_000;
@@ -92,7 +97,7 @@ class Player {
   }
 }
 
-describe('the vertical slice', () => {
+describe('chapter one', () => {
   const p = new Player();
 
   it('meets Milo at the Lodge: "Ciao!"', () => {
@@ -104,6 +109,20 @@ describe('the vertical slice', () => {
     expect(p.save.items.flask).toBe(1);
     expect(p.heard).toContain('milo.ciao');
     expect(p.save.concepts.hello?.successes).toBe(1);
+  });
+
+  it('first night at camp: "Fame...", the wrong thing first, then a line nobody can follow yet', () => {
+    expect(nextStory(content, p.save, 'camp')?.id).toBe('camp.first_meal');
+    p.start('camp.first_meal');
+    expect(p.until('give')?.type).toBe('give');
+    p.input({ type: 'give', item: 'stick' });
+    expect(p.until('give')?.type).toBe('give');
+    p.input({ type: 'give', item: 'sunberries' });
+    p.until();
+    expect(p.save.concepts.hungry?.successes).toBe(1);
+    expect(p.save.concepts.no?.exposures).toBeGreaterThan(0);
+    expect(p.heard).toContain('milo.memory');
+    expect(p.save.flags['camp.first_meal.done']).toBe(true);
   });
 
   it('Whisperwood opens with guarda and vieni', () => {
@@ -125,8 +144,21 @@ describe('the vertical slice', () => {
     p.choose('Splash');
     p.until();
     expect(p.save.concepts.water?.exposures).toBeGreaterThanOrEqual(2);
-    // Heard twice in one place: lighter than brand new, but never "known" without being used.
-    expect(p.level('water')).toBe(2);
+    // Heard twice, but in one situation only: still just exposure.
+    expect(comprehension(p.save.concepts.water, now)).toBe('exposed');
+    expect(p.level('water')).toBe(3);
+  });
+
+  it("a wild Pebblit says Milo's word: the first cross-creature transfer", () => {
+    expect(isTransfer(p.save.concepts.hungry, 'pebblit', now)).toBe(true);
+    expect(p.explore('whisperwood')).toBe('ww.hungry_pebblit');
+    expect(p.until('give')?.type).toBe('give');
+    expect([...(p.save.concepts.hungry?.speakers ?? [])].sort()).toEqual(['milo', 'pebblit']);
+    p.input({ type: 'give', item: 'sunberries' });
+    p.until();
+    expect(p.save.concepts.hungry?.successes).toBe(2);
+    expect(p.save.lexlings.pebblit?.befriended).toBe(true);
+    expect(visibleNotes(content, p.save).map((n) => n.id)).toContain('note.fame.transfer');
   });
 
   it('Milo asks for acqua on a hot path; the wrong things teach by contrast', () => {
@@ -136,33 +168,39 @@ describe('the vertical slice', () => {
     expect(p.until('give')?.type).toBe('give');
     p.input({ type: 'give', item: 'flask' });
     p.until();
-    expect(p.save.concepts.water?.successes).toBe(1);
+    expect(comprehension(p.save.concepts.water, now)).toBe('demonstrated');
   });
 
   it('by the first battle, ACQUA has lost its icon and the untaught elements keep theirs', () => {
     const settings = { persistentIcons: false };
-    expect(p.level('water')).toBeLessThanOrEqual(1);
+    expect(p.level('water')).toBe(1);
     expect(tilePresentation(p.level('water'), settings).icon).toBe(false);
     for (const c of ['fire', 'earth', 'wind']) expect(tilePresentation(p.level(c), settings).icon).toBe(true);
   });
 
-  it('the Emberhog announces "Fuoco!"; ACQUA douses it and wins', () => {
+  it('the Emberhog announces each move: ACQUA douses "Fuoco!", TERRA walls off "All\'attacco!"', () => {
     expect(p.explore('whisperwood')).toBe('ww.emberhog');
     expect(p.until('battle')?.type).toBe('battle');
     const level = miloLevel(p.save);
     let b = startBattle(content, 'emberhog', { level, maxHp: miloMaxHp(content, level), context: 'ww.emberhog', seed: p.save.seed });
     p.apply(b.events);
     expect(b.beats).toContainEqual({ type: 'say', speaker: 'emberhog', line: 'emberhog.fuoco' });
+    const plan = { flame_spit: 'water', charge: 'earth' } as Record<string, string>;
     let rounds = 0;
     while (b.state.outcome === 'ongoing') {
-      b = chooseCommand(content, b.state, 'water');
+      const announced = content.lexling.get('emberhog')!.battle!.moves[b.state.intent]!.ability;
+      b = chooseCommand(content, b.state, plan[announced]!);
       p.apply(b.events);
       rounds++;
-      if (rounds === 1) expect(b.beats).toContainEqual({ type: 'countered', ability: 'flame_spit' });
+      if (rounds === 1) expect(b.beats).toContainEqual({ type: 'countered', ability: 'flame_spit', by: 'water' });
+      if (rounds === 2) expect(b.beats).toContainEqual({ type: 'countered', ability: 'charge', by: 'earth' });
     }
     expect(b.state.outcome).toBe('win');
     expect(rounds).toBe(3);
-    expect(b.state.milo.hp).toBeGreaterThan(0);
+    // Listening paid: nothing landed on Milo.
+    expect(b.state.milo.hp).toBe(b.state.milo.maxHp);
+    // Walling off the charge, instead of the obvious water, shows the announcement was understood.
+    expect(comprehension(p.save.concepts.attack, now)).toBe('demonstrated');
     p.input({ type: 'battle', result: 'win' });
     p.until();
     expect(p.save.flags['ww.emberhog.won']).toBe(true);
@@ -170,18 +208,30 @@ describe('the vertical slice', () => {
     expect(p.save.milo.xp).toBeGreaterThanOrEqual(30);
   });
 
-  it('back at camp Milo retells it; at the Lodge the chapter closes', () => {
+  it('back at camp Milo retells it, playing the Emberhog himself', () => {
     expect(nextStory(content, p.save, 'camp')?.id).toBe('camp.retell');
     p.start('camp.retell');
     p.choose('Laugh');
     p.until();
+    expect([...(p.save.concepts.attack?.speakers ?? [])].sort()).toEqual(['emberhog', 'milo']);
     expect(nextStory(content, p.save, 'camp')).toBeUndefined();
+  });
 
-    expect(p.explore('lodge')).toBe('lodge.report');
-    p.choose('He wants water');
+  it('two Puffkins whisper about Milo', () => {
+    expect(p.explore('whisperwood')).toBe('ww.whispers');
+    p.choose('Wave');
     p.until();
+    expect(p.heard).toEqual(expect.arrayContaining(['puffkin.whisper.guarda', 'puffkin.whisper.si']));
+    expect(p.save.concepts.look?.speakers).toContain('puffkin');
+  });
+
+  it("at the Lodge, Pip misreads his own Lexling; the player can tell", () => {
+    expect(p.explore('lodge')).toBe('lodge.report');
+    p.choose('Offer Bluster a sunberry');
+    p.until();
+    expect([...(p.save.concepts.hungry?.speakers ?? [])].sort()).toEqual(['milo', 'pebblit', 'puffkin']);
     expect(p.save.flags['chapter1.done']).toBe(true);
-    expect(p.save.journal.entries).toEqual(expect.arrayContaining(['story.met_milo', 'story.emberhog', 'story.report']));
+    expect(p.save.journal.entries).toEqual(expect.arrayContaining(['story.met_milo', 'story.first_night', 'story.pebblit', 'story.emberhog', 'story.whispers', 'story.report']));
   });
 
   it('afterwards, Whisperwood keeps offering varied encounters', () => {

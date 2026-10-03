@@ -22,6 +22,8 @@ export const conceptSchema = z.object({
   category: z.enum(['greeting', 'answer', 'element', 'action', 'feeling', 'thing', 'describe', 'place', 'social']),
   /** Curriculum stage (bible §28). 1 = immediate physical concepts. */
   stage: z.number().int().min(1).max(8),
+  /** A single word, or a chunk learned whole before it's taken apart ("ho fame", language bible §63). */
+  type: z.enum(['word', 'phrase']).default('word'),
   /** An icon the app can show beside the word while the concept is new (heavy scaffolding). */
   icon: z.string().optional(),
 });
@@ -50,8 +52,27 @@ export const lineSchema = z.object({
   clue: z.string().optional(),
   /** "strange" lines are kept in the journal for later understanding (bible §34). */
   journal: z.enum(['strange']).optional(),
+  /** Deliberately teaches nothing: a growl, an "Ops!", chatter (language bible §78). Untagged lines must say so. */
+  chatter: z.boolean().default(false),
 });
 export type Line = z.infer<typeof lineSchema>;
+
+/**
+ * The protagonist's field notes (language bible §41): observations about
+ * the Lexlings, never definitions. Each appears once its trigger is true:
+ *   heard     the concept was heard (from `speaker`, if set);
+ *   noticed   it was met in at least two different situations;
+ *   used      the player acted on it correctly;
+ *   transfer  it was heard from at least two different speakers.
+ */
+export const fieldNoteSchema = z.object({
+  id,
+  concept: id,
+  when: z.enum(['heard', 'noticed', 'used', 'transfer']),
+  speaker: id.optional(),
+  text: z.string(),
+});
+export type FieldNote = z.infer<typeof fieldNoteSchema>;
 
 // ---------------------------------------------------------------- world
 
@@ -87,6 +108,11 @@ export const abilitySchema = z.object({
   name: z.string(),
   element: id.nullable(),
   power: z.number().int().min(1),
+  /**
+   * Foe moves this cancels when Milo uses it during their wind-up: element ids, or "physical" for
+   * moves with no element. Water puts out a fire move; a stone wall stops a charge.
+   */
+  counters: z.array(z.string()).default([]),
 });
 export type Ability = z.infer<typeof abilitySchema>;
 
@@ -156,6 +182,8 @@ export const miloSchema = z.object({
   reactions: reactionsSchema,
   /** What Milo might say when tapped at camp. */
   idle: z.array(id).min(1),
+  /** Camp: what he says when he's peckish, and when you share a snack. */
+  camp: z.object({ hungry: id, snack: id }),
 });
 export type Milo = z.infer<typeof miloSchema>;
 
@@ -193,6 +221,8 @@ export const locationSchema = z.object({
   action: z.string().optional(),
   /** Shown when nothing is available here right now. */
   quiet: z.string().optional(),
+  /** Shown while `requires` isn't met yet. */
+  locked: z.string().optional(),
   requires: conditionSchema.optional(),
   /** On the map but not playable yet: the world is bigger than the build. */
   comingSoon: z.boolean().default(false),
@@ -332,18 +362,38 @@ export const stepSchema = z.discriminatedUnion('type', [
 export type Step = z.infer<typeof stepSchema>;
 export type StepOf<T extends Step['type']> = Extract<Step, { type: T }>;
 
+/**
+ * Why the language in an encounter can be understood (language bible §64,
+ * §65). Every encounter with creature lines declares it, so no scene exists
+ * only to show a word.
+ */
+export const groundingTypes = ['gesture', 'object', 'animation', 'environment', 'contrast', 'consequence', 'priorKnowledge'] as const;
+
+export const teachingSchema = z.object({
+  /** Why this happens, as a story and as a game, without mentioning language. */
+  purpose: z.string().min(1),
+  /** Concepts this scene can be the first to establish. Each needs grounding. */
+  introduces: z.array(id).default([]),
+  /** Concepts this scene uses that are established elsewhere. */
+  reinforces: z.array(id).default([]),
+  /** What on screen makes each introduced concept inferable without English. */
+  grounding: z.array(z.object({ concept: id, type: z.enum(groundingTypes), how: z.string().min(1) })).default([]),
+});
+export type Teaching = z.infer<typeof teachingSchema>;
+
 export const encounterSchema = z.object({
   id,
   location: id,
   title: z.string(),
   kind: z.enum(['story', 'explore']),
-  /** Story encounters run in this order, ahead of anything else at their location. */
+  /** Story order, one sequence for the whole game. Story beats run ahead of anything else at their location. */
   order: z.number().int().optional(),
   weight: z.number().min(0).default(10),
   repeatable: z.boolean().default(false),
   /** After it runs, skip it for this many explores at its location. */
   cooldown: z.number().int().min(0).default(2),
   requires: conditionSchema.optional(),
+  teaching: teachingSchema.optional(),
   scene: sceneSchema,
   steps: z.array(stepSchema).min(1),
 });
@@ -364,6 +414,7 @@ export const contentSchema = z.object({
   items: z.array(itemSchema),
   locations: z.array(locationSchema),
   journal: z.array(journalEntrySchema),
+  notes: z.array(fieldNoteSchema).default([]),
   encounters: z.array(encounterSchema),
 });
 export type ContentInput = z.input<typeof contentSchema>;

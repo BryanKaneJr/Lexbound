@@ -1,22 +1,80 @@
 {
-  "voice": { "pitch": 1.6, "rate": 1.0 },
-  "hp": { "base": 40, "perLevel": 6 },
+  "voice": {
+    "pitch": 1.6,
+    "rate": 1.0
+  },
+  "hp": {
+    "base": 40,
+    "perLevel": 6
+  },
   "powerPerLevel": 0.1,
   "commands": [
-    { "id": "water", "concepts": ["water"], "ability": "water_bolt" },
-    { "id": "fire", "concepts": ["fire"], "ability": "flame_burst" },
-    { "id": "earth", "concepts": ["earth"], "ability": "stone_strike" },
-    { "id": "wind", "concepts": ["wind"], "ability": "gust" }
+    {
+      "id": "water",
+      "concepts": [
+        "water"
+      ],
+      "ability": "water_bolt"
+    },
+    {
+      "id": "fire",
+      "concepts": [
+        "fire"
+      ],
+      "ability": "flame_burst"
+    },
+    {
+      "id": "earth",
+      "concepts": [
+        "earth"
+      ],
+      "ability": "stone_strike"
+    },
+    {
+      "id": "wind",
+      "concepts": [
+        "wind"
+      ],
+      "ability": "gust"
+    }
   ],
   "reactions": {
-    "start": ["milo.attento"],
-    "strong": ["milo.si", "milo.bravo"],
-    "absorbed": ["milo.no.no"],
-    "fanned": ["milo.ops"],
-    "lowHp": ["milo.ahi"],
-    "victory": ["milo.bravo", "milo.si.si"],
-    "defeat": ["milo.no"],
-    "warn": ["milo.attento"]
+    "start": [
+      "milo.attento"
+    ],
+    "strong": [
+      "milo.si",
+      "milo.bravo"
+    ],
+    "absorbed": [
+      "milo.no.no"
+    ],
+    "fanned": [
+      "milo.ops"
+    ],
+    "lowHp": [
+      "milo.ahi"
+    ],
+    "victory": [
+      "milo.bravo",
+      "milo.si.si"
+    ],
+    "defeat": [
+      "milo.no"
+    ],
+    "warn": [
+      "milo.attento"
+    ]
   },
-  "idle": ["milo.ciao", "milo.mmm", "milo.si", "milo.amico", "milo.ciao.ciao"]
+  "idle": [
+    "milo.ciao",
+    "milo.mmm",
+    "milo.si",
+    "milo.amico",
+    "milo.ciao.ciao"
+  ],
+  "camp": {
+    "hungry": "milo.fame",
+    "snack": "milo.buono.grazie"
+  }
 }
