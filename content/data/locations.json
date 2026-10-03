@@ -1,0 +1,34 @@
+[
+  {
+    "id": "camp",
+    "name": "Camp",
+    "kind": "home",
+    "background": "camp",
+    "blurb": "Your little camp at the edge of the meadow. Milo's favourite spot is by the fire.",
+    "map": { "x": 0.3, "y": 0.62 }
+  },
+  {
+    "id": "lodge",
+    "name": "Translators' Lodge",
+    "kind": "hub",
+    "background": "lodge",
+    "blurb": "Where Lexora's Translators trade notes, tea and tall tales. Maren keeps the kettle on.",
+    "action": "Visit Maren",
+    "quiet": "Maren is buried in paperwork. Try again in a bit.",
+    "map": { "x": 0.55, "y": 0.78 }
+  },
+  {
+    "id": "whisperwood",
+    "name": "Whisperwood",
+    "kind": "explore",
+    "background": "forest_path",
+    "blurb": "Old trees, soft moss and a cold, chattering stream. Gentle enough for new Translators, mostly.",
+    "action": "Explore",
+    "quiet": "Whisperwood is quiet for now. Milo yawns.",
+    "requires": { "flags": ["intro.done"] },
+    "map": { "x": 0.22, "y": 0.34 }
+  },
+  { "id": "riverlands", "name": "Riverlands", "kind": "explore", "background": "forest_stream", "blurb": "Wide water and wider skies.", "comingSoon": true, "map": { "x": 0.62, "y": 0.45 } },
+  { "id": "mountains", "name": "Ember Ridge", "kind": "explore", "background": "sunny_path", "blurb": "Where the Emberhogs are supposed to stay.", "comingSoon": true, "map": { "x": 0.78, "y": 0.18 } },
+  { "id": "coast", "name": "Saltglass Coast", "kind": "explore", "background": "forest_stream", "blurb": "The sea, and things that live in it.", "comingSoon": true, "map": { "x": 0.85, "y": 0.62 } }
+]

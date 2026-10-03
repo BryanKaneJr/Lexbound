@@ -1,0 +1,18 @@
+[
+  { "id": "hello", "gloss": "hello / bye", "category": "greeting", "stage": 1 },
+  { "id": "yes", "gloss": "yes", "category": "answer", "stage": 1 },
+  { "id": "no", "gloss": "no", "category": "answer", "stage": 1 },
+  { "id": "look", "gloss": "look", "category": "action", "stage": 1 },
+  { "id": "come", "gloss": "come", "category": "action", "stage": 1 },
+  { "id": "here", "gloss": "here", "category": "place", "stage": 1 },
+  { "id": "water", "gloss": "water", "category": "element", "stage": 1, "icon": "water" },
+  { "id": "fire", "gloss": "fire", "category": "element", "stage": 1, "icon": "fire" },
+  { "id": "earth", "gloss": "earth", "category": "element", "stage": 1, "icon": "earth" },
+  { "id": "wind", "gloss": "wind", "category": "element", "stage": 1, "icon": "wind" },
+  { "id": "careful", "gloss": "watch out", "category": "feeling", "stage": 1 },
+  { "id": "thanks", "gloss": "thank you", "category": "social", "stage": 1 },
+  { "id": "good", "gloss": "well done", "category": "social", "stage": 1 },
+  { "id": "tasty", "gloss": "tasty / good", "category": "describe", "stage": 1 },
+  { "id": "hungry", "gloss": "hunger", "category": "feeling", "stage": 1 },
+  { "id": "friend", "gloss": "friend", "category": "social", "stage": 1 }
+]

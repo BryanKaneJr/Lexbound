@@ -1,0 +1,8 @@
+[
+  { "id": "flask", "name": "Water Flask", "description": "Maren's old flask. Lexlings get thirsty on the road.", "icon": "flask" },
+  { "id": "sunberries", "name": "Sunberries", "description": "A pouch of sweet, sticky berries. They grow all over Lexora, so the pouch never stays empty for long.", "icon": "berries" },
+  { "id": "stick", "name": "Good Stick", "description": "Every adventurer needs a good stick, says Maren. Milo is not convinced.", "icon": "stick" },
+  { "id": "charm", "name": "Translator's Charm", "description": "A carved wooden charm. Every Translator carries one. Maren wouldn't say why.", "icon": "charm" },
+  { "id": "shiny_stone", "name": "Shiny Stone", "description": "Milo found it in Whisperwood. It glows faintly whenever he's close.", "icon": "stone" },
+  { "id": "feather", "name": "Puffkin Fluff", "description": "A wisp a Puffkin left behind. It drifts upward if you let go.", "icon": "feather" }
+]

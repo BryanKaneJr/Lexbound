@@ -1,0 +1,29 @@
+{
+  "name": "lexbound",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Lexbound: an offline creature-companion RPG set in Lexora, where the Lexlings speak Italian.",
+  "workspaces": [
+    "app",
+    "packages/*",
+    "content"
+  ],
+  "scripts": {
+    "app": "npm run start -w @lexbound/app",
+    "web": "npm run web -w @lexbound/app",
+    "test": "npm run test -w @lexbound/core && npm run test -w @lexbound/content",
+    "typecheck": "npm run typecheck -w @lexbound/core && npm run typecheck -w @lexbound/content && npm run typecheck -w @lexbound/app",
+    "lint": "npm run lint -w @lexbound/app",
+    "lint:copy": "node scripts/copy-lint.mjs",
+    "sfx": "node scripts/make-sfx.mjs",
+    "check": "npm run typecheck && npm run lint && npm run lint:copy && npm test && npm run sfx -- --check",
+    "e2e": "bash e2e/run.sh",
+    "screens": "bash e2e/run.sh screens"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}

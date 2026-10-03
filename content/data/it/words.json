@@ -1,0 +1,18 @@
+[
+  { "concept": "hello", "word": "ciao" },
+  { "concept": "yes", "word": "sì" },
+  { "concept": "no", "word": "no" },
+  { "concept": "look", "word": "guarda" },
+  { "concept": "come", "word": "vieni" },
+  { "concept": "here", "word": "qui" },
+  { "concept": "water", "word": "acqua", "forms": ["l'acqua"] },
+  { "concept": "fire", "word": "fuoco", "forms": ["il fuoco"] },
+  { "concept": "earth", "word": "terra" },
+  { "concept": "wind", "word": "vento" },
+  { "concept": "careful", "word": "attento" },
+  { "concept": "thanks", "word": "grazie" },
+  { "concept": "good", "word": "bravo" },
+  { "concept": "tasty", "word": "buono" },
+  { "concept": "hungry", "word": "fame" },
+  { "concept": "friend", "word": "amico" }
+]

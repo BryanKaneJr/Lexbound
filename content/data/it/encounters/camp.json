@@ -1,0 +1,34 @@
+[
+  {
+    "id": "camp.retell",
+    "location": "camp",
+    "title": "Milo tells it his way",
+    "kind": "story",
+    "order": 1,
+    "requires": { "flags": ["ww.emberhog.won"] },
+    "scene": {
+      "background": "camp",
+      "props": [{ "id": "fire", "art": "campfire", "x": 0.74, "y": 0.9, "scale": 0.9 }],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.4, "y": 0.86, "mood": "excited" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Back at camp, Milo can't sit still." },
+      { "type": "say", "line": "milo.fuoco.grrr", "anim": "puff", "mood": "fierce" },
+      { "type": "act", "actor": "milo", "anim": "cast", "mood": "excited", "text": "He flings his paws out wide, like he's throwing a wave." },
+      { "type": "say", "line": "milo.acqua.acqua", "anim": "splash", "mood": "excited" },
+      { "type": "act", "actor": "milo", "anim": "slump", "mood": "tired", "text": "Then he flops onto his back: a very soggy Emberhog." },
+      { "type": "act", "actor": "milo", "anim": "hop", "mood": "proud", "text": "He springs up and points at you." },
+      { "type": "say", "line": "milo.bravo", "anim": "clap", "mood": "proud" },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Laugh", "goto": "done", "effects": { "bond": 2 } },
+          { "label": "Clap back", "goto": "done", "effects": { "bond": 2 } }
+        ]
+      },
+      { "id": "done", "type": "say", "line": "milo.amico", "anim": "hug", "mood": "happy" },
+      { "type": "reward", "effects": { "flags": ["camp.retell.done"], "journal": ["milo.retell"] } },
+      { "type": "end" }
+    ]
+  }
+]

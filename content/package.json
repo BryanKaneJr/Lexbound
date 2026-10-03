@@ -1,0 +1,20 @@
+{
+  "name": "@lexbound/content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Lexbound's game content as data: concepts, creature lines, Lexlings, places and encounters. Validated against @lexbound/core's schema.",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lexbound/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

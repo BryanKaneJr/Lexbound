@@ -1,0 +1,441 @@
+[
+  {
+    "id": "ww.first_steps",
+    "location": "whisperwood",
+    "title": "Something in the bushes",
+    "kind": "story",
+    "order": 1,
+    "scene": {
+      "background": "forest_path",
+      "props": [
+        { "id": "log", "art": "log", "x": 0.18, "y": 0.92, "scale": 0.9 },
+        { "id": "bush", "art": "bush", "x": 0.76, "y": 0.86 },
+        { "id": "stone", "art": "shiny_stone", "x": 0.7, "y": 0.9, "hidden": true },
+        { "id": "mushroom", "art": "mushroom", "x": 0.5, "y": 0.93, "scale": 0.8 }
+      ],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.34, "y": 0.86, "mood": "happy" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Whisperwood. Tall trees, soft moss, and a hundred small sounds you can't place." },
+      { "type": "act", "actor": "milo", "anim": "sniff", "mood": "curious", "text": "Milo's ears swivel. He freezes." },
+      { "type": "say", "line": "milo.guarda", "anim": "point", "mood": "excited", "look": "bush" },
+      {
+        "id": "look",
+        "type": "tap",
+        "targets": [{ "prop": "bush", "goto": "found", "evidence": [{ "concept": "look", "result": "success" }] }],
+        "otherwise": { "goto": "again" }
+      },
+      { "id": "again", "type": "say", "line": "milo.guarda", "anim": "point", "mood": "annoyed", "look": "bush", "next": "look" },
+      { "id": "found", "type": "act", "actor": "bush", "anim": "shake", "text": "You part the leaves." },
+      { "type": "stage", "show": ["stone"] },
+      { "type": "narrate", "text": "Behind the bush: a smooth stone that shimmers faintly. When Milo leans close, it glows a little brighter." },
+      { "type": "act", "actor": "milo", "anim": "bounce", "mood": "excited", "look": "stone", "text": "Milo is thrilled. You pocket it for him." },
+      { "type": "reward", "effects": { "items": { "shiny_stone": 1 } } },
+      { "type": "stage", "hide": ["stone"], "move": [{ "id": "milo", "x": 0.82 }] },
+      { "type": "say", "line": "milo.vieni", "anim": "beckon", "mood": "happy" },
+      {
+        "id": "choose",
+        "type": "choice",
+        "options": [
+          { "label": "Follow Milo", "goto": "follow", "evidence": [{ "concept": "come", "result": "success" }] },
+          { "label": "Stay put", "goto": "stay" }
+        ]
+      },
+      { "id": "stay", "type": "act", "actor": "milo", "anim": "tug", "mood": "annoyed", "text": "Milo trots back, grabs your sleeve and tugs." },
+      { "type": "say", "line": "milo.vieni.qui", "anim": "beckon", "mood": "happy" },
+      {
+        "type": "choice",
+        "options": [{ "label": "Follow Milo", "goto": "follow", "evidence": [{ "concept": "come", "result": "success" }] }]
+      },
+      { "id": "follow", "type": "narrate", "text": "You follow Milo deeper into the trees, toward the sound of running water." },
+      { "type": "reward", "effects": { "bond": 1, "flags": ["ww.first_steps.done"], "journal": ["story.whisperwood", "places.whisperwood"] } },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.stream",
+    "location": "whisperwood",
+    "title": "The stream",
+    "kind": "story",
+    "order": 2,
+    "scene": {
+      "background": "forest_stream",
+      "props": [{ "id": "stream", "art": "ripple", "x": 0.5, "y": 0.8 }],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.26, "y": 0.9, "mood": "happy" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "The trees open onto a bright, chattering stream." },
+      { "type": "act", "actor": "milo", "anim": "run", "mood": "excited", "text": "Milo races to the water's edge." },
+      { "type": "stage", "move": [{ "id": "milo", "x": 0.5, "y": 0.86 }] },
+      { "type": "act", "actor": "milo", "anim": "drink", "mood": "happy", "look": "stream", "text": "He laps at the water, then slaps it with both paws." },
+      { "type": "say", "line": "milo.acqua", "anim": "point", "mood": "excited", "look": "stream" },
+      {
+        "id": "what",
+        "type": "choice",
+        "options": [
+          { "label": "Splash Milo", "goto": "splash", "effects": { "bond": 2 } },
+          { "label": "Drink from the stream", "goto": "drink", "effects": { "bond": 1 } },
+          { "label": "Keep walking", "goto": "walk" }
+        ]
+      },
+      { "id": "splash", "type": "act", "actor": "milo", "anim": "shake", "mood": "surprised", "text": "Milo sputters, shakes himself off, and splashes you right back." },
+      { "type": "say", "line": "milo.acqua.acqua", "anim": "splash", "mood": "excited", "next": "out" },
+      { "id": "drink", "type": "act", "actor": "milo", "anim": "drink", "mood": "happy", "text": "You cup your hands and drink. It's cold and sweet. Milo copies you, slurping loudly." },
+      { "type": "say", "line": "milo.acqua.acqua", "anim": "bounce", "mood": "excited", "next": "out" },
+      { "id": "walk", "type": "act", "actor": "milo", "anim": "droop", "mood": "sad", "text": "Milo looks at the stream. Then at you. He isn't done with it." },
+      { "type": "say", "line": "milo.acqua", "anim": "point", "mood": "sad", "look": "stream" },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Splash Milo", "goto": "splash", "effects": { "bond": 2 } },
+          { "label": "Let him play", "goto": "play", "effects": { "bond": 1 } }
+        ]
+      },
+      { "id": "play", "type": "act", "actor": "milo", "anim": "splash", "mood": "excited", "text": "Milo kicks happily through the shallows." },
+      { "type": "say", "line": "milo.acqua.acqua", "anim": "splash", "mood": "excited" },
+      { "id": "out", "type": "narrate", "text": "Eventually Milo climbs out, dripping and very pleased with himself." },
+      { "type": "reward", "effects": { "flags": ["ww.stream.done"] } },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.thirsty",
+    "location": "whisperwood",
+    "title": "A hot path",
+    "kind": "story",
+    "order": 3,
+    "scene": {
+      "background": "sunny_path",
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.42, "y": 0.86, "mood": "tired" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "The path climbs out of the trees into hot, bright sun. The stream is far behind you now." },
+      { "type": "act", "actor": "milo", "anim": "pant", "mood": "tired", "text": "Milo's tongue lolls. He drags his paws." },
+      { "type": "say", "line": "milo.acqua.thirsty", "anim": "droop", "mood": "tired" },
+      {
+        "id": "give",
+        "type": "give",
+        "prompt": "Milo looks up at your bag.",
+        "items": [
+          { "item": "flask", "goto": "drink", "evidence": [{ "concept": "water", "result": "success" }] },
+          { "item": "sunberries", "goto": "berries", "evidence": [{ "concept": "water", "result": "fail" }] },
+          { "item": "stick", "goto": "stick", "evidence": [{ "concept": "water", "result": "fail" }] }
+        ]
+      },
+      { "id": "berries", "type": "act", "actor": "milo", "anim": "eat", "mood": "happy", "text": "Milo munches a berry." },
+      { "type": "say", "line": "milo.buono", "anim": "eat", "mood": "happy" },
+      { "type": "act", "actor": "milo", "anim": "pant", "mood": "tired", "text": "Then he looks up at you, still panting." },
+      { "type": "say", "line": "milo.acqua.thirsty", "anim": "droop", "mood": "tired", "next": "give" },
+      { "id": "stick", "type": "act", "actor": "milo", "anim": "tilt", "mood": "confused", "text": "Milo stares at the stick. Then at you." },
+      { "type": "say", "line": "milo.no", "anim": "shake", "mood": "annoyed" },
+      { "type": "say", "line": "milo.acqua.thirsty", "anim": "droop", "mood": "tired", "next": "give" },
+      { "id": "drink", "type": "act", "actor": "milo", "anim": "drink", "mood": "happy", "text": "Milo drains the whole flask in one long, noisy gulp." },
+      { "type": "say", "line": "milo.si.acqua", "anim": "bounce", "mood": "excited" },
+      { "type": "say", "line": "milo.grazie", "anim": "bow", "mood": "happy" },
+      { "type": "reward", "effects": { "bond": 3, "flags": ["ww.thirsty.done"] } },
+      { "type": "narrate", "text": "Milo perks right up. Then his ears go flat. Something is crashing through the ferns, back toward the stream." },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.emberhog",
+    "location": "whisperwood",
+    "title": "The Emberhog",
+    "kind": "story",
+    "order": 4,
+    "scene": {
+      "background": "forest_stream",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.3, "y": 0.9, "mood": "curious" },
+        { "id": "emberhog", "art": "emberhog", "x": 0.74, "y": 0.9, "facing": "left", "hidden": true, "mood": "angry" }
+      ]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Back at the stream, the ferns part." },
+      { "type": "stage", "show": ["emberhog"] },
+      { "type": "act", "actor": "emberhog", "anim": "stomp", "mood": "angry", "text": "A Lexling bristling with smouldering quills stamps out of the trees. An Emberhog. Its eyes lock onto Milo." },
+      { "type": "say", "line": "milo.attento", "anim": "crouch", "mood": "scared" },
+      { "type": "battle", "enemy": "emberhog", "win": "won", "lose": "lost" },
+      { "id": "won", "type": "act", "actor": "emberhog", "anim": "stagger", "mood": "hurt", "text": "The Emberhog staggers back, steaming. Then it looks at Milo. Really looks." },
+      { "type": "say", "line": "emberhog.found", "mood": "hurt" },
+      { "type": "act", "actor": "emberhog", "anim": "flee", "text": "It turns and crashes away into the trees." },
+      { "type": "stage", "hide": ["emberhog"] },
+      { "type": "act", "actor": "milo", "anim": "tilt", "mood": "confused", "text": "Milo stares after it, ears twitching." },
+      { "type": "reward", "effects": { "bond": 3, "flags": ["ww.emberhog.won"], "journal": ["story.emberhog"] } },
+      { "type": "narrate", "text": "Maren will want to hear about this." },
+      { "type": "end" },
+      { "id": "lost", "type": "narrate", "text": "Milo is worn out. You scoop him up and back away, and the Emberhog lets you go." },
+      { "type": "act", "actor": "milo", "anim": "droop", "mood": "tired", "text": "Milo glances back at the stream as you go." },
+      { "type": "end", "complete": false }
+    ]
+  },
+  {
+    "id": "ww.drizzlet",
+    "location": "whisperwood",
+    "title": "Something shiny in the stream",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 10,
+    "scene": {
+      "background": "forest_stream",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.3, "y": 0.9, "mood": "curious" },
+        { "id": "drizzlet", "art": "drizzlet", "x": 0.66, "y": 0.8, "facing": "left" }
+      ]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Something small and shiny is bobbing in the stream." },
+      { "type": "say", "line": "drizzlet.acqua", "anim": "bob" },
+      { "type": "act", "actor": "milo", "anim": "hop", "mood": "excited", "text": "Milo's tail goes wild." },
+      { "type": "say", "line": "milo.ciao", "anim": "wave", "mood": "happy" },
+      { "type": "say", "line": "drizzlet.ciao", "anim": "bob" },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Wave hello", "goto": "wave" },
+          { "label": "Splash it", "goto": "splash" },
+          { "label": "Leave it be", "goto": "leave" }
+        ]
+      },
+      { "id": "wave", "type": "say", "line": "drizzlet.amico", "anim": "bob" },
+      { "type": "say", "line": "milo.si.amico", "anim": "nod", "mood": "excited" },
+      { "type": "reward", "effects": { "bond": 1, "befriend": ["drizzlet"] } },
+      { "type": "end" },
+      { "id": "splash", "type": "act", "actor": "drizzlet", "anim": "splash", "text": "The Drizzlet splashes back twice as hard. Milo is delighted." },
+      { "type": "say", "line": "drizzlet.acqua", "anim": "bob" },
+      { "type": "say", "line": "milo.acqua.acqua", "anim": "splash", "mood": "excited" },
+      { "type": "end" },
+      { "id": "leave", "type": "say", "line": "drizzlet.ciao.bye", "anim": "float" },
+      { "type": "stage", "hide": ["drizzlet"] },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.pebblit",
+    "location": "whisperwood",
+    "title": "A very interesting rock",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 10,
+    "scene": {
+      "background": "forest_clearing",
+      "props": [
+        { "id": "rock", "art": "rock_big", "x": 0.72, "y": 0.9 },
+        { "id": "pebbles", "art": "rock_small", "x": 0.14, "y": 0.92 },
+        { "id": "mushroom", "art": "mushroom", "x": 0.5, "y": 0.93 }
+      ],
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.32, "y": 0.86, "mood": "curious" },
+        { "id": "pebblit", "art": "pebblit", "x": 0.72, "y": 0.93, "facing": "left", "hidden": true, "mood": "scared" }
+      ]
+    },
+    "steps": [
+      { "type": "act", "actor": "milo", "anim": "sniff", "mood": "curious", "look": "rock", "text": "Milo is staring very hard at a rock." },
+      { "type": "say", "line": "milo.guarda", "anim": "point", "mood": "excited", "look": "rock" },
+      {
+        "id": "tap",
+        "type": "tap",
+        "targets": [{ "prop": "rock", "goto": "peek", "evidence": [{ "concept": "look", "result": "success" }] }],
+        "otherwise": { "goto": "nope" }
+      },
+      { "id": "nope", "type": "say", "line": "milo.guarda.qui", "anim": "point", "mood": "annoyed", "look": "rock", "next": "tap" },
+      { "id": "peek", "type": "stage", "show": ["pebblit"] },
+      { "type": "act", "actor": "pebblit", "anim": "peek", "mood": "scared", "text": "Two pebbly eyes blink up at you from under the rock." },
+      { "type": "say", "line": "pebblit.terra", "anim": "dig" },
+      {
+        "type": "give",
+        "prompt": "The little Lexling watches you warily.",
+        "to": "pebblit",
+        "items": [
+          { "item": "sunberries", "goto": "share" },
+          { "item": "stick", "goto": "poke" },
+          { "item": "flask", "goto": "flask" }
+        ]
+      },
+      { "id": "share", "type": "say", "line": "pebblit.buono", "anim": "eat", "mood": "happy" },
+      { "type": "say", "line": "pebblit.grazie", "anim": "nod", "mood": "happy" },
+      { "type": "reward", "effects": { "bond": 1, "befriend": ["pebblit"] } },
+      { "type": "end" },
+      { "id": "poke", "type": "say", "line": "pebblit.no", "anim": "shake", "mood": "scared" },
+      { "type": "act", "actor": "pebblit", "anim": "hide", "text": "It curls into a tight little ball." },
+      { "type": "say", "line": "milo.no", "anim": "shake", "mood": "annoyed" },
+      { "type": "end" },
+      { "id": "flask", "type": "act", "actor": "pebblit", "anim": "tilt", "mood": "confused", "text": "It sniffs the flask, unimpressed, and burrows a little deeper." },
+      { "type": "say", "line": "pebblit.terra", "anim": "dig" },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.puffkin",
+    "location": "whisperwood",
+    "title": "A puff on the breeze",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 10,
+    "scene": {
+      "background": "forest_clearing",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.3, "y": 0.86, "mood": "curious" },
+        { "id": "puffkin", "art": "puffkin", "x": 0.68, "y": 0.45, "facing": "left" }
+      ]
+    },
+    "steps": [
+      { "type": "narrate", "text": "A warm gust sweeps through the clearing, carrying a fluffy little puff with it." },
+      { "type": "say", "line": "puffkin.vento", "anim": "spin" },
+      { "type": "act", "actor": "milo", "anim": "jump", "mood": "excited", "text": "Milo leaps for it and misses by a mile." },
+      { "type": "say", "line": "milo.vento", "anim": "spread", "mood": "excited" },
+      { "type": "say", "line": "puffkin.vieni", "anim": "bob" },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Follow the puff", "goto": "follow", "evidence": [{ "concept": "come", "result": "success" }] },
+          { "label": "Stay with Milo", "goto": "stay" }
+        ]
+      },
+      { "id": "follow", "type": "narrate", "text": "It leads you to a sunny hollow, spins three times, and leaves a wisp of fluff behind." },
+      { "type": "say", "line": "puffkin.ciao", "anim": "float" },
+      { "type": "reward", "effects": { "items": { "feather": 1 }, "befriend": ["puffkin"] } },
+      { "type": "end" },
+      { "id": "stay", "type": "say", "line": "puffkin.ciao", "anim": "float" },
+      { "type": "stage", "hide": ["puffkin"] },
+      { "type": "act", "actor": "milo", "anim": "droop", "mood": "sad", "text": "Milo watches it drift away over the trees." },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.hungry",
+    "location": "whisperwood",
+    "title": "A rumbling belly",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 9,
+    "scene": {
+      "background": "forest_path",
+      "props": [{ "id": "log", "art": "log", "x": 0.42, "y": 0.92 }],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.42, "y": 0.84, "mood": "tired" }]
+    },
+    "steps": [
+      { "type": "act", "actor": "milo", "anim": "slump", "mood": "tired", "text": "Milo flops down on a mossy log. His belly growls." },
+      { "type": "say", "line": "milo.fame", "anim": "rub", "mood": "tired" },
+      {
+        "id": "give",
+        "type": "give",
+        "items": [
+          { "item": "sunberries", "goto": "eat", "evidence": [{ "concept": "hungry", "result": "success" }] },
+          { "item": "flask", "goto": "drink", "evidence": [{ "concept": "hungry", "result": "fail" }] },
+          { "item": "stick", "goto": "stick", "evidence": [{ "concept": "hungry", "result": "fail" }] }
+        ]
+      },
+      { "id": "eat", "type": "say", "line": "milo.buono.grazie", "anim": "eat", "mood": "happy" },
+      { "type": "reward", "effects": { "bond": 1 } },
+      { "type": "end" },
+      { "id": "drink", "type": "act", "actor": "milo", "anim": "drink", "mood": "tired", "text": "Milo drinks politely. His belly growls again." },
+      { "type": "say", "line": "milo.fame", "anim": "rub", "mood": "sad", "next": "give" },
+      { "id": "stick", "type": "act", "actor": "milo", "anim": "chew", "mood": "confused", "text": "Milo gnaws the stick thoughtfully. It does not help." },
+      { "type": "say", "line": "milo.no", "anim": "shake", "mood": "annoyed" },
+      { "type": "say", "line": "milo.fame", "anim": "rub", "mood": "sad", "next": "give" }
+    ]
+  },
+  {
+    "id": "ww.campfire",
+    "location": "whisperwood",
+    "title": "A forgotten campfire",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 9,
+    "scene": {
+      "background": "forest_clearing",
+      "props": [{ "id": "fire", "art": "campfire", "x": 0.66, "y": 0.9 }],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.3, "y": 0.86, "mood": "curious" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Someone left a campfire burning in a ring of stones." },
+      { "type": "say", "line": "milo.fuoco", "anim": "point", "mood": "scared", "look": "fire" },
+      { "type": "act", "actor": "fire", "anim": "flare", "text": "A gust stirs the embers. Sparks leap toward the dry ferns." },
+      { "type": "say", "line": "milo.fuoco.attento", "anim": "crouch", "mood": "scared", "look": "fire" },
+      {
+        "id": "what",
+        "type": "choice",
+        "options": [
+          { "label": "Pour your flask on it", "goto": "douse" },
+          { "label": "Kick dirt over it", "goto": "dirt" },
+          { "label": "Walk away", "goto": "away" }
+        ]
+      },
+      { "id": "douse", "type": "act", "actor": "fire", "anim": "hiss", "text": "The fire hisses out in a cloud of steam." },
+      { "type": "stage", "hide": ["fire"] },
+      { "type": "say", "line": "milo.acqua", "anim": "point", "mood": "excited" },
+      { "type": "say", "line": "milo.bravo", "anim": "clap", "mood": "proud", "next": "done" },
+      { "id": "dirt", "type": "act", "actor": "fire", "anim": "hiss", "text": "You kick dirt over the embers. Milo helps, stamping with all four paws." },
+      { "type": "stage", "hide": ["fire"] },
+      { "type": "say", "line": "milo.terra", "anim": "stomp", "mood": "excited" },
+      { "type": "say", "line": "milo.bravo", "anim": "clap", "mood": "proud", "next": "done" },
+      { "id": "away", "type": "act", "actor": "milo", "anim": "tug", "mood": "annoyed", "text": "Milo plants his feet and refuses to move." },
+      { "type": "say", "line": "milo.no.no", "anim": "shake", "mood": "annoyed", "next": "what" },
+      { "id": "done", "type": "reward", "effects": { "bond": 1, "xp": 5 } },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.puddle",
+    "location": "whisperwood",
+    "title": "A murky puddle",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 8,
+    "scene": {
+      "background": "forest_path",
+      "props": [{ "id": "puddle", "art": "puddle", "x": 0.62, "y": 0.92 }],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.36, "y": 0.86, "mood": "curious" }]
+    },
+    "steps": [
+      { "type": "act", "actor": "milo", "anim": "sniff", "mood": "curious", "look": "puddle", "text": "Milo finds a murky brown puddle." },
+      { "type": "say", "line": "milo.acqua.ask", "anim": "tilt", "mood": "curious", "look": "puddle" },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Nod", "goto": "nod" },
+          { "label": "Shake your head", "goto": "shake", "effects": { "bond": 1 } }
+        ]
+      },
+      { "id": "nod", "type": "say", "line": "milo.si", "anim": "nod", "mood": "happy" },
+      { "type": "act", "actor": "milo", "anim": "drink", "mood": "disgusted", "look": "puddle", "text": "He takes one slurp and makes a truly terrible face." },
+      { "type": "say", "line": "milo.no.no", "anim": "shake", "mood": "disgusted" },
+      { "type": "end" },
+      { "id": "shake", "type": "say", "line": "milo.no.ask", "anim": "tilt", "mood": "curious" },
+      { "type": "act", "actor": "milo", "anim": "drink", "mood": "happy", "text": "You hand him your flask instead." },
+      { "type": "say", "line": "milo.si.acqua", "anim": "bounce", "mood": "excited" },
+      { "type": "say", "line": "milo.grazie", "anim": "bow", "mood": "happy" },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "ww.wild_emberhog",
+    "location": "whisperwood",
+    "title": "Smoke in the trees",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 7,
+    "cooldown": 3,
+    "requires": { "flags": ["ww.emberhog.won"] },
+    "scene": {
+      "background": "forest_stream",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.3, "y": 0.9, "mood": "curious" },
+        { "id": "emberhog", "art": "emberhog", "x": 0.74, "y": 0.9, "facing": "left", "hidden": true, "mood": "angry" }
+      ]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Smoke curls between the trees. Something snorts." },
+      { "type": "stage", "show": ["emberhog"] },
+      { "type": "act", "actor": "emberhog", "anim": "stomp", "mood": "angry", "text": "An Emberhog paws the ground, quills smouldering." },
+      { "type": "battle", "enemy": "emberhog", "win": "won", "lose": "lost" },
+      { "id": "won", "type": "act", "actor": "emberhog", "anim": "flee", "text": "The Emberhog scampers off, trailing steam." },
+      { "type": "stage", "hide": ["emberhog"] },
+      { "type": "say", "line": "milo.si.si", "anim": "bounce", "mood": "proud" },
+      { "type": "end" },
+      { "id": "lost", "type": "narrate", "text": "You and Milo beat a hasty retreat. Nothing hurt but your pride." },
+      { "type": "end" }
+    ]
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "emberhog",
+    "name": "Emberhog",
+    "element": "fire",
+    "habitat": "whisperwood",
+    "temperament": "hostile",
+    "description": "A stocky Lexling whose quills smoulder when it's cross, which is most of the time. Usually keeps to the dry ridges.",
+    "voice": { "pitch": 0.7, "rate": 0.9 },
+    "battle": {
+      "level": 1,
+      "hp": 54,
+      "moves": [
+        { "ability": "flame_spit", "telegraph": "emberhog.fuoco", "windup": "embers" },
+        { "ability": "tackle", "windup": "paw" }
+      ],
+      "pattern": [0, 1, 0, 0, 1],
+      "xp": 30,
+      "reactions": {
+        "start": ["emberhog.grrr"],
+        "strong": ["emberhog.acqua.no"],
+        "absorbed": ["emberhog.grazie"],
+        "fanned": ["emberhog.si.fuoco"],
+        "victory": ["emberhog.laugh"],
+        "defeat": ["emberhog.flee"]
+      },
+      "clue": "Milo glances at the stream behind you, then back at the Emberhog's flames."
+    }
+  },
+  {
+    "id": "drizzlet",
+    "name": "Drizzlet",
+    "element": "water",
+    "habitat": "whisperwood",
+    "temperament": "playful",
+    "description": "A droplet-shaped Lexling that lives in fast, cold streams. It will splash anyone, any time, for any reason.",
+    "voice": { "pitch": 1.9, "rate": 1.1 }
+  },
+  {
+    "id": "pebblit",
+    "name": "Pebblit",
+    "element": "earth",
+    "habitat": "whisperwood",
+    "temperament": "shy",
+    "description": "A small, pebble-shelled Lexling that burrows under rocks. Mutters to itself while it digs.",
+    "voice": { "pitch": 0.9, "rate": 0.8 }
+  },
+  {
+    "id": "puffkin",
+    "name": "Puffkin",
+    "element": "wind",
+    "habitat": "whisperwood",
+    "temperament": "playful",
+    "description": "A seed-puff of a Lexling that rides every breeze it can find. Lighter than it looks, and it looks very light.",
+    "voice": { "pitch": 1.8, "rate": 1.2 }
+  }
+]

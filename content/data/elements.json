@@ -1,0 +1,14 @@
+{
+  "elements": [
+    { "id": "water", "concept": "water", "color": "#3B8FD9" },
+    { "id": "fire", "concept": "fire", "color": "#E8622C" },
+    { "id": "earth", "concept": "earth", "color": "#9A7547" },
+    { "id": "wind", "concept": "wind", "color": "#5BB8A6" }
+  ],
+  "chart": {
+    "water": { "fire": { "multiplier": 2 }, "water": { "multiplier": 0.5 }, "earth": { "multiplier": 0.5 } },
+    "fire": { "fire": { "multiplier": 0, "effect": "absorb" }, "water": { "multiplier": 0.5 } },
+    "earth": { "earth": { "multiplier": 0.5 }, "wind": { "multiplier": 0.5 } },
+    "wind": { "earth": { "multiplier": 2 }, "wind": { "multiplier": 0.5 }, "fire": { "multiplier": 0.5, "effect": "fan" } }
+  }
+}

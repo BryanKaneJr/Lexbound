@@ -1,0 +1,8 @@
+[
+  { "id": "water_bolt", "name": "Water Bolt", "element": "water", "power": 12 },
+  { "id": "flame_burst", "name": "Flame Burst", "element": "fire", "power": 12 },
+  { "id": "stone_strike", "name": "Stone Strike", "element": "earth", "power": 12 },
+  { "id": "gust", "name": "Gust", "element": "wind", "power": 8 },
+  { "id": "flame_spit", "name": "Flame Spit", "element": "fire", "power": 7 },
+  { "id": "tackle", "name": "Tackle", "element": null, "power": 6 }
+]

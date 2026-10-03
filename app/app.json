@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Lexbound",
+    "slug": "lexbound",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "lexbound",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#1E2B3A",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.lexbound",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.lexbound",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "resizeMode": "contain",
+          "backgroundColor": "#1E2B3A"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
