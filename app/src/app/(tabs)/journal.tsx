@@ -2,7 +2,7 @@ import { visibleNotes } from '@lexbound/core';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Icon } from '@/art/icons';
-import { DrizzletArt, EmberhogArt, PebblitArt, PuffkinArt } from '@/art/lexlings';
+import { Portrait } from '@/art/Actor';
 import { HeardLine } from '@/components/HeardLine';
 import { Card, Screen, tapFeedback, Txt } from '@/components/ui';
 import { content, elementColor, speakerName } from '@/game/content';
@@ -23,12 +23,17 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'strange', label: 'Strange things' },
 ];
 
-const ART: Record<string, (w: number, seen: boolean) => React.ReactNode> = {
-  emberhog: (w, s) => <EmberhogArt width={w} mood={s ? 'angry' : 'idle'} />,
-  drizzlet: (w) => <DrizzletArt width={w * 0.6} />,
-  pebblit: (w) => <PebblitArt width={w * 0.8} mood="happy" />,
-  puffkin: (w) => <PuffkinArt width={w * 0.7} />,
+/** How wide each species sits in its bestiary frame (the frame is 84 wide), and the mood it's remembered in. */
+const PORTRAIT: Record<string, { scale: number; mood?: string }> = {
+  emberhog: { scale: 1, mood: 'angry' },
+  drizzlet: { scale: 0.6 },
+  pebblit: { scale: 0.8, mood: 'happy' },
+  puffkin: { scale: 0.7 },
+  flickerwing: { scale: 0.6, mood: 'happy' },
+  cragling: { scale: 0.9, mood: 'angry' },
+  cinderback: { scale: 1, mood: 'angry' },
 };
+
 
 export default function Journal() {
   const save = useGame((s) => s.save);
@@ -97,7 +102,7 @@ export default function Journal() {
             return (
               <Card key={l.id} style={{ gap: space.sm }}>
                 <View style={{ flexDirection: 'row', gap: space.md, alignItems: 'center' }}>
-                  <View style={{ width: 84, height: 70, alignItems: 'center', justifyContent: 'flex-end', opacity: seen ? 1 : 0.12 }}>{ART[l.id]?.(84, !!seen)}</View>
+                  <View style={{ width: 84, height: 70, alignItems: 'center', justifyContent: 'flex-end', opacity: seen ? 1 : 0.12 }}><Portrait art={l.id} width={84 * (PORTRAIT[l.id]?.scale ?? 0.8)} mood={seen ? PORTRAIT[l.id]?.mood : 'idle'} /></View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Txt style={type.heading}>{seen ? l.name : '???'}</Txt>
                     {seen && (

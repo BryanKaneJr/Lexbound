@@ -295,7 +295,7 @@ export function FlickerwingArt({ width, mood = 'happy' }: { width: number; mood?
       {/* the coal tail */}
       <Path d="M62 84 Q48 90 36 84" stroke="#C9733F" strokeWidth={10} strokeLinecap="round" fill="none" />
       <Circle cx={30} cy={82} r={14} fill={`url(#${g('c')})`} />
-      <Path d="M22 76 L29 81 L26 90 M29 81 L38 78" stroke={coal[2]} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.55} />
+      <Path d="M18 84 L23 79 L26 85 L21 90 Z M34 90 L40 86 L41 91 Z M35 71 L40 74 L36 77 Z" fill={coal[2]} opacity={0.45} />
       {dark && (
         <G>
           <Circle cx={34} cy={85} r={6} fill="#FF8A3A" opacity={0.3} />
@@ -338,8 +338,8 @@ export function FlickerwingArt({ width, mood = 'happy' }: { width: number; mood?
           <Circle cx={105.5} cy={63} r={dark ? 1.6 : 2.6} fill="#fff" />
           {mood === 'sad' && (
             <G>
-              <Path d="M77 56 L99 56 L99 63 Q90 63 77 59 Z" fill="#EFA868" />
-              <Path d="M96 56 L118 56 L118 59 Q105 63 96 63 Z" fill="#EFA868" />
+              <Path d="M77 55 L99 55 L99 59 Q88 59 77 65 Z" fill="#EFA868" />
+              <Path d="M96 55 L118 55 L118 65 Q107 59 96 59 Z" fill="#EFA868" />
             </G>
           )}
         </G>
@@ -366,14 +366,45 @@ export const CRAGLING_ASPECT = 190 / 140;
 function pincer(open: boolean, fill: string, light: string) {
   return (
     <G>
-      <Path
-        d={open ? 'M-2 4 C-16 2 -22 -16 -19 -32 C-15 -48 0 -56 12 -50 L4 -31 L24 -31 C26 -14 14 2 -2 4 Z' : 'M-2 4 C-16 2 -22 -16 -19 -32 C-15 -48 2 -54 15 -45 L9 -36 L20 -34 C24 -18 14 2 -2 4 Z'}
-        fill={fill}
-      />
-      <Path d="M-15 -12 L-13 -32 L-3 -43 L-6 -22 Z" fill={light} opacity={0.5} />
+      <Path d={open ? 'M4 -22 C12 -26 20 -30 25 -42 C30 -28 24 -14 10 -10 Z' : 'M4 -22 C10 -30 14 -38 15 -48 C22 -36 22 -20 10 -10 Z'} fill={fill} />
+      <Ellipse cx={-1} cy={-13} rx={14} ry={16} fill={fill} />
+      <Path d="M-13 -16 C-17 -38 -3 -56 14 -53 C6 -46 3 -38 3 -26 Z" fill={fill} />
+      <Path d="M-8 -12 C-11 -28 -5 -42 4 -47" stroke={light} strokeWidth={3.5} strokeLinecap="round" fill="none" opacity={0.6} />
     </G>
   );
 }
+
+/** A crab leg: hip, knee, tip. The shin is thinner than the thigh. */
+type Leg = [number, number, number, number, number, number];
+
+function leg([hx, hy, kx, ky, tx, ty]: Leg, w: number, fill: string) {
+  return (
+    <G>
+      <Path d={`M${hx} ${hy} L${kx} ${ky}`} stroke={fill} strokeWidth={w} strokeLinecap="round" />
+      <Path d={`M${kx} ${ky} L${tx} ${ty}`} stroke={fill} strokeWidth={w * 0.68} strokeLinecap="round" />
+    </G>
+  );
+}
+
+const NEAR_LEGS: Leg[] = [
+  [36, 106, 16, 96, 6, 126],
+  [60, 110, 44, 106, 34, 128],
+  [96, 110, 112, 106, 120, 128],
+  [118, 106, 136, 98, 146, 124],
+];
+const FAR_LEGS: Leg[] = [
+  [48, 104, 28, 92, 20, 122],
+  [76, 106, 66, 104, 60, 126],
+  [108, 104, 124, 96, 134, 122],
+];
+const NEAR_LEGS_TUCKED: Leg[] = [
+  [36, 106, 22, 104, 14, 112],
+  [116, 106, 130, 104, 136, 112],
+];
+const FAR_LEGS_TUCKED: Leg[] = [
+  [50, 104, 36, 102, 28, 110],
+  [104, 104, 118, 100, 126, 110],
+];
 
 type Arm = { from: [number, number]; bend: [number, number]; to: [number, number]; turn: number; size: number };
 
@@ -403,7 +434,7 @@ export function CraglingArt({ width, mood = 'angry' }: { width: number; mood?: L
         ? { far: { from: [116, 92], bend: [128, 92], to: [128, 80], turn: -4, size: 0.72 }, near: { from: [122, 102], bend: [144, 102], to: [142, 86], turn: 4, size: 0.84 } }
         : { far: { from: [114, 90], bend: [136, 98], to: [142, 92], turn: 40, size: 0.8 }, near: { from: [122, 102], bend: [148, 112], to: [150, 104], turn: 48, size: 0.94 } };
   const drop = tucked ? 12 : hurt ? 4 : 0;
-  const eyes: [number, number][] = tucked ? [[112, 54], [126, 58]] : [[108, 40], [124, 44]];
+  const eyes: [[number, number], [number, number]] = tucked ? [[112, 54], [126, 58]] : [[108, 40], [124, 44]];
   return (
     <Svg width={width} height={width / CRAGLING_ASPECT} viewBox="0 0 190 140">
       <Defs>
@@ -413,14 +444,10 @@ export function CraglingArt({ width, mood = 'angry' }: { width: number; mood?: L
         </LinearGradient>
       </Defs>
       <Ellipse cx={88} cy={134} rx={72} ry={5} fill="#000" opacity={0.18} />
-      {/* legs, far side then near side */}
-      {[46, 68, 90, 110].map((x) => (
-        <Path key={x} d={tucked ? `M${x} 112 L${x - 5} 122` : `M${x} 102 L${x - 8} 112 L${x - 6} 126`} stroke="#3A312A" strokeWidth={5.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      ))}
-      {[32, 54, 76, 98].map((x) => (
-        <Path key={x} d={tucked ? `M${x} 114 L${x - 7} 124` : `M${x} 104 L${x - 10} 116 L${x - 7} 130`} stroke="#54473D" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      ))}
       <G transform={`translate(0 ${drop})`}>
+        {(tucked ? FAR_LEGS_TUCKED : FAR_LEGS).map((l, i) => (
+          <G key={i}>{leg(l, 6, '#3E342D')}</G>
+        ))}
         {arm(arms.far, fierce, '#5F676E', '#9AA0A4')}
         {/* stalk eyes */}
         <Path d={`M110 62 L${eyes[0][0]} ${eyes[0][1]}`} stroke="#5A4C41" strokeWidth={5} strokeLinecap="round" />
@@ -439,14 +466,15 @@ export function CraglingArt({ width, mood = 'angry' }: { width: number; mood?: L
           ) : (
             <G key={i}>
               <Circle cx={x} cy={y} r={tucked ? 9 : 8} fill="#fff" />
-              <Circle cx={x + 1.5} cy={y + (mood === 'sad' ? 2.5 : 1)} r={tucked ? 3 : 4} fill={EYE} />
+              <Circle cx={mood === 'confused' ? x + (i ? 3 : -2.5) : x + 1.5} cy={mood === 'sad' ? y + 2.5 : mood === 'confused' ? y + (i ? 2 : -2.5) : y + 1} r={tucked ? 3 : 4} fill={EYE} />
               {mood === 'sad' && <Path d={`M${x - 9} ${y - 3} Q${x} ${y - 6} ${x + 9} ${y - 1} L${x + 9} ${y - 10} L${x - 9} ${y - 10} Z`} fill="#7D858B" />}
             </G>
           ),
         )}
         {fierce && <Path d="M98 30 L115 36 M117 39 L134 32" stroke="#2E2620" strokeWidth={4.5} strokeLinecap="round" />}
         {tucked && <Path d="M102 42 L110 38 M128 42 L136 46" stroke="#2E2620" strokeWidth={3} strokeLinecap="round" />}
-        {/* the faceted stone shell */}
+        {/* the faceted stone shell over a rounded underbelly */}
+        <Ellipse cx={80} cy={108} rx={60} ry={9} fill="#4A3F37" />
         <Path d="M16 108 L22 82 L40 62 L68 50 L100 50 L124 62 L138 84 L142 108 Z" fill="#8A7058" />
         <Path d="M22 82 L40 62 L68 50 L62 78 Z" fill="#A6896D" />
         <Path d="M68 50 L100 50 L92 76 L62 78 Z" fill="#A3A9AD" />
@@ -455,7 +483,6 @@ export function CraglingArt({ width, mood = 'angry' }: { width: number; mood?: L
         <Path d="M112 84 L138 84 L142 108 L104 108 Z" fill="#646C73" />
         <Path d="M22 82 L62 78 L92 76 L112 84 M62 78 L56 108 M112 84 L104 108 M68 50 L62 78 M100 50 L92 76" stroke="#C9C2B6" strokeWidth={1.4} opacity={0.45} fill="none" />
         <Path d="M16 108 L22 82 L40 62 L68 50 L100 50 L124 62 L138 84 L142 108 Z" fill={`url(#${g('sh')})`} />
-        <Path d="M12 106 L146 106 L142 115 L18 115 Z" fill="#4A3F37" />
         {/* moss */}
         <Circle cx={58} cy={58} r={5} fill="#6FA35A" />
         <Circle cx={65} cy={55} r={3.5} fill="#8BC06E" />
@@ -474,6 +501,9 @@ export function CraglingArt({ width, mood = 'angry' }: { width: number; mood?: L
             </G>
           </G>
         )}
+        {(tucked ? NEAR_LEGS_TUCKED : NEAR_LEGS).map((l, i) => (
+          <G key={i}>{leg(l, 8, '#5E4F44')}</G>
+        ))}
         {/* mouth, on the front of the shell */}
         <Path
           d={tucked ? 'M131 96 q2.5 -3 5 0 t5 0' : mood === 'happy' ? 'M127 95 Q133 101 140 96' : hurt ? 'M127 98 q3 -3 6 0 t6 0' : 'M127 99 Q133 94 140 97'}
@@ -518,7 +548,7 @@ export function CinderbackArt({ width, mood = 'angry' }: { width: number; mood?:
     [158, 86, 26],
   ];
   // Sad, the old head hangs low; hurt, it sags a little.
-  const head = low ? 'translate(0 14) rotate(9 166 126)' : hurt ? 'translate(0 6)' : undefined;
+  const head = low ? 'translate(0 6) rotate(10 166 126)' : hurt ? 'translate(0 6)' : undefined;
   return (
     <Svg width={width} height={width / CINDERBACK_ASPECT} viewBox="0 0 240 180">
       <Defs>

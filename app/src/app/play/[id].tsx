@@ -124,7 +124,7 @@ function Play({ encounterId }: { encounterId: string }) {
   if (step?.type === 'say' && content.line.get(step.line)?.speaker === WRITING) {
     // Written words have no speaker: they appear carved, over the scene.
     carved = (
-      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { paddingTop: space.lg, alignItems: 'center' }]}>
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { paddingTop: (sceneW / SCENE_ASPECT) * 0.15, alignItems: 'center' }]}>
         <Inscription lineId={step.line} width={sceneW} />
       </View>
     );

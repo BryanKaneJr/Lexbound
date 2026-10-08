@@ -53,10 +53,10 @@ export async function playChapterTwo(page) {
   await page.waitForTimeout(500);
   await button(page, 'Visit Maren').click();
   await until(page, () => visible(button(page, 'ACQUA')), 'the spar');
+  await page.waitForFunction(() => /your call/i.test(document.body.innerText), null, { timeout: 30_000 });
   check(await visible(page.getByTestId('verbs')), 'the verb row should appear once Milo knows verbs');
   for (const verb of ['ATTACCA', 'DIFENDI']) check(await visible(button(page, verb)), `missing the ${verb} verb`);
   check((await bodyText(page)).includes('Bluster'), 'the spar should name Bluster');
-  await page.waitForFunction(() => /your call/i.test(document.body.innerText), null, { timeout: 30_000 });
   await snap(page, 'ch2-spar');
   await button(page, 'DIFENDI').click();
   await page.waitForTimeout(300);
@@ -73,9 +73,9 @@ export async function playChapterTwo(page) {
   await page.waitForTimeout(500);
   await snap(page, 'ch2-hollow-place');
   await button(page, 'Explore').click();
-  await until(page, () => visible(button(page, 'Stop where you are')), 'the first "Aspetta!"');
-  check((await bodyText(page)).includes('Aspetta!'), 'Milo should say "Aspetta!"');
+  await until(page, async () => (await bodyText(page)).includes('Aspetta!'), 'the first "Aspetta!"');
   await snap(page, 'ch2-aspetta');
+  await until(page, () => visible(button(page, 'Stop where you are')), 'the choice after "Aspetta!"');
   await button(page, 'Stop where you are').click();
   await until(page, () => visible(button(page, 'Stay put')), '"Aspetta qui."');
   await button(page, 'Stay put').click();
@@ -93,6 +93,7 @@ export async function playChapterTwo(page) {
   await until(page, () => visible(page.getByTestId('inscription')), 'the carved words');
   check((await bodyText(page)).includes('QUI DORME LA LUCE'), 'the stone should read QUI DORME LA LUCE');
   check(!(await visible(button(page, 'Hear it again'))), 'carved words are read, not heard');
+  await page.waitForTimeout(3000); // let the toasts from the last scene clear
   await snap(page, 'ch2-inscription');
   await until(page, () => visible(button(page, 'Take a rubbing for Maren')), 'the rubbing');
   await button(page, 'Take a rubbing for Maren').click();
@@ -121,8 +122,8 @@ export async function playChapterTwo(page) {
 
   // That night, Milo says what the Flickerwing said.
   await button(page, 'Milo wants to tell you something').click();
+  await until(page, async () => (await bodyText(page)).includes('Ho paura.'), 'Milo saying "Ho paura."');
   await until(page, () => visible(button(page, 'Hold him')), 'the night at camp');
-  check((await bodyText(page)).includes('Ho paura.'), 'Milo should say "Ho paura."');
   await button(page, 'Hold him').click();
   await backToCamp(page);
 

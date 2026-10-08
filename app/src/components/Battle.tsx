@@ -437,7 +437,7 @@ export function Battle({ enemy, background, context, name, art, onEnd }: BattleP
                     ]}>
                     {icons && content.concept.get(concept)?.icon && <Icon name={content.concept.get(concept)!.icon!} size={26} />}
                     <View style={{ alignItems: 'center' }}>
-                      <Txt style={type.tile}>{words}</Txt>
+                      <Txt style={verb ? styles.phrase : type.tile}>{words}</Txt>
                       {hint >= 3 && <Txt style={[type.small, { color: color.inkSoft }]}>{verb ? `with ${gloss}` : gloss}</Txt>}
                     </View>
                   </Pressable>
@@ -704,6 +704,7 @@ const styles = StyleSheet.create({
     gap: space.xs,
   },
   verbOn: { backgroundColor: color.ink, borderColor: color.ink },
+  phrase: { ...type.tile, fontSize: 16, letterSpacing: 0.5, textAlign: 'center' },
   call: { position: 'absolute', backgroundColor: 'rgba(251,245,234,0.95)', borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderWidth: 2, borderColor: color.amber, ...shadow.card },
   callText: { ...type.body, fontWeight: '800', fontStyle: 'italic' },
   tile: {

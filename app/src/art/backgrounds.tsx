@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Polygon, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 /**
  * Painted locations (bible §9, §52): one illustration each, drawn in code
@@ -246,6 +246,92 @@ const BACKGROUNDS: Record<string, Bg> = {
       {[30, 70, 330, 370].map((x, i) => (
         <Path key={x} d={`M${x} ${400 + (i % 2) * 20} l4 -20 l4 20 l4 -16 l4 16`} stroke="#B89A55" strokeWidth={2} fill="none" />
       ))}
+    </G>
+  ),
+
+  hollow: (g) => (
+    <G>
+      <Defs>
+        <LinearGradient id={g('shade')} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#0E2226" />
+          <Stop offset="0.6" stopColor="#1C3A3A" />
+          <Stop offset="1" stopColor="#264538" />
+        </LinearGradient>
+        <LinearGradient id={g('beam')} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#E6F7DC" stopOpacity={0.28} />
+          <Stop offset="1" stopColor="#E6F7DC" stopOpacity={0} />
+        </LinearGradient>
+        <LinearGradient id={g('moss')} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#4E7E4C" />
+          <Stop offset="1" stopColor="#2E5034" />
+        </LinearGradient>
+        <RadialGradient id={g('glow')} cx="0.5" cy="0.5" r="0.5">
+          <Stop offset="0" stopColor="#A8FFEA" stopOpacity={0.75} />
+          <Stop offset="1" stopColor="#A8FFEA" stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Rect x={0} y={0} width={400} height={460} fill={`url(#${g('shade')})`} />
+      {/* far trunks in the gloom */}
+      {trunk(118, 26, '#183233')}
+      {trunk(254, 22, '#183233')}
+      {trunk(340, 36, '#16302F')}
+      {canopy(100, -10, 80, '#0B1C1F')}
+      {canopy(310, -20, 90, '#0B1C1F')}
+      {canopy(210, -40, 70, '#0D2023')}
+      <Path d="M146 40 Q150 80 144 120 M178 30 Q174 66 180 96 M282 50 Q286 90 280 130 M300 40 Q296 70 302 92" stroke="#2F5A46" strokeWidth={3} strokeLinecap="round" fill="none" opacity={0.7} />
+      {/* a far mossy rise, and the old stones leaning together on it */}
+      <Path d="M80 352 Q214 300 350 350 L350 400 L80 400 Z" fill="#22402F" />
+      <Path d="M164 336 L178 266 Q186 250 200 254 L206 334 Z" fill="#43605A" />
+      <Path d="M198 332 L205 244 Q216 228 228 240 L236 332 Z" fill="#4D6A63" />
+      <Path d="M230 336 L232 268 Q242 254 256 264 L266 338 Z" fill="#43605A" />
+      <Path d="M178 266 Q186 250 200 254 L200 266 Q188 262 178 272 Z M205 244 Q216 228 228 240 L228 250 Q216 242 205 252 Z M232 268 Q242 254 256 264 L257 274 Q244 266 232 278 Z" fill="#4E7A4A" />
+      <Path d="M210 270 L210 290 M218 268 L222 288 L226 268 M182 286 L182 300" stroke="#2E4440" strokeWidth={2} strokeLinecap="round" opacity={0.7} />
+      <Ellipse cx={214} cy={338} rx={150} ry={16} fill="#A8D0C4" opacity={0.1} />
+      {/* faint shafts of pale light from far above */}
+      <Polygon points="180,0 216,0 272,360 196,360" fill={`url(#${g('beam')})`} />
+      <Polygon points="272,0 286,0 334,330 304,330" fill={`url(#${g('beam')})`} opacity={0.7} />
+      <Polygon points="84,0 96,0 128,300 104,300" fill={`url(#${g('beam')})`} opacity={0.5} />
+      {/* the old tree on the left, standing on huge mossy roots */}
+      <Path d="M-10 0 L64 0 Q58 180 70 270 Q84 330 150 378 Q104 380 76 354 Q66 374 46 388 Q40 362 26 344 Q14 372 -10 386 Z" fill="#2E2B22" />
+      <Path d="M18 0 Q12 140 20 260 M42 0 Q38 150 48 280" stroke="#3C382C" strokeWidth={4} fill="none" />
+      <Path d="M64 230 Q76 320 148 376 M30 330 Q34 352 46 386 M4 360 Q-4 374 -10 386" stroke="#5A8A50" strokeWidth={7} strokeLinecap="round" fill="none" opacity={0.9} />
+      {/* a root arching out of the right bank */}
+      <Path d="M410 296 Q336 286 304 330 Q284 358 262 388" stroke="#2E2B22" strokeWidth={30} strokeLinecap="round" fill="none" />
+      <Path d="M410 284 Q338 274 302 316 Q284 340 268 366" stroke="#5A8A50" strokeWidth={9} strokeLinecap="round" fill="none" opacity={0.85} />
+      {/* mossy ground */}
+      <Path d="M0 380 Q100 368 200 378 T400 374 L400 460 L0 460 Z" fill={`url(#${g('moss')})`} />
+      {[
+        [40, 392, 26],
+        [130, 404, 34],
+        [250, 398, 30],
+        [350, 410, 28],
+        [80, 436, 34],
+        [200, 444, 40],
+        [320, 446, 30],
+      ].map(([x, y, r], i) => (
+        <Ellipse key={i} cx={x} cy={y} rx={r} ry={5} fill="#64965A" opacity={0.35} />
+      ))}
+      {/* tiny glowing mushrooms */}
+      {[
+        [84, 372],
+        [96, 378],
+        [156, 382],
+        [276, 384],
+        [288, 380],
+        [372, 388],
+        [24, 420],
+        [228, 430],
+        [340, 432],
+        [120, 452],
+        [190, 340],
+      ].map(([x, y], i) => (
+        <G key={i}>
+          <Circle cx={x} cy={y} r={7} fill={`url(#${g('glow')})`} />
+          <Circle cx={x} cy={y} r={1.8} fill="#D2FFF4" />
+        </G>
+      ))}
+      {fern(14, 452, 1, '#2A4E34')}
+      {fern(388, 448, 0.9, '#2A4E34')}
     </G>
   ),
 };

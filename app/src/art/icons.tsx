@@ -155,6 +155,30 @@ const ICONS: Record<string, (c?: string) => React.ReactNode> = {
     </G>
   ),
   close: (c = '#1F2A37') => <Path d="M12 12 L36 36 M36 12 L12 36" stroke={c} strokeWidth={5} strokeLinecap="round" />,
+  rubbing: () => (
+    <G>
+      <Path d="M9 5 L35 4 L41 10 L40 44 L8 45 Z" fill="#F4EEDF" stroke="#B9A88A" strokeWidth={1.5} strokeLinejoin="round" />
+      <Path d="M35 4 L35 10 L41 10 Z" fill="#DCCFB4" stroke="#B9A88A" strokeWidth={1.5} strokeLinejoin="round" />
+      <Path d="M12 12 Q22 9 34 12 Q37 23 35 35 Q24 38 13 35 Q10 23 12 12 Z" fill="#45454C" />
+      <Path d="M11 17 L16 11 M11 24 L22 11 M12 31 L30 11 M15 36 L36 15 M23 37 L37 23 M31 37 L37 31" stroke="#64646C" strokeWidth={2} strokeLinecap="round" opacity={0.8} />
+      <Path d="M16 16 L16 22 M19 16 L21 22 L23 16 M26 16 L26 22 L30 22 M16 27 L20 27 M18 27 L18 32 M23 27 Q27 29.5 23 32 M29 32 L31 27 L33 32" stroke="#EDE8DC" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Path d="M15 40 Q24 38 33 40" stroke="#8A8A90" strokeWidth={2.5} strokeLinecap="round" fill="none" opacity={0.6} />
+    </G>
+  ),
+  shield: (c = '#4E7FA8') => (
+    <G>
+      <Path d="M24 4 C31 4 37 6 42 9 C42 30 35 40 24 45 C13 40 6 30 6 9 C11 6 17 4 24 4 Z" fill={c} />
+      <Path d="M24 9 C19 9 15 10 11 12 C11 28 16 35 24 39 Z" fill="#fff" opacity={0.25} />
+      <Path d="M24 9 C29 9 33 10 37 12 C37 28 32 35 24 39 C16 35 11 28 11 12 C15 10 19 9 24 9 Z" fill="none" stroke="#fff" strokeWidth={2} opacity={0.55} />
+    </G>
+  ),
+  burst: (c = '#D8572A') => (
+    <G>
+      <Path d="M3 17 L11 17 M2 24 L9 24 M3 31 L11 31" stroke={c} strokeWidth={3.5} strokeLinecap="round" opacity={0.7} />
+      <Polygon points="32.0,7.6 33.7,17.5 40.2,16.0 37.2,22.0 46.9,26.0 36.5,27.7 37.7,33.8 32.0,31.2 28.0,40.9 26.3,30.5 19.4,32.3 22.8,26.0 13.1,22.0 23.5,20.3 22.0,13.8 28.0,16.8" fill={c} strokeLinejoin="round" />
+      <Polygon points="31.0,15.8 31.8,20.7 35.1,20.0 33.6,23.0 38.4,25.0 33.3,25.8 33.9,28.9 31.0,27.6 29.0,32.4 28.2,27.3 24.7,28.2 26.4,25.0 21.6,23.0 26.7,22.2 26.0,18.9 29.0,20.4" fill="#fff" opacity={0.55} />
+    </G>
+  ),
 };
 
 export function Icon({ name, size = 24, color }: { name: string; size?: number; color?: string }) {

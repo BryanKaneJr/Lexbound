@@ -10,6 +10,11 @@ The Lexlings' language is real Italian. The game never says so; it just becomes 
   <img src="docs/img/lodge.png" width="200" alt="Pip and Bluster at the Translators' Lodge">
   <img src="docs/img/journal.png" width="200" alt="The journal's bestiary">
 </p>
+<p>
+  <img src="docs/img/compose.png" width="200" alt="A spar with Bluster: DIFENDI picked, and the tiles finish the sentence, CON L'ACQUA, CON IL FUOCO, CON LA TERRA, CON IL VENTO">
+  <img src="docs/img/stone.png" width="200" alt="A standing stone in the Old Hollow carved with QUI DORME LA LUCE">
+  <img src="docs/img/cinderback.png" width="200" alt="The battle against Old Cinderback">
+</p>
 
 ## What's playable
 
