@@ -52,4 +52,22 @@ describe('language validation', () => {
   it('flags lines nobody ever uses', () => {
     expect(has(validateContent(fixture()), 'line milo.guarda: is never used')).toBe(true);
   });
+
+  it('lets field notes be about writing, but not about a speaker that does not exist', () => {
+    const notes = [
+      { id: 'note.carved', concept: 'water', when: 'heard' as const, speaker: 'writing', text: 'Carved, not said.' },
+      { id: 'note.ghost', concept: 'water', when: 'heard' as const, speaker: 'ghost', text: 'Nobody.' },
+    ];
+    const p = validateContent(fixture({ notes }));
+    expect(has(p, 'note note.carved')).toBe(false);
+    expect(has(p, 'note note.ghost: unknown speaker "ghost"')).toBe(true);
+  });
+});
+
+describe('battle steps', () => {
+  it('a named fighter must be in the scene', () => {
+    const fight = (actor: string) => enc({ steps: [{ type: 'battle', enemy: 'hog', name: 'Old Hog', actor }, { type: 'end' }] });
+    expect(has(validateContent(fixture({ encounters: [fight('hog')] })), 'fighter')).toBe(false);
+    expect(has(validateContent(fixture({ encounters: [fight('bluster')] })), 'fighter "bluster" isn\'t in the scene')).toBe(true);
+  });
 });

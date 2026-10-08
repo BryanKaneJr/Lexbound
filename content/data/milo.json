@@ -38,6 +38,34 @@
       "ability": "gust"
     }
   ],
+  "verbs": [
+    {
+      "id": "attack",
+      "effect": "attack",
+      "concepts": [
+        "attack",
+        "with"
+      ],
+      "requires": {
+        "flags": [
+          "milo.defend"
+        ]
+      }
+    },
+    {
+      "id": "defend",
+      "effect": "shield",
+      "concepts": [
+        "defend",
+        "with"
+      ],
+      "requires": {
+        "flags": [
+          "milo.defend"
+        ]
+      }
+    }
+  ],
   "reactions": {
     "start": [
       "milo.attento"

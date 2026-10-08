@@ -3,7 +3,6 @@ import {
   advance,
   applyEvents,
   chooseCommand,
-  chooseEncounter,
   comprehension,
   createRng,
   currentStep,
@@ -12,17 +11,16 @@ import {
   miloMaxHp,
   newSave,
   nextStory,
-  scaffoldLevel,
   startBattle,
   startEncounter,
   tilePresentation,
   visibleNotes,
   type EncounterInput,
-  type EncounterRun,
   type GameEvent,
   type Save,
 } from '@lexbound/core';
 import { content } from '../index';
+import { Player, START } from './player';
 
 /**
  * Plays Chapter One through the real engines and content, the way a
@@ -33,69 +31,6 @@ import { content } from '../index';
  * own Lexling; enemy speech pays in battle; and the strange lines wait in
  * the journal.
  */
-
-let now = 1_700_000_000_000;
-
-class Player {
-  save: Save = newSave(now, 7);
-  run: EncounterRun | undefined;
-  heard: string[] = [];
-
-  apply(events: GameEvent[]) {
-    for (const e of events) if (e.type === 'heard') this.heard.push(e.line);
-    this.save = applyEvents(this.save, content, events, now).save;
-    now += 15_000;
-  }
-
-  start(id: string) {
-    const r = startEncounter(content, id, this.save);
-    this.apply(r.events);
-    this.run = r.run;
-  }
-
-  explore(location: string) {
-    const pick = chooseEncounter(content, this.save, location, now, this.save.seed);
-    this.apply([{ type: 'seed' }]);
-    if (!pick.encounter) throw new Error(`nothing to do at ${location}`);
-    this.start(pick.encounter.id);
-    return pick.encounter.id;
-  }
-
-  step() {
-    return this.run && currentStep(content, this.run);
-  }
-
-  input(input: EncounterInput) {
-    if (!this.run) throw new Error('no encounter running');
-    const r = advance(content, this.run, input, this.save);
-    if (r.run === this.run) throw new Error(`input ${JSON.stringify(input)} did nothing at ${JSON.stringify(this.step())}`);
-    this.apply(r.events);
-    this.run = r.run;
-  }
-
-  /** Clicks through narration and speech until a decision (or the end). */
-  until(type?: string) {
-    for (let i = 0; i < 100; i++) {
-      const s = this.step();
-      if (!s || s.type === type) return s;
-      if (['narrate', 'talk', 'say', 'act'].includes(s.type)) this.input({ type: 'continue' });
-      else return s;
-    }
-    throw new Error('stuck');
-  }
-
-  choose(label: string) {
-    const s = this.until('choice');
-    if (s?.type !== 'choice') throw new Error(`expected a choice, got ${s?.type}`);
-    const i = s.options.findIndex((o) => o.label.includes(label));
-    if (i < 0) throw new Error(`no option "${label}"`);
-    this.input({ type: 'choose', option: i });
-  }
-
-  level(concept: string) {
-    return scaffoldLevel(this.save.concepts[concept], now);
-  }
-}
 
 describe('chapter one', () => {
   const p = new Player();
@@ -145,12 +80,12 @@ describe('chapter one', () => {
     p.until();
     expect(p.save.concepts.water?.exposures).toBeGreaterThanOrEqual(2);
     // Heard twice, but in one situation only: still just exposure.
-    expect(comprehension(p.save.concepts.water, now)).toBe('exposed');
+    expect(comprehension(p.save.concepts.water, p.now)).toBe('exposed');
     expect(p.level('water')).toBe(3);
   });
 
   it("a wild Pebblit says Milo's word: the first cross-creature transfer", () => {
-    expect(isTransfer(p.save.concepts.hungry, 'pebblit', now)).toBe(true);
+    expect(isTransfer(p.save.concepts.hungry, 'pebblit', p.now)).toBe(true);
     expect(p.explore('whisperwood')).toBe('ww.hungry_pebblit');
     expect(p.until('give')?.type).toBe('give');
     expect([...(p.save.concepts.hungry?.speakers ?? [])].sort()).toEqual(['milo', 'pebblit']);
@@ -168,7 +103,7 @@ describe('chapter one', () => {
     expect(p.until('give')?.type).toBe('give');
     p.input({ type: 'give', item: 'flask' });
     p.until();
-    expect(comprehension(p.save.concepts.water, now)).toBe('demonstrated');
+    expect(comprehension(p.save.concepts.water, p.now)).toBe('demonstrated');
   });
 
   it('by the first battle, ACQUA has lost its icon and the untaught elements keep theirs', () => {
@@ -200,7 +135,7 @@ describe('chapter one', () => {
     // Listening paid: nothing landed on Milo.
     expect(b.state.milo.hp).toBe(b.state.milo.maxHp);
     // Walling off the charge, instead of the obvious water, shows the announcement was understood.
-    expect(comprehension(p.save.concepts.attack, now)).toBe('demonstrated');
+    expect(comprehension(p.save.concepts.attack, p.now)).toBe('demonstrated');
     p.input({ type: 'battle', result: 'win' });
     p.until();
     expect(p.save.flags['ww.emberhog.won']).toBe(true);
@@ -252,9 +187,9 @@ describe('every encounter can always be finished', () => {
     for (const enc of content.encounters) {
       for (let trial = 0; trial < 25; trial++) {
         const rng = createRng(trial * 7919 + enc.id.length);
-        let save: Save = newSave(now, trial);
+        let save: Save = newSave(START, trial);
         const apply = (events: GameEvent[]) => {
-          save = applyEvents(save, content, events, now).save;
+          save = applyEvents(save, content, events, START).save;
         };
         const start = startEncounter(content, enc.id, save);
         apply(start.events);

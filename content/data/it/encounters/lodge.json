@@ -69,7 +69,7 @@
         { "id": "milo", "art": "milo", "x": 0.4, "y": 0.86, "mood": "happy" },
         { "id": "maren", "art": "maren", "x": 0.76, "y": 0.92, "facing": "left" },
         { "id": "pip", "art": "pip", "x": 0.58, "y": 0.92, "facing": "left", "hidden": true },
-        { "id": "bluster", "art": "puffkin", "x": 0.18, "y": 0.56, "hidden": true }
+        { "id": "bluster", "art": "bluster", "x": 0.18, "y": 0.56, "hidden": true }
       ]
     },
     "steps": [
@@ -169,6 +169,84 @@
       { "type": "talk", "npc": "maren", "text": "Oh, give him one." },
       { "type": "say", "line": "milo.buono", "anim": "eat", "mood": "happy" },
       { "id": "done", "type": "end" }
+    ]
+  },
+  {
+    "id": "lodge.ch2.spar",
+    "location": "lodge",
+    "title": "A friendly spar",
+    "kind": "story",
+    "order": 12,
+    "requires": { "flags": ["camp.practice.done"] },
+    "teaching": { "purpose": "Pip has found the way into the Old Hollow and won't show anyone unless Milo can hold his own against Bluster.", "introduces": ["big"], "reinforces": ["wind", "attack"], "grounding": [{ "concept": "big", "type": "animation", "how": "Bluster puffs himself up to twice his size, cheeks bulging, before his biggest gust." }] },
+    "scene": {
+      "background": "lodge",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.36, "y": 0.86, "mood": "happy" },
+        { "id": "maren", "art": "maren", "x": 0.8, "y": 0.92, "facing": "left" },
+        { "id": "pip", "art": "pip", "x": 0.62, "y": 0.92, "facing": "left" },
+        { "id": "bluster", "art": "bluster", "x": 0.5, "y": 0.5, "facing": "left" }
+      ]
+    },
+    "steps": [
+      { "type": "talk", "npc": "pip", "text": "There you are! Bluster and I have found the way into the Old Hollow. Nobody's been down there in years." },
+      { "type": "talk", "npc": "maren", "text": "Nobody's been down there because it isn't safe, Pip." },
+      { "type": "talk", "npc": "pip", "text": "Which is why it needs a proper Translator. I'll show you the way in, if your little whatever-he-is can hold his own against Bluster. A friendly spar." },
+      { "type": "talk", "npc": "maren", "text": "Friendly. I mean it." },
+      { "type": "act", "actor": "milo", "anim": "bounce", "mood": "excited", "text": "Milo is already bouncing on the spot." },
+      { "type": "battle", "enemy": "puffkin", "name": "Bluster", "actor": "bluster", "win": "won", "lose": "lost" },
+      { "id": "won", "type": "act", "actor": "bluster", "anim": "bob", "text": "Bluster drifts down, deflated, and bumps noses with Milo." },
+      { "type": "talk", "npc": "pip", "text": "I let you win. Obviously. Bluster was barely warmed up.", "next": "open" },
+      { "id": "lost", "type": "act", "actor": "bluster", "anim": "spin", "text": "Bluster does a lap of honour round the rafters." },
+      { "type": "talk", "npc": "pip", "text": "Ha! Well. A deal's a deal, and you'd only get lost without me. I'll show you the way anyway." },
+      { "id": "open", "type": "talk", "npc": "maren", "text": "The Old Hollow is where Lexlings go when they don't want to be found. Keep to the path. And keep him close." },
+      { "type": "reward", "effects": { "bond": 1, "flags": ["ch2.hollow_open"], "journal": ["story.spar", "places.hollow"] } },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "lodge.ch2.report",
+    "location": "lodge",
+    "title": "Somebody wrote his name",
+    "kind": "story",
+    "order": 19,
+    "requires": { "flags": ["camp.ch2.night.done"] },
+    "teaching": { "purpose": "Maren compares the rubbing from the Hollow with the tag that came with Milo's basket. Pip has his own theory, and Bluster has an opinion too.", "reinforces": ["yes"] },
+    "scene": {
+      "background": "lodge",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.36, "y": 0.86, "mood": "curious" },
+        { "id": "maren", "art": "maren", "x": 0.78, "y": 0.92, "facing": "left" },
+        { "id": "pip", "art": "pip", "x": 0.6, "y": 0.92, "facing": "left", "hidden": true },
+        { "id": "bluster", "art": "bluster", "x": 0.2, "y": 0.52, "hidden": true }
+      ]
+    },
+    "steps": [
+      { "type": "talk", "npc": "maren", "text": "You went all the way to the heart of the Hollow. And came back. Sit down before I lose my temper." },
+      { "type": "narrate", "text": "You tell her about the Craglings lying in wait, and Old Cinderback, and the stones. Then you unroll the rubbing." },
+      { "type": "act", "actor": "maren", "anim": "nod", "text": "Maren goes very quiet. She takes the tag from Milo's basket out of a drawer and lays it next to the rubbing." },
+      { "type": "talk", "npc": "maren", "text": "Same four letters. Same hand. Look at the M." },
+      { "type": "talk", "npc": "maren", "text": "Somebody carved his name into a stone in the Old Hollow, long before any of us were born. And Lexlings don't write. Everybody knows that." },
+      { "type": "act", "actor": "milo", "anim": "tilt", "mood": "curious", "text": "Milo scratches his ear and doesn't say anything." },
+      { "type": "stage", "show": ["pip", "bluster"] },
+      { "type": "talk", "npc": "pip", "text": "Lexlings, writing? Ridiculous. Some old Translator with a chisel and too much time on his hands. Isn't that right, Bluster?" },
+      { "type": "say", "line": "puffkin.si.si", "by": "bluster", "anim": "bob" },
+      { "type": "talk", "npc": "pip", "text": "See? That's no. When a Puffkin says it twice, he means it." },
+      {
+        "type": "choice",
+        "prompt": "Bluster is still bobbing between the tag and the rubbing.",
+        "options": [
+          { "label": "Hold the rubbing up to Bluster", "goto": "show", "effects": { "bond": 1 } },
+          { "label": "Let Pip have this one", "goto": "leave" }
+        ]
+      },
+      { "id": "show", "type": "say", "line": "puffkin.si.si", "by": "bluster", "anim": "spin" },
+      { "type": "talk", "npc": "pip", "text": "He's confused. It's been a long week for him.", "next": "end" },
+      { "id": "leave", "type": "act", "actor": "bluster", "anim": "float", "text": "Bluster gives up and drifts off to sulk in the rafters." },
+      { "id": "end", "type": "talk", "npc": "maren", "text": "Whoever wrote this knew Milo. Or knew what he is. I need to read some very old books." },
+      { "type": "reward", "effects": { "bond": 2, "flags": ["chapter2.done"], "journal": ["story.ch2_report"] } },
+      { "type": "narrate", "text": "End of Chapter Two. Somebody carved Milo's name in stone, and somebody wants him home." },
+      { "type": "end" }
     ]
   }
 ]

@@ -1,4 +1,5 @@
 import type { Content, Effects, Encounter, Step } from './schema';
+import { WRITING } from './save';
 import { validateLanguage } from './validate-language';
 
 /**
@@ -30,7 +31,7 @@ export function validateContent(content: Content, art?: { backgrounds: Set<strin
   dupes('journal', content.journal);
   dupes('encounters', content.encounters);
 
-  const speakers = new Set(['milo', ...content.lexlings.map((l) => l.id)]);
+  const speakers = new Set(['milo', WRITING, ...content.lexlings.map((l) => l.id)]);
   const elements = new Set(content.elements.elements.map((e) => e.id));
 
   for (const c of content.concepts) if (!content.word.has(c.id)) say(`concept ${c.id}`, 'has no word in the language pack');
@@ -81,6 +82,31 @@ export function validateContent(content: Content, art?: { backgrounds: Set<strin
   for (const c of content.milo.commands) {
     if (!content.ability.has(c.ability)) say(`command ${c.id}`, `unknown ability "${c.ability}"`);
     for (const k of c.concepts) if (!content.concept.has(k)) say(`command ${c.id}`, `unknown concept "${k}"`);
+  }
+  // Composed commands: every verb and element has a natural phrase, and the words really are in it.
+  const wordIn = (concept: string, text: string) => {
+    const w = content.word.get(concept);
+    return !!w && [w.word, ...w.forms].some((f) => text.toLowerCase().includes(f.toLowerCase()));
+  };
+  for (const v of content.milo.verbs) {
+    const phrase = content.phrasing.verbs[v.id];
+    if (!phrase) {
+      say(`verb ${v.id}`, 'has no phrase in the language pack (phrasing.verbs)');
+      continue;
+    }
+    for (const k of v.concepts) {
+      if (!content.concept.has(k)) say(`verb ${v.id}`, `unknown concept "${k}"`);
+      else if (!wordIn(k, phrase) && !Object.values(content.phrasing.with).every((w) => wordIn(k, w))) say(`verb ${v.id}`, `"${k}" isn't in "${phrase}" or every "with" phrase`);
+    }
+  }
+  if (content.milo.verbs.length) {
+    for (const c of content.milo.commands) {
+      const el = content.ability.get(c.ability)?.element;
+      if (!el) continue;
+      const w = content.phrasing.with[el];
+      if (!w) say(`command ${c.id}`, `no "with" phrase for element "${el}" (phrasing.with)`);
+      else for (const k of c.concepts) if (!wordIn(k, w)) say(`command ${c.id}`, `"${k}" isn't in "${w}"`);
+    }
   }
   reactionRefs('milo.reactions', content.milo.reactions);
   for (const id of content.milo.idle) lineRef('milo.idle', id);
@@ -205,7 +231,9 @@ function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds
       case 'say': {
         const line = content.line.get(s.line);
         if (!line) say(`${name}: unknown line "${s.line}"`);
-        else if (!actors.has(s.by ?? line.speaker)) say(`${name}: speaker "${s.by ?? line.speaker}" isn't in the scene`);
+        else if (line.speaker === WRITING) {
+          if (s.by && !placed.has(s.by)) say(`${name}: the writing is on "${s.by}", which isn't in the scene`);
+        } else if (!actors.has(s.by ?? line.speaker)) say(`${name}: speaker "${s.by ?? line.speaker}" isn't in the scene`);
         if (s.look && !placed.has(s.look)) say(`${name}: looks at missing "${s.look}"`);
         break;
       }
@@ -248,6 +276,7 @@ function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds
         break;
       case 'battle':
         if (!content.lexling.get(s.enemy)?.battle) say(`${name}: "${s.enemy}" can't battle`);
+        if (s.actor && !actors.has(s.actor)) say(`${name}: fighter "${s.actor}" isn't in the scene`);
         goto(s.win, name);
         goto(s.lose, name);
         if (s.background) backgrounds.push(s.background);

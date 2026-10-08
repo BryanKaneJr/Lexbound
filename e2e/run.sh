@@ -28,5 +28,5 @@ node "$root/e2e/serve.mjs" "$work/web" "$port" >/dev/null 2>&1 &
 pids+=($!)
 sleep 1
 
-echo "e2e      vertical slice"
+echo "e2e      chapters one and two"
 E2E_URL="http://localhost:$port/" node "$root/e2e/slice.mjs"

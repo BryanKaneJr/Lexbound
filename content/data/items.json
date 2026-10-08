@@ -5,5 +5,6 @@
   {"id": "charm", "name": "Translator's Charm", "description": "A carved wooden charm. Every Translator carries one. Maren wouldn't say why.", "icon": "charm"},
   {"id": "shiny_stone", "name": "Shiny Stone", "description": "Milo found it in Whisperwood. It glows faintly whenever he's close.", "icon": "stone"},
   {"id": "feather", "name": "Puffkin Fluff", "description": "A wisp a Puffkin left behind. It drifts upward if you let go.", "icon": "feather"},
-  {"id": "pebble", "name": "Round Pebble", "description": "A perfectly round pebble. The Pebblit seemed to think it was a great treasure.", "icon": "pebble"}
+  {"id": "pebble", "name": "Round Pebble", "description": "A perfectly round pebble. The Pebblit seemed to think it was a great treasure.", "icon": "pebble"},
+  {"id": "rubbing", "name": "Stone Rubbing", "description": "Charcoal on paper: the words carved into a standing stone in the Old Hollow, and a name beneath a drawing.", "icon": "rubbing"}
 ]

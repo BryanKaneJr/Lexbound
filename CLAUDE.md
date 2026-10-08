@@ -42,6 +42,8 @@ Names: the game is **Lexbound**, the world **Lexora**, the creatures **Lexlings*
 - **Field notes are observations, not definitions** ("Milo says “acqua” around water."), triggered by facts that never fade.
 - **Command tiles reshuffle every round.**
 - **Strange lines** (`"journal": "strange"`) are kept untranslated in the journal; don't add a meaning button there. Lines that teach nothing must say so (`"chatter": true`).
+- **Written Lexling** (`"speaker": "writing"`) is read, never spoken: no voice, no replay button, shown as an inscription.
+- **Battle verbs compose, they don't gate.** With no verb picked, a tile is still the one-word attack Chapter One taught. Phrases come from `data/it/phrasing.json`, never from code.
 - **No punishment loops:** no hunger timers, energy, lives or guilt. Losing a battle costs nothing.
 - **Offline first:** no network calls at runtime, no runtime LLM.
 - **Saves are versioned** (`SAVE_VERSION`, `MIGRATIONS` in `save.ts`). Bump the version and add a migration for any breaking change; never edit an old migration. New settings need zod defaults so old saves load.
@@ -54,4 +56,4 @@ Names: the game is **Lexbound**, the world **Lexora**, the creatures **Lexlings*
 - Respect Reduce Motion (`useReducedMotion`): animations collapse to state changes.
 - React lint rules forbid reading refs during render: hold `Animated.Value`s in `useState(() => new Animated.Value(0))`, and read the time with `useNow()` instead of `Date.now()` in render.
 - Art is drawn in code (`app/src/art`). Register sizes in `art/ids.ts` (the content tests check every scene against it) and shapes in `ASPECT` (`art/Actor.tsx`).
-- Keep e2e (`e2e/slice.mjs`) in step with button labels it relies on.
+- Keep e2e (`e2e/slice.mjs`, `e2e/chapter2.mjs`) in step with button labels it relies on.

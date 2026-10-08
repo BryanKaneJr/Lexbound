@@ -15,6 +15,15 @@
   {"id": "tasty", "gloss": "tasty / good", "category": "describe", "stage": 1},
   {"id": "hungry", "gloss": "hunger", "category": "feeling", "stage": 1},
   {"id": "friend", "gloss": "friend", "category": "social", "stage": 1},
-  {"id": "attack", "gloss": "attack / charge", "category": "action", "stage": 4},
-  {"id": "ho_fame", "gloss": "I'm hungry", "category": "feeling", "stage": 5, "type": "phrase"}
+  {"id": "attack", "gloss": "attack / charge", "category": "action", "stage": 4, "icon": "burst"},
+  {"id": "ho_fame", "gloss": "I'm hungry", "category": "feeling", "stage": 5, "type": "phrase"},
+  {"id": "wait", "gloss": "wait", "category": "action", "stage": 1},
+  {"id": "light", "gloss": "light", "category": "thing", "stage": 2},
+  {"id": "afraid", "gloss": "fear / afraid", "category": "feeling", "stage": 1},
+  {"id": "ho_paura", "gloss": "I'm scared", "category": "feeling", "stage": 5, "type": "phrase"},
+  {"id": "small", "gloss": "small / little one", "category": "describe", "stage": 2},
+  {"id": "big", "gloss": "big / great", "category": "describe", "stage": 2},
+  {"id": "defend", "gloss": "defend", "category": "action", "stage": 4, "icon": "shield"},
+  {"id": "with", "gloss": "with", "category": "place", "stage": 5},
+  {"id": "not", "gloss": "not", "category": "answer", "stage": 5}
 ]

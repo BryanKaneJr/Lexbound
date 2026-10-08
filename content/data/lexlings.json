@@ -90,6 +90,172 @@
     "voice": {
       "pitch": 1.8,
       "rate": 1.2
+    },
+    "battle": {
+      "level": 2,
+      "hp": 34,
+      "moves": [
+        {
+          "ability": "small_gust",
+          "telegraph": "puffkin.spar.vento",
+          "windup": "gust"
+        },
+        {
+          "ability": "swoop",
+          "telegraph": "puffkin.spar.attacco",
+          "windup": "dive"
+        },
+        {
+          "ability": "big_gust",
+          "telegraph": "puffkin.spar.grande",
+          "windup": "gale"
+        }
+      ],
+      "pattern": [
+        0,
+        2,
+        1,
+        2
+      ],
+      "xp": 20,
+      "reactions": {
+        "start": [
+          "puffkin.vento"
+        ],
+        "weak": [
+          "puffkin.spar.difendo"
+        ],
+        "defeat": [
+          "puffkin.spar.bravo"
+        ],
+        "victory": [
+          "puffkin.spar.si"
+        ]
+      },
+      "clue": "Bluster puffs himself up bigger and bigger before his strongest gust. Milo plants his feet, as if he'd like a wall between them."
+    }
+  },
+  {
+    "id": "flickerwing",
+    "name": "Flickerwing",
+    "element": "fire",
+    "habitat": "hollow",
+    "temperament": "shy",
+    "description": "A moth-sized Lexling with a tail that glows like a coal: bright when it's happy, nearly dark when it's frightened. Proof that not every fire Lexling is looking for a fight.",
+    "voice": {
+      "pitch": 1.9,
+      "rate": 0.9
+    }
+  },
+  {
+    "id": "cragling",
+    "name": "Cragling",
+    "element": "earth",
+    "habitat": "hollow",
+    "temperament": "hostile",
+    "description": "A rock-shelled Lexling with heavy pincers. Craglings throw stones, hold grudges, and don't usually take orders from anyone.",
+    "voice": {
+      "pitch": 0.6,
+      "rate": 0.85
+    },
+    "battle": {
+      "level": 2,
+      "hp": 48,
+      "moves": [
+        {
+          "ability": "rock_toss",
+          "telegraph": "cragling.terra",
+          "windup": "rocks"
+        },
+        {
+          "ability": "charge",
+          "telegraph": "cragling.attacco",
+          "windup": "paw"
+        }
+      ],
+      "pattern": [
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "xp": 35,
+      "reactions": {
+        "start": [
+          "cragling.grr"
+        ],
+        "strong": [
+          "cragling.vento.no"
+        ],
+        "victory": [
+          "cragling.ahah"
+        ],
+        "defeat": [
+          "cragling.basta"
+        ]
+      },
+      "clue": "A cold draught blows from the cave mouth. The Cragling hunches against it and hangs on."
+    }
+  },
+  {
+    "id": "cinderback",
+    "name": "Old Cinderback",
+    "element": "fire",
+    "habitat": "hollow",
+    "temperament": "hostile",
+    "description": "An Emberhog older than anyone at the Lodge, grey at the snout and scarred along the quills. The other Emberhogs follow it.",
+    "voice": {
+      "pitch": 0.55,
+      "rate": 0.8
+    },
+    "battle": {
+      "level": 4,
+      "hp": 120,
+      "moves": [
+        {
+          "ability": "flame_spit",
+          "telegraph": "cinderback.fuoco",
+          "windup": "embers"
+        },
+        {
+          "ability": "charge",
+          "telegraph": "cinderback.attacco",
+          "windup": "paw"
+        },
+        {
+          "ability": "inferno",
+          "telegraph": "cinderback.grande",
+          "windup": "inferno"
+        }
+      ],
+      "pattern": [
+        0,
+        2,
+        1,
+        2,
+        0,
+        2
+      ],
+      "xp": 120,
+      "reactions": {
+        "start": [
+          "cinderback.grrr"
+        ],
+        "strong": [
+          "cinderback.acqua"
+        ],
+        "absorbed": [
+          "cinderback.grazie"
+        ],
+        "fanned": [
+          "cinderback.si_fuoco"
+        ],
+        "victory": [
+          "cinderback.vieni"
+        ]
+      },
+      "clue": "Old Cinderback draws in a huge breath before its biggest blast. Milo looks back at you and braces, as if he wants a shield, not an attack."
     }
   }
 ]

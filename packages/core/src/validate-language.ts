@@ -1,4 +1,5 @@
 import { encounterConcepts } from './encounter';
+import { WRITING } from './save';
 import type { Content, Encounter, Step } from './schema';
 
 /**
@@ -77,7 +78,7 @@ export function validateLanguage(content: Content): string[] {
       }
     }
   }
-  const commandConcepts = new Set(content.milo.commands.flatMap((c) => c.concepts));
+  const commandConcepts = new Set([...content.milo.commands.flatMap((c) => c.concepts), ...content.milo.verbs.flatMap((v) => v.concepts)]);
   for (const c of content.concepts) {
     const who = speakers.get(c.id);
     if (!who) {
@@ -91,7 +92,7 @@ export function validateLanguage(content: Content): string[] {
   // Field notes.
   for (const n of content.notes) {
     if (!content.concept.has(n.concept)) say(`note ${n.id}`, `unknown concept "${n.concept}"`);
-    if (n.speaker && n.speaker !== 'milo' && !content.lexling.has(n.speaker)) say(`note ${n.id}`, `unknown speaker "${n.speaker}"`);
+    if (n.speaker && n.speaker !== 'milo' && n.speaker !== WRITING && !content.lexling.has(n.speaker)) say(`note ${n.id}`, `unknown speaker "${n.speaker}"`);
   }
   const noteIds = new Set<string>();
   for (const n of content.notes) {

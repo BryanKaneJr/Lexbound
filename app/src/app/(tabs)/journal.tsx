@@ -5,7 +5,7 @@ import { Icon } from '@/art/icons';
 import { DrizzletArt, EmberhogArt, PebblitArt, PuffkinArt } from '@/art/lexlings';
 import { HeardLine } from '@/components/HeardLine';
 import { Card, Screen, tapFeedback, Txt } from '@/components/ui';
-import { content, elementColor } from '@/game/content';
+import { content, elementColor, speakerName } from '@/game/content';
 import { useGame } from '@/state/store';
 import { color, radius, space, type } from '@/theme/tokens';
 
@@ -142,13 +142,13 @@ export default function Journal() {
 
         {tab === 'strange' && (
           <>
-            <Txt style={[type.body, { color: color.inkSoft }]}>{"Things Lexlings said that you couldn't quite follow. Maybe one day you will."}</Txt>
+            <Txt style={[type.body, { color: color.inkSoft }]}>{"Things you heard, or found carved in stone, that you couldn't quite follow. Maybe one day you will."}</Txt>
             {strange.length === 0 ? (
               <Txt style={[type.body, { color: color.inkMuted }]}>Nothing strange yet.</Txt>
             ) : (
               strange.map((id) => (
                 <Card key={id} style={{ gap: 2 }}>
-                  <Txt style={[type.small, { color: color.inkMuted }]}>{content.lexling.get(content.line.get(id)!.speaker)?.name}, to Milo</Txt>
+                  <Txt style={[type.small, { color: color.inkMuted }]}>{speakerName(content.line.get(id)!.speaker)}</Txt>
                   <HeardLine lineId={id} reveal={false} />
                 </Card>
               ))

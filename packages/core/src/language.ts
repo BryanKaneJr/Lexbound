@@ -5,7 +5,7 @@
  *
  * What it tracks is evidence, not repetition (§15): which situations a
  * concept was met in, who said it, through which channel (Milo, a wild
- * Lexling, an enemy, a command), and whether the player ever acted on it
+ * Lexling, an enemy, words carved in stone, a command), and whether the player ever acted on it
  * correctly, in how many different situations, and after a gap.
  *
  * From that it derives a comprehension state:
@@ -22,7 +22,7 @@
  * of being punished (§26 of the game bible).
  */
 
-export type Modality = 'milo' | 'lexling' | 'enemy' | 'command' | 'action';
+export type Modality = 'milo' | 'lexling' | 'enemy' | 'writing' | 'command' | 'action';
 
 export type ConceptState = {
   exposures: number;

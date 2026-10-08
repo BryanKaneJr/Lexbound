@@ -99,5 +99,104 @@
       { "type": "reward", "effects": { "flags": ["camp.retell.done"], "journal": ["milo.retell"] } },
       { "type": "end" }
     ]
+  },
+  {
+    "id": "camp.practice",
+    "location": "camp",
+    "title": "Milo's game",
+    "kind": "story",
+    "order": 11,
+    "requires": { "flags": ["chapter1.done"] },
+    "teaching": {
+      "purpose": "Milo has set up a game with pinecones and wants to show off every trick he knows, then wants you to have a go.",
+      "introduces": ["with", "defend", "earth", "wind"],
+      "reinforces": ["attack", "water"],
+      "grounding": [
+        { "concept": "with", "type": "contrast", "how": "He announces every shot the same way: the move, then the same little word, then the element he throws." },
+        { "concept": "defend", "type": "animation", "how": "The last pinecone rolls back at him; he throws up a wall of dirt and it bounces off." },
+        { "concept": "earth", "type": "object", "how": "A wall of packed dirt springs up out of the ground in front of him." },
+        { "concept": "wind", "type": "animation", "how": "He spins on the spot and a gust blows the pinecone clean off the log." }
+      ]
+    },
+    "scene": {
+      "background": "camp",
+      "props": [
+        { "id": "log", "art": "log", "x": 0.7, "y": 0.93, "scale": 1.1 },
+        { "id": "pine1", "art": "pinecone", "x": 0.6, "y": 0.86 },
+        { "id": "pine2", "art": "pinecone", "x": 0.7, "y": 0.86 },
+        { "id": "pine3", "art": "pinecone", "x": 0.8, "y": 0.86 },
+        { "id": "wall", "art": "dirtwall", "x": 0.42, "y": 0.93, "hidden": true }
+      ],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.26, "y": 0.88, "mood": "excited" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Morning at camp. Milo has lined up three pinecones along the log, very seriously, and is waiting for you to notice." },
+      { "type": "say", "line": "milo.attacco.acqua", "anim": "cast", "mood": "fierce", "look": "pine1" },
+      { "type": "act", "actor": "pine1", "anim": "flee", "text": "A splash of water knocks the first pinecone flying." },
+      { "type": "stage", "hide": ["pine1"] },
+      { "type": "say", "line": "milo.attacco.vento", "anim": "spin", "mood": "fierce", "look": "pine2" },
+      { "type": "act", "actor": "pine2", "anim": "flee", "text": "A gust whips the second one off the log and into the grass." },
+      { "type": "stage", "hide": ["pine2"] },
+      { "type": "act", "actor": "pine3", "anim": "wiggle", "text": "The last pinecone wobbles, rolls off the end of the log, and bounces straight back at him." },
+      { "type": "say", "line": "milo.difendo.terra", "anim": "defend", "mood": "surprised" },
+      { "type": "stage", "show": ["wall"], "hide": ["pine3"] },
+      { "type": "narrate", "text": "A wall of packed dirt springs up in front of him. The pinecone thunks off it." },
+      { "type": "act", "actor": "milo", "anim": "bow", "mood": "proud", "text": "Milo bows to an audience of nobody." },
+      { "type": "stage", "hide": ["wall"] },
+      { "type": "say", "line": "milo.ora_tu", "anim": "point", "mood": "excited" },
+      {
+        "type": "choice",
+        "prompt": "He points at you, then at the pinecones, bouncing.",
+        "options": [
+          { "label": "Toss a pinecone at Milo", "goto": "toss", "effects": { "bond": 2 } },
+          { "label": "Set the pinecones up again", "goto": "again", "effects": { "bond": 1 } }
+        ]
+      },
+      { "id": "toss", "type": "act", "actor": "milo", "anim": "recoil", "mood": "surprised", "text": "He yelps, then gets the wall up just in time." },
+      { "type": "stage", "show": ["wall"] },
+      { "type": "say", "line": "milo.difendo.terra", "anim": "defend", "mood": "proud" },
+      { "type": "stage", "hide": ["wall"] },
+      { "type": "act", "actor": "milo", "anim": "bounce", "mood": "excited", "text": "He wants you to throw another. And another. You throw pinecones until your arm aches.", "next": "done" },
+      { "id": "again", "type": "act", "actor": "milo", "anim": "bounce", "mood": "excited", "text": "You line them up. He knocks them down. You line them up again. This could go on all day." },
+      { "type": "say", "line": "milo.attacco.vento", "anim": "spin", "mood": "fierce" },
+      { "id": "done", "type": "reward", "effects": { "bond": 1, "xp": 5, "flags": ["camp.practice.done", "milo.defend"], "journal": ["story.practice"] } },
+      { "type": "narrate", "text": "Next time there's a fight, he seems keen for you to call the shots." },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "camp.ch2.night",
+    "location": "camp",
+    "title": "The light, again",
+    "kind": "story",
+    "order": 18,
+    "requires": { "flags": ["ch2.boss.won"] },
+    "teaching": { "purpose": "Back at camp after the Hollow, Milo tries again to say what he remembers, and then says how he feels.", "reinforces": ["big", "light", "afraid", "ho_paura"] },
+    "scene": {
+      "background": "camp_night",
+      "props": [
+        { "id": "log", "art": "log", "x": 0.2, "y": 0.93, "scale": 0.8 },
+        { "id": "fire", "art": "campfire", "x": 0.74, "y": 0.92, "scale": 0.85 }
+      ],
+      "actors": [{ "id": "milo", "art": "milo", "x": 0.44, "y": 0.88, "mood": "sad" }]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Night at camp. The Flickerwing dozes on the log by the fire. Milo hasn't eaten a thing." },
+      { "type": "act", "actor": "milo", "anim": "look", "mood": "sad", "look": "fire", "text": "He stares into the flames for a long time." },
+      { "type": "say", "line": "milo.luce.memory", "mood": "sad", "look": "fire" },
+      { "type": "act", "actor": "milo", "anim": "hug", "mood": "scared", "text": "Then he climbs into your lap and presses his face against you." },
+      { "type": "say", "line": "milo.ho_paura", "anim": "hug", "mood": "scared" },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Hold him", "goto": "hold", "effects": { "bond": 3 } },
+          { "label": "Tell him a story", "goto": "story", "effects": { "bond": 3 } }
+        ]
+      },
+      { "id": "hold", "type": "narrate", "text": "You hold on to him until his breathing slows and he falls asleep, one paw still gripping your sleeve.", "next": "done" },
+      { "id": "story", "type": "narrate", "text": "You tell him about the Lodge, and Maren, and Pip falling into the stream last spring. He doesn't understand a word, but he falls asleep smiling." },
+      { "id": "done", "type": "reward", "effects": { "flags": ["camp.ch2.night.done"], "journal": ["story.ch2_night"] } },
+      { "type": "end" }
+    ]
   }
 ]

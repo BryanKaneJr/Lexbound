@@ -25,6 +25,23 @@ The owner's language design bible (`docs/language-design.md`) arrived after the 
 
 Not yet (later steps of the build order): L9 command composition, L10 audio refinement, written Lexling language (§37), constructions like "voglio / non voglio" (§42, §43), and more Lexling species (§79 asks for 5 to 8).
 
+## 2026-10-08: Chapter Two, the Old Hollow
+
+The language bible's next steps (§81 L9, §37, §79), built as a chapter rather than as systems on their own.
+
+- **L9, command composition.** Milo learns two verbs in a game at camp, announcing every shot the same way ("Attacco con l'acqua!", "Mi difendo con la terra!"). From then on a row of verbs sits above the battle tiles. Pick one and the tiles finish the sentence: DIFENDI, then CON LA TERRA, and the player hears their own call, "Difendi con la terra!". With no verb picked a tile is still a one-word attack, so Chapter One plays the same. Phrases live in the language pack (`data/it/phrasing.json`), never in code.
+- **Shields and unstoppable moves.** Some announced moves are too big for any attack to cancel (`"unstoppable": true`): Bluster's "Vento grande!" and Old Cinderback's "Ora... il fuoco grande!". A shield of the element that counters a move stops it, whatever its size, and steadies Milo: his next attack lands twice as hard. A shield of the wrong element lets half through. Shielding against an unstoppable move is evidence for the words of its announcement; understanding "grande" is what wins the boss.
+- **Balance** (`content/test/battles.test.ts`): listening wins every Chapter Two fight; ignoring the words still beats Bluster and the Craglings; against Old Cinderback at the level most players reach him, ignoring "grande" loses, and five levels of grinding win anyway (§31, §39).
+- **Written Lexling** (§37). Lines can be carved: speaker `writing`, channel `writing`, shown as an inscription over the scene, never spoken aloud, with the same help ladder as speech. The standing stones say QUI DORME LA LUCE and, under a carving with four marks on its brow, MILO. Maren matches the rubbing to the tag in Milo's basket. Humans are sure Lexlings don't write.
+- **Enemy intelligence, spoken among themselves.** Two Craglings plan their ambush out loud ("Il piccolo attacca con l'acqua." "Allora noi... con la terra. E aspettiamo."). A player who keeps listening before stepping out knows to bring wind.
+- **New species** (now eight): the Flickerwing (fire, shy, its tail-light is its mood), the Cragling (earth, hostile), and Old Cinderback, the oldest Emberhog anyone has seen. Bluster now has his own art (a scarf).
+- **New concepts:** wait, afraid and the phrase "ho paura", small, big, light, defend, with, not. "Ho paura" arrives as a contrast with "ho fame": a creature refusing food because it's frightened ("Non ho fame... ho paura."), which is also where "non" first appears.
+- **Story order** continues the one sequence: the pinecone game (11), the spar (12), the Hollow's entrance (13), the Flickerwing (14), the stones (15), the Craglings (16), Old Cinderback (17), the night at camp (18), the report (19). The Hollow then keeps six explore scenes, one of them a second carved stone that only shows itself once.
+- **Battle steps** can name their opponent (`"name": "Old Cinderback"`) and point at the scene actor who fights (`"actor": "bluster"`), so a named Lexling keeps its own art in battle.
+- **Developer tools:** "Skip to Chapter Two" and "Skip to the Old Hollow" mark every earlier story scene as played, with the flags, items and journal entries it gives. Scheduler weights show for every place.
+
+Not yet: L10 audio refinement, constructions like "voglio / non voglio" (§42, §43), more regions, and a native speaker's review of every line (the new lines included).
+
 ## Stack
 
 - **Expo SDK 57, React Native, TypeScript, Expo Router** (game bible §44), the same versions as the owner's BrainScroll app.
@@ -80,6 +97,7 @@ In battle:
 
 - picking the counter to the foe's element (ACQUA against fire) is a success for its words;
 - countering an announced move with something other than the obvious matchup (TERRA against "All'attacco!") is a success for the words of the announcement;
+- a shield that holds is a success for its verb, and, against a move no attack could stop, for the words of the announcement too;
 - anything else is only an exposure: the player may know exactly what "fuoco" means and be experimenting.
 
 ## Battles
@@ -95,7 +113,7 @@ In battle:
 
 Steps: `narrate`, `talk` (humans, English), `say` (creatures, the creature language), `act`, `stage`, `choice`, `tap`, `give`, `battle`, `reward`, `branch`, `end`. Branches see effects granted earlier in the same input. `end` can say `complete: false`.
 
-**Story order is one sequence for the whole game** (`order`): Lodge intro (1), first night at camp (2), Whisperwood first steps (3), the stream (4), the hungry Pebblit (5), the hot path (6), the Emberhog (7), Milo's retelling (8), the whispers (9), the Lodge report (10). Each runs ahead of anything else at its place. Whisperwood opens once Milo has eaten; its repeatable scenes open after the Emberhog.
+**Story order is one sequence for the whole game** (`order`): Lodge intro (1), first night at camp (2), Whisperwood first steps (3), the stream (4), the hungry Pebblit (5), the hot path (6), the Emberhog (7), Milo's retelling (8), the whispers (9), the Lodge report (10), then Chapter Two (11 to 19, above). Each runs ahead of anything else at its place. Whisperwood opens once Milo has eaten; its repeatable scenes open after the Emberhog. The Old Hollow opens after the spar with Bluster.
 
 ## Validation
 
@@ -126,12 +144,12 @@ All art is drawn in code with react-native-svg: Milo (14 moods, 10 arm poses, bl
 
 - Humans say "Lexlings" and believe Lexlings communicate with a handful of sounds. Lexlings never name their language. The words "Italian" and "translation" never appear in play. The help ladder's last rung says "It means: ...".
 - Human NPCs: **Maren Holt**, Warden of the Translators' Lodge; **Pip Calloway**, Translator Second Class (self-appointed), with his Puffkin **Bluster**.
-- Species: **Emberhog** (fire, hostile), **Drizzlet** (water, playful), **Pebblit** (earth, shy), **Puffkin** (wind, playful).
-- Places: **Camp**, the **Translators' Lodge**, **Whisperwood**; coming later: Riverlands, Ember Ridge, Saltglass Coast.
+- Species: **Emberhog** (fire, hostile), **Drizzlet** (water, playful), **Pebblit** (earth, shy), **Puffkin** (wind, playful), **Flickerwing** (fire, shy), **Cragling** (earth, hostile), and **Old Cinderback**, the oldest Emberhog.
+- Places: **Camp**, the **Translators' Lodge**, **Whisperwood**, the **Old Hollow**; coming later: Riverlands, Ember Ridge, Saltglass Coast.
 
 ## Strange lines are not translated in the journal
 
-"Sei tu... Ti abbiamo trovato." (the Emberhog), "Mi ricordo una grande luce... e poi niente." (Milo) and the Puffkins' whispers are kept in Journal, Strange things, with replay only: understanding them later is the point (§47, §52). The in-scene help ladder still offers the meaning of every line, so nobody is ever stuck.
+"Sei tu... Ti abbiamo trovato." (the Emberhog), "Mi ricordo una grande luce... e poi niente." (Milo) the Puffkins' whispers, Old Cinderback's last words and the carved stones are kept in Journal, Strange things, with replay only (carved words have no voice): understanding them later is the point (§47, §52). Some will be understood by the time they're reread: "Non sai cosa sei." only needs "non" and patience. The in-scene help ladder still offers the meaning of every line, so nobody is ever stuck.
 
 ## Italian review
 

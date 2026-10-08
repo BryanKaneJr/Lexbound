@@ -1,0 +1,476 @@
+[
+  {
+    "id": "hollow.entrance",
+    "location": "hollow",
+    "title": "Into the Hollow",
+    "kind": "story",
+    "order": 13,
+    "teaching": {
+      "purpose": "The Old Hollow is full of holes hidden under dead leaves, and Milo is suddenly very sure of where it's safe to step.",
+      "introduces": ["wait"],
+      "reinforces": ["here", "no", "come"],
+      "grounding": [
+        {"concept": "wait", "type": "gesture", "how": "Milo throws a paw across your path and stares at the leaves ahead; when you stop, the leaves turn out to be covering a hole. Later he pats your hand, points at your feet, and goes on alone."}
+      ]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [
+        {"id": "stone", "art": "standing_stone", "x": 0.86, "y": 0.86, "scale": 0.8},
+        {"id": "leaves", "art": "leafpile", "x": 0.58, "y": 0.92},
+        {"id": "pit", "art": "pit", "x": 0.58, "y": 0.93, "hidden": true},
+        {"id": "shroom", "art": "glowshroom", "x": 0.14, "y": 0.93, "scale": 0.8}
+      ],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.32, "y": 0.86, "mood": "curious"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "The path drops into the Old Hollow. Moss on everything, standing stones leaning together, and a hush that makes you want to whisper."},
+      {"type": "act", "actor": "milo", "anim": "sniff", "mood": "curious", "text": "Milo walks a little ahead of you, ears up, placing every paw with care."},
+      {"type": "act", "actor": "milo", "anim": "look", "mood": "surprised", "look": "leaves", "text": "You step toward a heap of dead leaves. Milo spins round."},
+      {"type": "say", "line": "milo.aspetta", "anim": "block", "mood": "surprised", "look": "leaves"},
+      {
+        "type": "choice",
+        "options": [
+          {"label": "Stop where you are", "goto": "stop", "effects": {"bond": 1}},
+          {"label": "Step over the leaves", "goto": "step"}
+        ]
+      },
+      {"id": "stop", "type": "act", "actor": "milo", "anim": "dig", "mood": "curious", "look": "leaves", "text": "Milo pats at the leaves with one paw. They slither away into nothing.", "next": "hole"},
+      {"id": "step", "type": "act", "actor": "milo", "anim": "tug", "mood": "scared", "look": "leaves", "text": "Your foot goes straight through the leaves. Milo grabs your sleeve with both paws and hauls you back, wobbling."},
+      {"id": "hole", "type": "stage", "hide": ["leaves"], "show": ["pit"]},
+      {"type": "narrate", "text": "Under the leaves: a hole, deep and dark, just wide enough to swallow a Translator-in-training."},
+      {"type": "act", "actor": "milo", "anim": "shake", "mood": "annoyed", "text": "Milo looks from the hole to you and shakes his whole body, as if to get rid of the idea."},
+      {"type": "stage", "hide": ["pit"], "move": [{"id": "milo", "x": 0.4}]},
+      {"type": "narrate", "text": "Further in, the ground slopes down toward the standing stones. The leaves here lie thick and smooth. Too smooth."},
+      {"type": "say", "line": "milo.aspetta.qui", "anim": "point", "mood": "curious"},
+      {"type": "stage", "move": [{"id": "milo", "x": 0.66}]},
+      {
+        "id": "choose",
+        "type": "choice",
+        "prompt": "Milo creeps on alone, testing the ground paw by paw.",
+        "options": [
+          {"label": "Stay put", "goto": "wait", "evidence": [{"concept": "wait", "result": "success"}]},
+          {"label": "Follow him", "goto": "follow"}
+        ]
+      },
+      {"id": "follow", "type": "act", "actor": "milo", "anim": "look", "mood": "annoyed", "text": "Milo hears you crunching after him and turns round, ears flat."},
+      {"type": "say", "line": "milo.no.aspetta", "anim": "point", "mood": "annoyed"},
+      {
+        "type": "choice",
+        "options": [
+          {"label": "Stay put", "goto": "wait"},
+          {"label": "Keep going anyway", "goto": "slide", "evidence": [{"concept": "wait", "result": "fail"}]}
+        ]
+      },
+      {"id": "slide", "type": "narrate", "text": "Three steps later the leaves give way and you slide all the way down the slope on your backside, collecting moss as you go."},
+      {"type": "act", "actor": "milo", "anim": "facepalm", "mood": "annoyed", "text": "Milo covers his eyes with both paws. Then he comes down the long way round to fetch you.", "next": "safe"},
+      {"id": "wait", "type": "act", "actor": "milo", "anim": "dig", "mood": "curious", "text": "Milo prods the slope, finds a hidden hole, then a root you can stand on, then another. He picks out a path down to the stones."},
+      {"type": "say", "line": "milo.vieni.qui", "anim": "beckon", "mood": "happy"},
+      {"type": "narrate", "text": "You climb down the way he went, one root at a time. Not a single leaf gives way."},
+      {"id": "safe", "type": "act", "actor": "milo", "anim": "look", "mood": "curious", "look": "stone", "text": "At the bottom, Milo stands very still and looks up at the standing stones as if they might remember him."},
+      {"type": "reward", "effects": {"bond": 2, "flags": ["hollow.entrance.done"], "journal": ["story.hollow"]}},
+      {"type": "end"}
+    ]
+  },
+  {
+    "id": "hollow.flickerwing",
+    "location": "hollow",
+    "title": "Something tiny in the dark",
+    "kind": "story",
+    "order": 14,
+    "teaching": {
+      "purpose": "A tiny fire Lexling is hiding in the dark under the ferns, too frightened to glow. Food won't fix it; company might.",
+      "introduces": ["afraid", "ho_paura", "small", "not"],
+      "reinforces": ["hungry", "ho_fame", "come", "here", "thanks"],
+      "grounding": [
+        {"concept": "afraid", "type": "animation", "how": "The little Lexling is trembling under a fern with its tail-light almost out; Milo crouches low and asks it very softly."},
+        {"concept": "ho_paura", "type": "contrast", "how": "The same shape as “ho fame”, which the player knows, but from a creature shaking in the dark, not staring at food."},
+        {"concept": "not", "type": "contrast", "how": "Offered berries, it turns its back on them: “ho fame” with a new word in front, said while refusing food."},
+        {"concept": "small", "type": "gesture", "how": "Milo holds out one paw to a Lexling smaller than his ear."}
+      ]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [
+        {"id": "fern", "art": "bush", "x": 0.7, "y": 0.9, "scale": 0.9},
+        {"id": "stone", "art": "standing_stone", "x": 0.12, "y": 0.86, "scale": 0.7}
+      ],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.36, "y": 0.86, "mood": "curious"},
+        {"id": "flickerwing", "art": "flickerwing", "x": 0.64, "y": 0.93, "facing": "left", "hidden": true, "mood": "scared"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "Deeper in, it's dark between the stones. Under a fern, something glows for a moment, then goes out."},
+      {"type": "stage", "show": ["flickerwing"]},
+      {"type": "act", "actor": "flickerwing", "anim": "shiver", "mood": "scared", "text": "A Lexling no bigger than a moth, huddled flat in the moss. Its tail flickers like a dying coal."},
+      {"type": "say", "line": "flickerwing.ho_paura", "anim": "shiver", "mood": "scared"},
+      {"type": "act", "actor": "milo", "anim": "crouch", "mood": "sad", "look": "flickerwing", "text": "Milo creeps over and crouches low, nose almost in the moss."},
+      {"type": "say", "line": "milo.paura", "anim": "crouch", "mood": "sad", "look": "flickerwing"},
+      {
+        "type": "choice",
+        "options": [
+          {"label": "Offer it some sunberries", "goto": "berries", "evidence": [{"concept": "afraid", "result": "fail"}]},
+          {"label": "Sit down quietly next to it", "goto": "sit", "effects": {"bond": 1}, "evidence": [{"concept": "afraid", "result": "success"}]}
+        ]
+      },
+      {"id": "berries", "type": "act", "actor": "flickerwing", "anim": "hide", "mood": "scared", "text": "You hold out a pawful of sunberries. The little Lexling turns its back on them."},
+      {"type": "say", "line": "flickerwing.non_fame", "anim": "shiver", "mood": "scared"},
+      {"type": "act", "actor": "milo", "anim": "look", "mood": "sad", "text": "Milo looks at the berries, then at you. Then he lies down flat in the moss, very still, right next to it.", "next": "wait"},
+      {"id": "sit", "type": "narrate", "text": "You sit down in the moss and keep still."},
+      {"type": "act", "actor": "milo", "anim": "push", "mood": "happy", "look": "flickerwing", "text": "Milo, who solves most problems with food, rolls a sunberry toward it with his nose."},
+      {"type": "say", "line": "flickerwing.non_fame", "anim": "shiver", "mood": "scared"},
+      {"type": "act", "actor": "milo", "anim": "slump", "mood": "sad", "text": "Milo eats the berry himself, thoughtfully. Then he lies down flat in the moss, right next to it."},
+      {"id": "wait", "type": "narrate", "text": "Nobody moves for a long time. Little by little, the tail-light warms from grey to orange."},
+      {"type": "say", "line": "milo.piccolo", "anim": "offer", "mood": "happy", "look": "flickerwing"},
+      {"type": "act", "actor": "flickerwing", "anim": "hop", "mood": "happy", "text": "The little Lexling hops onto Milo's paw. Its tail flares bright and warm."},
+      {"type": "stage", "move": [{"id": "flickerwing", "x": 0.4, "y": 0.62}]},
+      {"type": "say", "line": "flickerwing.grazie", "anim": "flutter", "mood": "happy"},
+      {"type": "act", "actor": "milo", "anim": "bounce", "mood": "proud", "text": "It climbs into the fluff on top of Milo's head and settles there like a little lantern. Milo is unbearably proud."},
+      {"type": "reward", "effects": {"bond": 2, "befriend": ["flickerwing"], "flags": ["hollow.flickerwing.done"], "journal": ["story.flickerwing"]}},
+      {"type": "end"}
+    ]
+  },
+  {
+    "id": "hollow.stones",
+    "location": "hollow",
+    "title": "Words in stone",
+    "kind": "story",
+    "order": 15,
+    "teaching": {
+      "purpose": "With a light at last, the standing stones turn out to be covered in carvings, and one of them carries Milo's name.",
+      "introduces": ["light"],
+      "reinforces": ["here"],
+      "grounding": [
+        {"concept": "light", "type": "animation", "how": "The Flickerwing shouts it and its tail flares, and the dark clearing lights up stone by stone."}
+      ]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [
+        {"id": "stone", "art": "standing_stone", "x": 0.68, "y": 0.88, "scale": 1.3},
+        {"id": "shroom", "art": "glowshroom", "x": 0.88, "y": 0.93}
+      ],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.3, "y": 0.86, "mood": "curious"},
+        {"id": "flickerwing", "art": "flickerwing", "x": 0.3, "y": 0.6, "facing": "right", "mood": "happy"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "With the Flickerwing riding on his head, Milo leads you into a ring of tall stones. It's darker here than anywhere."},
+      {"type": "say", "line": "flickerwing.luce", "anim": "flare", "mood": "happy"},
+      {"type": "act", "actor": "stone", "anim": "glow", "text": "Its tail blazes. The tallest stone steps out of the dark, and it isn't plain stone at all. It's carved."},
+      {"type": "narrate", "text": "Letters. Old ones, worn soft at the edges, cut deep by someone patient."},
+      {"type": "say", "line": "writing.qui_dorme", "look": "stone"},
+      {"type": "act", "actor": "milo", "anim": "look", "mood": "surprised", "look": "stone", "text": "Below the words, a carving: a small, round creature with four marks on its brow. And under it, one more word."},
+      {"type": "say", "line": "writing.milo", "look": "stone"},
+      {"type": "act", "actor": "milo", "anim": "touch", "mood": "sad", "look": "stone", "text": "Milo walks up to the stone and lays his paw on the name."},
+      {"type": "say", "line": "milo.mi_ricordo", "mood": "sad", "look": "stone"},
+      {
+        "type": "choice",
+        "options": [
+          {"label": "Take a rubbing for Maren", "goto": "rub"},
+          {"label": "Sit with Milo for a while", "goto": "sit", "effects": {"bond": 2}}
+        ]
+      },
+      {"id": "sit", "type": "narrate", "text": "You sit with your back against the stone. Milo leans on you. Neither of you says anything for a while. Then, because Maren will never believe it otherwise, you take a rubbing."},
+      {"id": "rub", "type": "narrate", "text": "Paper against the stone, charcoal across it. The words come up black and clear, and so does the name."},
+      {"type": "reward", "effects": {"items": {"rubbing": 1}, "flags": ["hollow.stones.done"], "journal": ["story.stones"]}},
+      {"type": "end"}
+    ]
+  },
+  {
+    "id": "hollow.overheard",
+    "location": "hollow",
+    "title": "Voices behind the rocks",
+    "kind": "story",
+    "order": 16,
+    "teaching": {
+      "purpose": "Two Craglings are waiting for Milo on the path. If you listen before you walk in, you'll know how they mean to fight.",
+      "reinforces": ["small", "here", "with", "attack", "water", "earth", "wait"]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [
+        {"id": "rocks", "art": "rock_big", "x": 0.7, "y": 0.9, "scale": 1.2},
+        {"id": "pebbles", "art": "rock_small", "x": 0.86, "y": 0.92}
+      ],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.26, "y": 0.88, "mood": "curious"},
+        {"id": "crag_a", "art": "cragling", "x": 0.62, "y": 0.92, "facing": "right", "hidden": true, "mood": "angry"},
+        {"id": "crag_b", "art": "cragling", "x": 0.82, "y": 0.92, "facing": "left", "hidden": true, "mood": "angry"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "Voices, low and gravelly, from behind a heap of boulders. Milo pulls you down out of sight."},
+      {"type": "say", "line": "cragling.overheard.a1", "by": "crag_a", "anim": "tap"},
+      {"type": "say", "line": "cragling.overheard.b1", "by": "crag_b", "anim": "splash"},
+      {"type": "act", "actor": "milo", "anim": "crouch", "mood": "scared", "text": "Milo's ears go flat at the word he hears most."},
+      {
+        "type": "choice",
+        "options": [
+          {"label": "Keep listening", "goto": "listen"},
+          {"label": "Step out and face them", "goto": "out"}
+        ]
+      },
+      {"id": "listen", "type": "say", "line": "cragling.overheard.a2", "by": "crag_a", "anim": "tap"},
+      {"type": "narrate", "text": "Stones clatter as one of them builds a little wall across the path. Then it's quiet."},
+      {"id": "out", "type": "stage", "show": ["crag_a", "crag_b"]},
+      {"type": "act", "actor": "crag_a", "anim": "stomp", "mood": "angry", "text": "Two rock-shelled Lexlings, all pincers. The bigger one clacks forward; the other backs off to watch."},
+      {"type": "stage", "hide": ["crag_b"]},
+      {"type": "battle", "enemy": "cragling", "win": "won", "lose": "lost"},
+      {"id": "won", "type": "act", "actor": "crag_a", "anim": "flee", "text": "The Cragling tucks into its shell and rolls away down the slope, clattering."},
+      {"type": "stage", "hide": ["crag_a"]},
+      {"type": "act", "actor": "milo", "anim": "look", "mood": "confused", "look": "rocks", "text": "Milo stares at the heap of stones they left behind. They were waiting for him. They knew how he fights."},
+      {"type": "reward", "effects": {"bond": 2, "xp": 10, "flags": ["hollow.overheard.done"], "journal": ["story.overheard"]}},
+      {"type": "end"},
+      {"id": "lost", "type": "narrate", "text": "You and Milo retreat up the slope. The Craglings don't chase you; they settle back down behind their wall to wait."},
+      {"type": "end", "complete": false}
+    ]
+  },
+  {
+    "id": "hollow.cinderback",
+    "location": "hollow",
+    "title": "Old Cinderback",
+    "kind": "story",
+    "order": 17,
+    "teaching": {
+      "purpose": "The oldest Emberhog anyone has seen comes to take Milo, and Milo, for the first time, decides to protect you.",
+      "reinforces": ["small", "no", "defend", "fire", "attack", "big", "not"]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [
+        {"id": "stone", "art": "standing_stone", "x": 0.1, "y": 0.86, "scale": 0.9},
+        {"id": "stone2", "art": "standing_stone", "x": 0.92, "y": 0.84, "scale": 0.8}
+      ],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.32, "y": 0.88, "mood": "curious"},
+        {"id": "cinderback", "art": "cinderback", "x": 0.72, "y": 0.9, "facing": "left", "hidden": true, "mood": "angry"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "The heart of the Hollow: a ring of standing stones, scorched black. Something huge is breathing in the dark."},
+      {"type": "stage", "show": ["cinderback"]},
+      {"type": "act", "actor": "cinderback", "anim": "stomp", "mood": "angry", "text": "An Emberhog steps into the ring. Grey at the snout, scarred along every quill, twice the size of the one at the stream."},
+      {"type": "say", "line": "cinderback.finalmente", "anim": "look", "look": "milo"},
+      {"type": "say", "line": "cinderback.dammi", "anim": "look"},
+      {"type": "act", "actor": "milo", "anim": "shake", "mood": "fierce", "text": "Milo is trembling against your leg. Then, all at once, he stops. He walks out in front of you and plants his feet."},
+      {"type": "say", "line": "milo.no", "anim": "shake", "mood": "fierce", "look": "cinderback"},
+      {"type": "say", "line": "milo.ti_difendo", "anim": "brace", "mood": "fierce"},
+      {"type": "battle", "enemy": "cinderback", "name": "Old Cinderback", "win": "won", "lose": "lost"},
+      {"id": "won", "type": "act", "actor": "cinderback", "anim": "stagger", "mood": "hurt", "text": "Old Cinderback sinks down on its haunches, steaming. When it speaks again, it's to Milo, slow and quiet."},
+      {"type": "say", "line": "cinderback.non_sai", "mood": "sad", "look": "milo"},
+      {"type": "say", "line": "cinderback.casa", "mood": "sad"},
+      {"type": "act", "actor": "cinderback", "anim": "flee", "text": "Then it turns and walks into the dark between the stones, unhurried, as if it has all the time in the world."},
+      {"type": "stage", "hide": ["cinderback"]},
+      {"type": "act", "actor": "milo", "anim": "hug", "mood": "scared", "text": "Milo comes back and presses himself against your legs. He's shaking again."},
+      {"type": "reward", "effects": {"bond": 3, "flags": ["ch2.boss.won"], "journal": ["story.cinderback"]}},
+      {"type": "narrate", "text": "Time to go home. And Maren needs to see that rubbing."},
+      {"type": "end"},
+      {"id": "lost", "type": "narrate", "text": "Milo is spent. The old Emberhog doesn't follow you out of the ring. It just watches you go, as if it's sure you'll be back."},
+      {"type": "end", "complete": false}
+    ]
+  },
+  {
+    "id": "hollow.glowshrooms",
+    "location": "hollow",
+    "title": "Glowshrooms",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 9,
+    "requires": {"flags": ["ch2.boss.won"]},
+    "teaching": {
+      "purpose": "The Flickerwing shows Milo how to wake the mushrooms in the dark, and lights a way through.",
+      "reinforces": ["look", "light", "come"]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [
+        {"id": "shroom1", "art": "glowshroom", "x": 0.56, "y": 0.93},
+        {"id": "shroom2", "art": "glowshroom", "x": 0.72, "y": 0.91, "scale": 1.2},
+        {"id": "shroom3", "art": "glowshroom", "x": 0.88, "y": 0.93, "scale": 0.8}
+      ],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.3, "y": 0.86, "mood": "curious"},
+        {"id": "flickerwing", "art": "flickerwing", "x": 0.46, "y": 0.66, "facing": "right", "mood": "happy"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "A dark stretch of the Hollow, crowded with pale mushrooms."},
+      {"type": "act", "actor": "flickerwing", "anim": "flutter", "mood": "happy", "text": "The Flickerwing brushes the first mushroom with its tail. It starts to glow. So does the next one."},
+      {"type": "say", "line": "milo.guarda.luce", "anim": "point", "mood": "excited", "look": "shroom2"},
+      {"type": "say", "line": "flickerwing.vieni", "anim": "flutter", "mood": "happy"},
+      {
+        "type": "choice",
+        "options": [
+          {"label": "Follow the light", "goto": "follow", "evidence": [{"concept": "come", "result": "success"}]},
+          {"label": "Stay and watch the mushrooms", "goto": "stay"}
+        ]
+      },
+      {"id": "follow", "type": "narrate", "text": "Mushroom by mushroom, the Flickerwing lights a path to a hollow log stuffed with dry moss and someone's forgotten stash."},
+      {"type": "reward", "effects": {"bond": 1, "items": {"sunberries": 1}}},
+      {"type": "end"},
+      {"id": "stay", "type": "act", "actor": "milo", "anim": "sit", "mood": "happy", "text": "Milo sits down to watch the mushrooms pulse, slow as breathing. The Flickerwing comes back and settles on his head."},
+      {"type": "say", "line": "flickerwing.luce", "anim": "flare", "mood": "happy"},
+      {"type": "end"}
+    ]
+  },
+  {
+    "id": "hollow.wild_cragling",
+    "location": "hollow",
+    "title": "A Cragling on the path",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 7,
+    "cooldown": 3,
+    "requires": {"flags": ["ch2.boss.won"]},
+    "teaching": {
+      "purpose": "A grumpy Cragling has claimed the path and won't share it.",
+      "reinforces": ["earth", "attack", "careful", "yes"]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [{"id": "rocks", "art": "rock_small", "x": 0.86, "y": 0.92}],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.3, "y": 0.88, "mood": "curious"},
+        {"id": "cragling", "art": "cragling", "x": 0.72, "y": 0.92, "facing": "left", "mood": "angry"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "A Cragling squats in the middle of the path, clacking its pincers at anything that moves."},
+      {"type": "say", "line": "milo.attento", "anim": "crouch", "mood": "scared"},
+      {"type": "battle", "enemy": "cragling", "win": "won", "lose": "lost"},
+      {"id": "won", "type": "act", "actor": "cragling", "anim": "flee", "text": "The Cragling rolls off into the ferns, grumbling."},
+      {"type": "stage", "hide": ["cragling"]},
+      {"type": "say", "line": "milo.si.si", "anim": "bounce", "mood": "proud"},
+      {"type": "end"},
+      {"id": "lost", "type": "narrate", "text": "You go the long way round. The Cragling clacks after you, very pleased with itself."},
+      {"type": "end"}
+    ]
+  },
+  {
+    "id": "hollow.pebblit_wait",
+    "location": "hollow",
+    "title": "Mind your feet",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 8,
+    "requires": {"flags": ["ch2.boss.won"]},
+    "teaching": {
+      "purpose": "A Pebblit has laid out its treasure right where you're about to step.",
+      "reinforces": ["wait", "thanks", "no"]
+    },
+    "scene": {
+      "background": "hollow",
+      "props": [{"id": "pebbles", "art": "rock_small", "x": 0.6, "y": 0.93, "scale": 0.7}],
+      "actors": [
+        {"id": "milo", "art": "milo", "x": 0.26, "y": 0.86, "mood": "happy"},
+        {"id": "pebblit", "art": "pebblit", "x": 0.7, "y": 0.93, "facing": "left", "hidden": true, "mood": "scared"}
+      ]
+    },
+    "steps": [
+      {"type": "narrate", "text": "You're picking your way through the moss when something pops up right in front of your boot."},
+      {"type": "stage", "show": ["pebblit"]},
+      {"type": "say", "line": "pebblit.aspetta", "anim": "wave", "mood": "scared"},
+      {
+        "type": "choice",
+        "options": [
+          {"label": "Freeze", "goto": "freeze", "evidence": [{"concept": "wait", "result": "success"}]},
+          {"label": "Step around it", "goto": "around", "evidence": [{"concept": "wait", "result": "fail"}]}
+        ]
+      },
+      {"id": "freeze", "type": "act", "actor": "pebblit", "anim": "dig", "mood": "happy", "text": "You freeze mid-step. The Pebblit scoops up a nest of perfectly round pebbles from right under your boot and hugs them."},
+      {"type": "say", "line": "pebblit.grazie", "anim": "nod", "mood": "happy"},
+      {"type": "act", "actor": "pebblit", "anim": "dig", "mood": "happy", "text": "It thinks about it, then gives you the second-best one."},
+      {"type": "reward", "effects": {"bond": 1, "items": {"pebble": 1}, "befriend": ["pebblit"]}},
+      {"type": "end"},
+      {"id": "around", "type": "act", "actor": "pebblit", "anim": "hide", "mood": "scared", "text": "You step around the Pebblit and straight onto its nest of perfectly round pebbles. They scatter everywhere."},
+      {"type": "say", "line": "pebblit.no", "anim": "shake", "mood": "scared"},
+      {"type": "act", "actor": "milo", "anim": "dig", "mood": "sad", "text": "Milo helps it gather them up again, one by one, glaring at you over his shoulder."},
+      {"type": "end"}
+    ]
+  },
+  {
+    "id": "hollow.lost_pebblit",
+    "location": "hollow",
+    "title": "Lost in the dark",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 8,
+    "requires": { "flags": ["ch2.boss.won"] },
+    "teaching": { "purpose": "A Pebblit has wandered too deep into the Hollow and is frozen with fright in the dark.", "reinforces": ["afraid", "ho_paura", "not", "no", "hungry", "ho_fame", "light", "thanks"] },
+    "scene": {
+      "background": "hollow",
+      "props": [{ "id": "rocks", "art": "rock_small", "x": 0.82, "y": 0.92 }],
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.3, "y": 0.86, "mood": "curious" },
+        { "id": "flickerwing", "art": "flickerwing", "x": 0.3, "y": 0.6, "facing": "right", "mood": "happy" },
+        { "id": "pebblit", "art": "pebblit", "x": 0.68, "y": 0.93, "facing": "left", "mood": "scared" }
+      ]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Somewhere in the dark, pebbles are rattling." },
+      { "type": "say", "line": "pebblit.ho_paura", "anim": "shiver", "mood": "scared" },
+      {
+        "id": "choose",
+        "type": "choice",
+        "options": [
+          { "label": "Share your sunberries", "goto": "berries", "evidence": [{ "concept": "afraid", "result": "fail" }] },
+          { "label": "Hold the Flickerwing up high", "goto": "light", "evidence": [{ "concept": "afraid", "result": "success" }] }
+        ]
+      },
+      { "id": "berries", "type": "say", "line": "pebblit.non_fame", "anim": "shiver", "mood": "scared" },
+      { "type": "act", "actor": "milo", "anim": "look", "mood": "curious", "look": "flickerwing", "text": "Milo glances up at the Flickerwing riding on his head.", "next": "choose" },
+      { "id": "light", "type": "say", "line": "flickerwing.luce", "anim": "flare", "mood": "happy" },
+      { "type": "act", "actor": "pebblit", "anim": "peek", "mood": "happy", "text": "In the light, the Pebblit uncurls. It was only a few steps from the path all along." },
+      { "type": "say", "line": "pebblit.grazie", "anim": "nod", "mood": "happy" },
+      { "type": "reward", "effects": { "bond": 1, "befriend": ["pebblit"] } },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "hollow.carvings",
+    "location": "hollow",
+    "title": "Another stone",
+    "kind": "explore",
+    "weight": 14,
+    "requires": { "flags": ["ch2.boss.won"] },
+    "teaching": { "purpose": "Deeper in, the Flickerwing finds another carved stone, half buried in moss, and Milo doesn't like it.", "reinforces": ["light", "not", "afraid", "small", "no"] },
+    "scene": {
+      "background": "hollow",
+      "props": [
+        { "id": "stone", "art": "standing_stone", "x": 0.66, "y": 0.9, "scale": 1.1 },
+        { "id": "shroom", "art": "glowshroom", "x": 0.9, "y": 0.93, "scale": 0.8 }
+      ],
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.3, "y": 0.86, "mood": "curious" },
+        { "id": "flickerwing", "art": "flickerwing", "x": 0.3, "y": 0.6, "facing": "right", "mood": "happy" }
+      ]
+    },
+    "steps": [
+      { "type": "narrate", "text": "Deeper in, the Flickerwing stops over a stone half buried in moss." },
+      { "type": "say", "line": "flickerwing.luce", "anim": "flare", "mood": "happy" },
+      { "type": "narrate", "text": "More letters, cut by the same patient hand. Below them, a carving of a small round creature curled up asleep." },
+      { "type": "say", "line": "writing.non_paura", "look": "stone" },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Brush the moss away", "goto": "brush" },
+          { "label": "Leave it be", "goto": "leave" }
+        ]
+      },
+      { "id": "brush", "type": "narrate", "text": "Under the moss, one more line." },
+      { "type": "say", "line": "writing.piccolo_dorme", "look": "stone" },
+      { "type": "act", "actor": "milo", "anim": "look", "mood": "sad", "look": "stone", "text": "Milo looks at the sleeping carving for a long time." },
+      { "type": "say", "line": "milo.no", "anim": "shake", "mood": "sad" },
+      { "type": "reward", "effects": { "journal": ["story.carvings"] } },
+      { "type": "end" },
+      { "id": "leave", "type": "act", "actor": "milo", "anim": "droop", "mood": "sad", "text": "Milo stays a moment longer, then hurries after you without looking back." },
+      { "type": "reward", "effects": { "journal": ["story.carvings"] } },
+      { "type": "end" }
+    ]
+  }
+]

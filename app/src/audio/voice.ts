@@ -1,3 +1,4 @@
+import { WRITING } from '@lexbound/core';
 import * as Speech from 'expo-speech';
 import { content } from '@/game/content';
 import { useGame } from '@/state/store';
@@ -26,7 +27,8 @@ export function speakLine(lineId: string, opts: { slow?: boolean } = {}): void {
   const settings = useGame.getState().save.settings;
   if (!settings.voice) return;
   const line = content.line.get(lineId);
-  if (!line || CLIPS[lineId]) return;
+  // Writing is read, not heard.
+  if (!line || CLIPS[lineId] || line.speaker === WRITING) return;
   const voice = voiceFor(line.speaker);
   try {
     void Speech.stop();
@@ -37,6 +39,18 @@ export function speakLine(lineId: string, opts: { slow?: boolean } = {}): void {
     });
   } catch {
     // No speech engine (some browsers, tests): the text is still on screen.
+  }
+}
+
+/** The player's own call to Milo in battle ("Difendi con l'acqua!"), in a plain human voice. */
+export function speakCall(text: string): void {
+  const settings = useGame.getState().save.settings;
+  if (!settings.voice) return;
+  try {
+    void Speech.stop();
+    Speech.speak(text, { language: content.language.speechLocale, pitch: 1, rate: settings.speechRate });
+  } catch {
+    // No speech engine: the call is still on screen.
   }
 }
 

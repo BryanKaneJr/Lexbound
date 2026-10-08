@@ -35,6 +35,13 @@ const POSE: Record<string, MiloPose> = {
   shake: 'rest',
   attack: 'cast',
   defend: 'clap',
+  block: 'point',
+  brace: 'up',
+  offer: 'hold',
+  touch: 'point',
+  push: 'hold',
+  facepalm: 'cover',
+  tap: 'point',
 };
 
 export function poseFor(anim: string | undefined, mood: string | undefined): MiloPose {
@@ -79,6 +86,7 @@ function animation(name: string, v: V, dir: 1 | -1, size: number): Animated.Comp
       return seq([par([t(v.sy, 0.88, 300), t(v.sx, 1.06, 300)]), Animated.delay(700), par([t(v.sy, 1, 400), t(v.sx, 1, 400)])]);
     case 'crouch':
     case 'defend':
+    case 'brace':
       return seq([par([t(v.sy, 0.86, 160), t(v.sx, 1.08, 160)]), Animated.delay(500), par([t(v.sy, 1, 260), t(v.sx, 1, 260)])]);
     case 'peek':
       return seq([par([t(v.op, 1, 200), t(v.tx, 8 * dir * s, 200)]), t(v.tx, 0, 300)]);
@@ -137,6 +145,21 @@ function animation(name: string, v: V, dir: 1 | -1, size: number): Animated.Comp
       return seq([t(v.op, 0.25, 500), t(v.sy, 0.6, 300)]);
     case 'faint':
       return par([t(v.rot, 80 * dir, 500), t(v.op, 0.6, 500)]);
+    case 'shiver':
+      return rep(seq([t(v.tx, 2 * s, 40), t(v.tx, -2 * s, 40)]), 7);
+    case 'flutter':
+      return rep(seq([par([t(v.ty, -10 * s, 140, Easing.inOut(Easing.sin)), t(v.sx, 1.1, 140)]), par([t(v.ty, 0, 140, Easing.inOut(Easing.sin)), t(v.sx, 1, 140)])]), 3);
+    case 'block':
+      return seq([par([t(v.tx, 12 * dir * s, 120), t(v.sx, 1.08, 120)]), Animated.delay(600), par([t(v.tx, 0, 260), t(v.sx, 1, 260)])]);
+    case 'offer':
+    case 'touch':
+    case 'push':
+    case 'tap':
+      return seq([t(v.tx, 10 * dir * s, 260, Easing.inOut(Easing.sin)), Animated.delay(450), t(v.tx, 0, 300)]);
+    case 'facepalm':
+      return seq([t(v.rot, -8 * dir, 160), par([t(v.sy, 0.92, 200), t(v.sx, 1.04, 200)]), Animated.delay(700), par([t(v.rot, 0, 260), t(v.sy, 1, 260), t(v.sx, 1, 260)])]);
+    case 'sit':
+      return seq([par([t(v.sy, 0.9, 260), t(v.ty, 4 * s, 260)]), Animated.delay(900), par([t(v.sy, 1, 300), t(v.ty, 0, 300)])]);
     default:
       return hop(14 * s);
   }

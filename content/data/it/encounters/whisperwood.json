@@ -648,5 +648,40 @@
       {"id": "lost", "type": "narrate", "text": "You and Milo beat a hasty retreat. Nothing hurt but your pride."},
       {"type": "end"}
     ]
+  },
+  {
+    "id": "ww.big_splash",
+    "location": "whisperwood",
+    "title": "Show-off",
+    "kind": "explore",
+    "repeatable": true,
+    "weight": 8,
+    "requires": { "flags": ["ch2.boss.won"] },
+    "teaching": { "purpose": "A Drizzlet wants Milo to see its best trick, and Milo can't let that go unanswered.", "reinforces": ["look", "big", "water"] },
+    "scene": {
+      "background": "forest_stream",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.3, "y": 0.9, "mood": "curious" },
+        { "id": "drizzlet", "art": "drizzlet", "x": 0.64, "y": 0.8, "facing": "left" }
+      ]
+    },
+    "steps": [
+      { "type": "narrate", "text": "A Drizzlet is waiting in the shallows, clearly bursting to show someone something." },
+      { "type": "say", "line": "drizzlet.grande", "anim": "spin" },
+      { "type": "act", "actor": "drizzlet", "anim": "splash", "text": "It gathers the stream up into a wave taller than Milo and lets it fall. Everyone gets soaked." },
+      {
+        "type": "choice",
+        "options": [
+          { "label": "Cheer", "goto": "cheer", "effects": { "bond": 1 } },
+          { "label": "Wring out your sleeves", "goto": "wring" }
+        ]
+      },
+      { "id": "cheer", "type": "act", "actor": "milo", "anim": "cast", "mood": "fierce", "text": "Milo is not about to be outdone. He flings both paws at the stream and makes a wave of his own. It is slightly smaller." },
+      { "type": "say", "line": "milo.acqua.acqua", "anim": "splash", "mood": "excited" },
+      { "type": "reward", "effects": { "befriend": ["drizzlet"] } },
+      { "type": "end" },
+      { "id": "wring", "type": "act", "actor": "drizzlet", "anim": "bob", "text": "The Drizzlet looks crushed. Milo pats it on the head until it cheers up." },
+      { "type": "end" }
+    ]
   }
 ]

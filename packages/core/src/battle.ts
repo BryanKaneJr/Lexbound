@@ -1,12 +1,17 @@
 import { createRng, nextSeed, pick, shuffle, type Rng } from './rng';
 import type { GameEvent } from './save';
-import type { Content, EffectEntry, Lexling, Reactions } from './schema';
+import type { Ability, Content, EffectEntry, Lexling, Reactions, Verb } from './schema';
 
 /**
  * The battle engine (bible §11-18, Phase 5). Turn-based: each round the enemy
  * announces its move (speech plus a visible wind-up), the player tells Milo
  * what to do with a command tile, Milo acts first, then the enemy follows
  * through unless Milo's element put its move out.
+ *
+ * Once Milo knows verbs (Phase 9), a command can be composed: "Attacca con
+ * l'acqua!" or "Difendi con l'acqua!". A shield stops an announced move its
+ * element counters, even one too big for an attack to cancel, and steadies
+ * Milo's next attack. More language buys precision, never raw power.
  *
  * Language is the interface, not a quiz: a command is never "right" or
  * "wrong". Fire on a fire Lexling heals it (and it thanks you); wind fans its
@@ -22,12 +27,14 @@ export type Effectiveness = 'strong' | 'normal' | 'weak' | 'absorbed';
 export type Beat =
   | { type: 'say'; speaker: string; line: string }
   | { type: 'windup'; move: string; windup: string; element: string | null }
-  | { type: 'command'; command: string; ability: string; element: string | null }
+  | { type: 'command'; command: string; verb?: string; ability: string; element: string | null }
+  | { type: 'shield'; command: string; element: string | null }
+  | { type: 'blocked'; ability: string; by: string | null }
   | { type: 'hit'; target: 'milo' | 'foe'; amount: number; effect: Effectiveness; element: string | null }
   | { type: 'heal'; target: 'milo' | 'foe'; amount: number }
   | { type: 'fanned' }
   | { type: 'countered'; ability: string; by: string | null }
-  | { type: 'foeMove'; ability: string; element: string | null; boosted: boolean }
+  | { type: 'foeMove'; ability: string; element: string | null; boosted: boolean; halved: boolean }
   | { type: 'end'; result: 'win' | 'lose' };
 
 export type BattleState = {
@@ -45,6 +52,10 @@ export type BattleState = {
   seed: number;
   /** Command ids in the order the tiles appear this round (shuffled: bible §13). */
   order: string[];
+  /** Verb ids Milo knows, in this round's order (shuffled too). Empty: single-word commands only. */
+  verbs: string[];
+  /** A shield held last round: Milo's next attack lands harder. */
+  steady: boolean;
   outcome: 'ongoing' | 'win' | 'lose';
 };
 
@@ -63,6 +74,10 @@ export const BATTLE = {
   lowHp: 0.35,
   /** Chance Milo warns you after an enemy announces a move. */
   warnChance: 0.5,
+  /** What gets through a shield of the wrong element. */
+  shieldLeak: 0.5,
+  /** The attack after a shield that held hits this much harder. */
+  steadyBoost: 2,
 } as const;
 
 function foeData(content: Content, enemy: string): Lexling & { battle: NonNullable<Lexling['battle']> } {
@@ -124,7 +139,12 @@ function announce(content: Content, state: BattleState, beats: Beat[], events: G
   }
 }
 
-export function startBattle(content: Content, enemy: string, opts: { level: number; maxHp: number; context: string; seed: number }): BattleResult {
+/** The verbs Milo knows, given the save's flags (pass the result to startBattle). */
+export function knownVerbs(content: Content, flags: Record<string, boolean>): string[] {
+  return content.milo.verbs.filter((v) => (v.requires?.flags ?? []).every((f) => flags[f]) && !(v.requires?.notFlags ?? []).some((f) => flags[f])).map((v) => v.id);
+}
+
+export function startBattle(content: Content, enemy: string, opts: { level: number; maxHp: number; context: string; seed: number; verbs?: string[] }): BattleResult {
   const foe = foeData(content, enemy);
   const rng = createRng(opts.seed);
   const first = foe.battle.pattern[0] ?? 0;
@@ -142,6 +162,11 @@ export function startBattle(content: Content, enemy: string, opts: { level: numb
       content.milo.commands.map((c) => c.id),
       rng,
     ),
+    verbs: shuffle(
+      (opts.verbs ?? []).filter((v) => content.milo.verbs.some((x) => x.id === v)),
+      rng,
+    ),
+    steady: false,
     outcome: 'ongoing',
   };
   const beats: Beat[] = [];
@@ -158,80 +183,126 @@ function react(content: Content, state: BattleState, key: keyof Reactions, beats
   if (who !== 'foe') say(beats, events, content, state.context, content.milo.reactions[key], rng);
 }
 
-/** One round: Milo performs the command, then the foe follows through on what it announced. */
-export function chooseCommand(content: Content, prev: BattleState, commandId: string): BattleResult {
+/** The words a command uses: the verb's (if any), then the element's. */
+export function commandConcepts(content: Content, commandId: string, verbId?: string): string[] {
+  const cmd = content.milo.commands.find((c) => c.id === commandId);
+  const verb = verbId ? content.milo.verbs.find((v) => v.id === verbId) : undefined;
+  return [...(verb?.concepts ?? []), ...(cmd?.concepts ?? [])];
+}
+
+function moveKey(ability: Ability): string {
+  return ability.element ?? 'physical';
+}
+
+/**
+ * One round: Milo performs the command, then the foe follows through on what
+ * it announced. `verbId` composes the command ("difendi" + "acqua"); without
+ * it the element alone is an attack.
+ */
+export function chooseCommand(content: Content, prev: BattleState, commandId: string, verbId?: string): BattleResult {
   if (prev.outcome !== 'ongoing') return { state: prev, beats: [], events: [] };
   const cmd = content.milo.commands.find((c) => c.id === commandId);
   if (!cmd) throw new Error(`Unknown command "${commandId}"`);
   const ability = content.ability.get(cmd.ability);
   if (!ability) throw new Error(`Unknown ability "${cmd.ability}"`);
+  let verb: Verb | undefined;
+  if (verbId) {
+    verb = content.milo.verbs.find((v) => v.id === verbId);
+    if (!verb || !prev.verbs.includes(verbId)) throw new Error(`Milo doesn't know the verb "${verbId}"`);
+  }
   const foe = foeData(content, prev.enemy);
   const rng = createRng(prev.seed);
   const beats: Beat[] = [];
   const events: GameEvent[] = [];
   let state: BattleState = { ...prev, milo: { ...prev.milo }, foe: { ...prev.foe } };
+  const evidence = (concepts: readonly string[]) => {
+    for (const c of concepts) events.push({ type: 'evidence', concept: c, result: 'success', context: state.context });
+  };
 
   // Telling Milo something and watching him do it is an exposure to its words.
-  events.push({ type: 'used', concepts: cmd.concepts, context: state.context });
-  // Choosing the counter is evidence the player understood it. Anything else is
-  // just an experiment: the player may know exactly what fuoco means.
-  if (bestCommands(content, state.foe.element).includes(cmd.id)) {
-    for (const c of cmd.concepts) events.push({ type: 'evidence', concept: c, result: 'success', context: state.context });
-  }
+  events.push({ type: 'used', concepts: commandConcepts(content, cmd.id, verb?.id), context: state.context });
 
-  beats.push({ type: 'command', command: cmd.id, ability: ability.id, element: ability.element });
-  const power = ability.power * (1 + content.milo.powerPerLevel * (state.milo.level - 1));
-  const entry = chartEntry(content, ability.element, state.foe.element);
-  const effect = effectivenessOf(entry);
-
-  if (effect === 'absorbed') {
-    const heal = Math.min(state.foe.maxHp - state.foe.hp, Math.round(power * BATTLE.absorbShare));
-    beats.push({ type: 'hit', target: 'foe', amount: 0, effect, element: ability.element });
-    if (heal > 0) beats.push({ type: 'heal', target: 'foe', amount: heal });
-    state.foe.hp += heal;
-    react(content, state, 'absorbed', beats, events, rng);
-  } else {
-    const dmg = Math.max(1, Math.round(vary(power * entry.multiplier, rng)));
-    state.foe.hp = Math.max(0, state.foe.hp - dmg);
-    beats.push({ type: 'hit', target: 'foe', amount: dmg, effect, element: ability.element });
-    if (entry.effect === 'fan') {
-      state.boost = BATTLE.fanBoost;
-      beats.push({ type: 'fanned' });
-      if (state.foe.hp > 0) react(content, state, 'fanned', beats, events, rng);
-    } else if (state.foe.hp > 0 && effect === 'strong') react(content, state, 'strong', beats, events, rng);
-    else if (state.foe.hp > 0 && effect === 'weak') react(content, state, 'weak', beats, events, rng);
-  }
-
-  // Did Milo's move stop what the foe announced? (Water douses a fire move; a stone wall stops a charge.)
   const move = foe.battle.moves[state.intent];
   const moveAbility = move ? content.ability.get(move.ability) : undefined;
-  const countered = !!moveAbility && ability.counters.includes(moveAbility.element ?? 'physical');
-  // Countering an announced move with something other than the obvious matchup is strong evidence
-  // the player understood the announcement (language bible §30, §34). Picking the counter anyway
-  // explains nothing: it was the right call before the enemy said a word.
-  if (countered && move?.telegraph && !bestCommands(content, state.foe.element).includes(cmd.id)) {
-    for (const c of content.line.get(move.telegraph)?.concepts ?? []) events.push({ type: 'evidence', concept: c, result: 'success', context: state.context });
+  const telegraphConcepts = move?.telegraph ? (content.line.get(move.telegraph)?.concepts ?? []) : [];
+  const best = bestCommands(content, state.foe.element).includes(cmd.id);
+
+  let stopped = false;
+  let halved = false;
+
+  if (verb?.effect === 'shield') {
+    beats.push({ type: 'shield', command: cmd.id, element: ability.element });
+    if (moveAbility && ability.counters.includes(moveKey(moveAbility))) {
+      stopped = true;
+      state.steady = true;
+      beats.push({ type: 'blocked', ability: moveAbility.id, by: ability.element });
+      // A shield that held: the player chose to defend, with the right element.
+      evidence(verb.concepts);
+      // Against a move no attack could stop, defending is the answer to what the foe announced.
+      if (moveAbility.unstoppable) evidence(telegraphConcepts);
+      react(content, state, 'countered', beats, events, rng, 'milo');
+    } else {
+      halved = true;
+    }
+  } else {
+    // Choosing the counter is evidence the player understood it. Anything else is
+    // just an experiment: the player may know exactly what fuoco means.
+    if (best) evidence([...(verb?.concepts ?? []), ...cmd.concepts]);
+    beats.push({ type: 'command', command: cmd.id, verb: verb?.id, ability: ability.id, element: ability.element });
+    const steady = state.steady ? BATTLE.steadyBoost : 1;
+    state.steady = false;
+    const power = ability.power * (1 + content.milo.powerPerLevel * (state.milo.level - 1)) * steady;
+    const entry = chartEntry(content, ability.element, state.foe.element);
+    const effect = effectivenessOf(entry);
+
+    if (effect === 'absorbed') {
+      const heal = Math.min(state.foe.maxHp - state.foe.hp, Math.round(power * BATTLE.absorbShare));
+      beats.push({ type: 'hit', target: 'foe', amount: 0, effect, element: ability.element });
+      if (heal > 0) beats.push({ type: 'heal', target: 'foe', amount: heal });
+      state.foe.hp += heal;
+      react(content, state, 'absorbed', beats, events, rng);
+    } else {
+      const dmg = Math.max(1, Math.round(vary(power * entry.multiplier, rng)));
+      state.foe.hp = Math.max(0, state.foe.hp - dmg);
+      beats.push({ type: 'hit', target: 'foe', amount: dmg, effect, element: ability.element });
+      if (entry.effect === 'fan') {
+        state.boost = BATTLE.fanBoost;
+        beats.push({ type: 'fanned' });
+        if (state.foe.hp > 0) react(content, state, 'fanned', beats, events, rng);
+      } else if (state.foe.hp > 0 && effect === 'strong') react(content, state, 'strong', beats, events, rng);
+      else if (state.foe.hp > 0 && effect === 'weak') react(content, state, 'weak', beats, events, rng);
+    }
+
+    // Did Milo's move stop what the foe announced? (Water douses a fire move; a stone wall stops a charge.)
+    // Some moves are too big for that: only a shield stops them.
+    stopped = !!moveAbility && !moveAbility.unstoppable && ability.counters.includes(moveKey(moveAbility));
+    // Countering an announced move with something other than the obvious matchup is strong evidence
+    // the player understood the announcement (language bible §30, §34). Picking the counter anyway
+    // explains nothing: it was the right call before the enemy said a word.
+    if (stopped && !best) evidence(telegraphConcepts);
+
+    if (state.foe.hp <= 0) {
+      state.outcome = 'win';
+      react(content, state, 'defeat', beats, events, rng, 'foe');
+      react(content, state, 'victory', beats, events, rng, 'milo');
+      beats.push({ type: 'end', result: 'win' });
+      events.push({ type: 'battleEnd', enemy: state.enemy, result: 'win', xp: foe.battle.xp });
+      return { state: { ...state, seed: nextSeed(rng) }, beats, events };
+    }
+    if (stopped && moveAbility) {
+      beats.push({ type: 'countered', ability: moveAbility.id, by: ability.element });
+      react(content, state, 'countered', beats, events, rng, 'milo');
+    }
   }
 
-  if (state.foe.hp <= 0) {
-    state.outcome = 'win';
-    react(content, state, 'defeat', beats, events, rng, 'foe');
-    react(content, state, 'victory', beats, events, rng, 'milo');
-    beats.push({ type: 'end', result: 'win' });
-    events.push({ type: 'battleEnd', enemy: state.enemy, result: 'win', xp: foe.battle.xp });
-    return { state: { ...state, seed: nextSeed(rng) }, beats, events };
-  }
-
-  if (countered && moveAbility) {
-    beats.push({ type: 'countered', ability: moveAbility.id, by: ability.element });
-    react(content, state, 'countered', beats, events, rng, 'milo');
+  if (stopped) {
     state.boost = 1;
   } else if (moveAbility) {
     const boosted = state.boost > 1 && moveAbility.element === state.foe.element;
-    const foePower = moveAbility.power * (1 + BATTLE.foePowerPerLevel * (state.foe.level - 1)) * (boosted ? state.boost : 1);
+    const foePower = moveAbility.power * (1 + BATTLE.foePowerPerLevel * (state.foe.level - 1)) * (boosted ? state.boost : 1) * (halved ? BATTLE.shieldLeak : 1);
     const dmg = Math.max(1, Math.round(vary(foePower, rng)));
     const wasHigh = state.milo.hp > state.milo.maxHp * BATTLE.lowHp;
-    beats.push({ type: 'foeMove', ability: moveAbility.id, element: moveAbility.element, boosted });
+    beats.push({ type: 'foeMove', ability: moveAbility.id, element: moveAbility.element, boosted, halved });
     state.milo.hp = Math.max(0, state.milo.hp - dmg);
     beats.push({ type: 'hit', target: 'milo', amount: dmg, effect: 'normal', element: moveAbility.element });
     if (boosted) state.boost = 1;
@@ -254,6 +325,7 @@ export function chooseCommand(content: Content, prev: BattleState, commandId: st
     patternAt,
     intent: foe.battle.pattern[patternAt % foe.battle.pattern.length] ?? 0,
     order: shuffle(state.order, rng),
+    verbs: shuffle(state.verbs, rng),
   };
   announce(content, state, beats, events, rng);
   return { state: { ...state, seed: nextSeed(rng) }, beats, events };
@@ -274,4 +346,19 @@ export function battleHint(content: Content, state: BattleState, rung: 1 | 2 | 3
     glosses: rung >= 3,
     events: concepts.length ? [{ type: 'hint', concepts, rung }] : [],
   };
+}
+
+/**
+ * A composed command as the creature language says it: "Difendi con
+ * l'acqua!". Plain element commands are just the word ("Acqua!").
+ */
+export function commandSentence(content: Content, commandId: string, verbId?: string): string {
+  const cmd = content.milo.commands.find((c) => c.id === commandId);
+  if (!cmd) return '';
+  const element = content.ability.get(cmd.ability)?.element;
+  const verb = verbId ? content.phrasing.verbs[verbId] : undefined;
+  const withPhrase = element ? content.phrasing.with[element] : undefined;
+  if (verb && withPhrase) return `${verb} ${withPhrase}!`;
+  const word = content.word.get(cmd.concepts[0] ?? '')?.word ?? cmd.id;
+  return `${word.charAt(0).toUpperCase()}${word.slice(1)}!`;
 }

@@ -25,9 +25,10 @@ Every encounter with creature lines must answer, in its `teaching` block and in 
 | `data/it/words.json` | The creature-language word for each concept (`acqua`), plus forms that appear in lines (`l'acqua`). |
 | `data/it/lines.json` | Every creature line: speaker, exact text, concepts it exposes, English gloss, a context clue. |
 | `data/it/notes.json` | The protagonist's field notes: observations that appear as the player's understanding grows. |
+| `data/it/phrasing.json` | How Milo's battle commands compose: each verb's word ("Difendi") and each element's "with" phrase ("con l'acqua"). |
 | `data/it/encounters/*.json` | Encounters, one file per location. They use Italian lines, so they belong to the language pack. |
 | `data/lexlings.json` | Species: element, habitat, voice, and battle data for those that fight. |
-| `data/milo.json` | Milo's voice, stats, commands, battle reactions and camp chatter. |
+| `data/milo.json` | Milo's voice, stats, commands, verbs (and the flags that teach them), battle reactions and camp chatter. |
 | `data/elements.json` | Elements and the type chart. |
 | `data/abilities.json`, `items.json`, `npcs.json`, `locations.json`, `journal.json` | What they say. |
 
@@ -42,8 +43,9 @@ A new location file must be added to `content/index.ts`.
 5. **Transfer is mandatory.** Every concept must be said by at least two speakers and met in at least two situations. Teach through Milo, then let a wild Lexling, an enemy or a story scene use it somewhere new.
 6. **Few new words at once.** The scheduler holds back encounters that introduce more than two unseen concepts.
 7. **Natural Italian, not English in Italian words.** "No! L'acqua no!", not "No acqua!". Contrast teaches grammar: "Ho fame" (I'm hungry) next to "Ha fame!" (it's hungry). Every line needs native review before launch.
-8. **Strange lines may be beyond the player** ("Sei tu... Ti abbiamo trovato."): mark them `"journal": "strange"` and the journal keeps them, untranslated, for later. Never let one carry information the player must have.
-9. Humans never speak the creature language. They use `talk` steps in English, and they may be plausibly wrong about Lexlings. Let the world show it; never let a character congratulate the player for understanding.
+8. **Writing is a channel too.** A line with `"speaker": "writing"` is carved, not spoken: it appears as an inscription over the scene, never plays aloud, and is heard through the `writing` channel. Say it with a `say` step (no actor needed), and point `look` at what it's carved on. Humans believe Lexlings don't write.
+9. **Strange lines may be beyond the player** ("Sei tu... Ti abbiamo trovato."): mark them `"journal": "strange"` and the journal keeps them, untranslated, for later. Never let one carry information the player must have.
+10. Humans never speak the creature language. They use `talk` steps in English, and they may be plausibly wrong about Lexlings. Let the world show it; never let a character congratulate the player for understanding.
 
 ## Teaching metadata
 
@@ -71,7 +73,9 @@ Triggers: `heard` (optionally from a `speaker`), `noticed` (met in two situation
 
 ## Battle telegraphs
 
-An enemy move's `telegraph` line is what it shouts as it winds up; its `windup` is the strong visual tell shown while that word is new. Abilities list what they cancel in `counters` (an element id, or `physical`). Make understanding pay: give each telegraphed move a counter that differs from the obvious elemental matchup, so reacting to the words is a better choice than ignoring them.
+An enemy move's `telegraph` line is what it shouts as it winds up; its `windup` is the strong visual tell shown while that word is new (`embers`, `paw`, `gust`, `gale`, `dive`, `rocks`, `inferno`). Abilities list what they cancel in `counters` (an element id, or `physical`). Make understanding pay: give each telegraphed move a counter that differs from the obvious elemental matchup, so reacting to the words is a better choice than ignoring them.
+
+A move marked `"unstoppable": true` can't be cancelled by any attack; only a shield of a countering element stops it (once Milo knows the verbs). Announce it with a word the player can learn ("grande") and a big wind-up. Add a case to `content/test/battles.test.ts` for any new fight: listening should always win, and levels should still carry a player who doesn't listen.
 
 ## Encounter steps
 
@@ -85,6 +89,7 @@ An enemy move's `telegraph` line is what it shouts as it winds up; its `windup` 
 { "type": "tap", "targets": [{ "prop": "bush", "goto": "found", "evidence": [{ "concept": "look", "result": "success" }] }], "otherwise": { "goto": "again" } }
 { "type": "give", "items": [{ "item": "flask", "goto": "drink", "evidence": [{ "concept": "water", "result": "success" }] }] }
 { "type": "battle", "enemy": "emberhog", "win": "won", "lose": "lost" }
+{ "type": "battle", "enemy": "puffkin", "name": "Bluster", "actor": "bluster", "win": "won", "lose": "lost" }
 { "type": "reward", "effects": { "bond": 1, "xp": 5, "items": { "feather": 1 }, "flags": ["x.done"], "befriend": ["puffkin"], "journal": ["story.x"] } }
 { "type": "branch", "if": { "flags": ["x.done"] }, "then": "after", "else": "before" }
 { "type": "end", "complete": false }

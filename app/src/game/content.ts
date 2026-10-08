@@ -1,5 +1,5 @@
 import { content } from '@lexbound/content';
-import { lineLevel, scaffoldLevel, type ConceptState, type ScaffoldLevel } from '@lexbound/core';
+import { lineLevel, scaffoldLevel, WRITING, type ConceptState, type ScaffoldLevel } from '@lexbound/core';
 
 export { content };
 
@@ -14,6 +14,7 @@ export function wordFor(concept: string): string {
 
 export function speakerName(id: string): string {
   if (id === 'milo') return 'Milo';
+  if (id === WRITING) return 'Carved in stone';
   return content.lexling.get(id)?.name ?? content.npc.get(id)?.name ?? id;
 }
 

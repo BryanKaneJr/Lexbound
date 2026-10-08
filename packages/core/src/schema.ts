@@ -113,6 +113,8 @@ export const abilitySchema = z.object({
    * moves with no element. Water puts out a fire move; a stone wall stops a charge.
    */
   counters: z.array(z.string()).default([]),
+  /** Too big for an attack to cancel: only a shield of a countering element stops it. */
+  unstoppable: z.boolean().default(false),
 });
 export type Ability = z.infer<typeof abilitySchema>;
 
@@ -173,12 +175,39 @@ export const commandSchema = z.object({
 });
 export type Command = z.infer<typeof commandSchema>;
 
+export const conditionSchema = z.object({
+  flags: z.array(z.string()).optional(),
+  notFlags: z.array(z.string()).optional(),
+  items: z.array(id).optional(),
+  discovered: z.array(id).optional(),
+});
+export type Condition = z.infer<typeof conditionSchema>;
+
+/**
+ * What Milo can be told to do with an element (game bible §14, Phase 9;
+ * language bible §26). With no verb chosen, an element alone is an attack,
+ * as it always was. Verbs unlock through the story.
+ *   attack: hit with the element;
+ *   shield: put up a shield of the element. It stops an announced move the
+ *           element counters, even one too big to cancel with an attack, and
+ *           steadies Milo's next attack. Anything else gets through at half strength.
+ */
+export const verbSchema = z.object({
+  id,
+  effect: z.enum(['attack', 'shield']),
+  /** The concepts whose words say this verb in a command ("difendi", "con"). */
+  concepts: z.array(id).min(1),
+  requires: conditionSchema.optional(),
+});
+export type Verb = z.infer<typeof verbSchema>;
+
 export const miloSchema = z.object({
   voice: voiceSchema,
   hp: z.object({ base: z.number().int(), perLevel: z.number().int() }),
   /** Power multiplier gained per level above 1. */
   powerPerLevel: z.number(),
   commands: z.array(commandSchema).min(1),
+  verbs: z.array(verbSchema).default([]),
   reactions: reactionsSchema,
   /** What Milo might say when tapped at camp. */
   idle: z.array(id).min(1),
@@ -203,13 +232,7 @@ export const itemSchema = z.object({
 });
 export type Item = z.infer<typeof itemSchema>;
 
-export const conditionSchema = z.object({
-  flags: z.array(z.string()).optional(),
-  notFlags: z.array(z.string()).optional(),
-  items: z.array(id).optional(),
-  discovered: z.array(id).optional(),
-});
-export type Condition = z.infer<typeof conditionSchema>;
+
 
 export const locationSchema = z.object({
   id,
@@ -351,7 +374,18 @@ export const stepSchema = z.discriminatedUnion('type', [
     items: z.array(z.object({ item: id, ...outcome })).min(1),
   }),
   /** A turn-based battle. */
-  z.object({ ...stepBase, type: z.literal('battle'), enemy: id, win: id.optional(), lose: id.optional(), background: z.string().optional() }),
+  z.object({
+    ...stepBase,
+    type: z.literal('battle'),
+    enemy: id,
+    /** A name for this one opponent ("Bluster"), when it isn't just "a Puffkin". */
+    name: z.string().optional(),
+    /** The scene actor who fights, when it has its own art (Bluster is a Puffkin in a scarf). */
+    actor: id.optional(),
+    win: id.optional(),
+    lose: id.optional(),
+    background: z.string().optional(),
+  }),
   /** Grant effects. Instant; the app shows what changed. */
   z.object({ ...stepBase, type: z.literal('reward'), effects: effectsSchema }),
   /** Jump on a condition. Instant. */
@@ -401,8 +435,20 @@ export type Encounter = z.infer<typeof encounterSchema>;
 
 // ---------------------------------------------------------------- bundle
 
+/**
+ * How the creature language says a composed command: the verb, then "with"
+ * and the element, as natural phrases ("Difendi" + "con l'acqua"), never
+ * English word order translated tile by tile (game bible Phase 9).
+ */
+export const phrasingSchema = z.object({
+  verbs: z.record(z.string(), z.string()).default({}),
+  with: z.record(z.string(), z.string()).default({}),
+});
+export type Phrasing = z.infer<typeof phrasingSchema>;
+
 export const contentSchema = z.object({
   language: z.object({ code: z.string(), name: z.string(), speechLocale: z.string() }),
+  phrasing: phrasingSchema.default({ verbs: {}, with: {} }),
   concepts: z.array(conceptSchema),
   words: z.array(wordSchema),
   lines: z.array(lineSchema),

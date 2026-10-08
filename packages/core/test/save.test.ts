@@ -129,3 +129,12 @@ describe('field notes', () => {
     expect(visibleNotes(content, s).length).toBe(4);
   });
 });
+
+describe('written words', () => {
+  it('reach the player through their own channel, and are nobody to discover', () => {
+    const { save, notices } = applyEvents(newSave(T, 1), content, [{ type: 'heard', line: 'stone.acqua', context: 'ruins' }], T);
+    expect(save.concepts.water?.modalities).toEqual(['writing']);
+    expect(save.concepts.water?.speakers).toEqual(['writing']);
+    expect(notices.filter((n) => n.type === 'discovered')).toEqual([]);
+  });
+});

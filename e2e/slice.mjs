@@ -3,7 +3,8 @@
 // stream, feed a hungry Pebblit that uses Milo's word, win the first battle
 // by listening (ACQUA for "Fuoco!", TERRA for "All'attacco!"), hear Milo
 // retell it, and catch Pip misreading Bluster. Then checks the journal and
-// that the save survives a reload.
+// that the save survives a reload. Then plays Chapter Two (chapter2.mjs).
+import { playChapterTwo } from './chapter2.mjs';
 import { bodyText, button, check, launch, snap, until, URL, visible } from './helpers.mjs';
 
 const { browser, page, errors } = await launch();
@@ -152,7 +153,11 @@ try {
   check((await bodyText(page)).includes('Acqua'), 'Things Milo says should survive a reload');
 
   check(errors.length === 0, `page errors:\n${errors.join('\n')}`);
-  console.log('ok       vertical slice played start to finish');
+  console.log('ok       chapter one played start to finish');
+
+  await playChapterTwo(page);
+  check(errors.length === 0, `page errors:\n${errors.join('\n')}`);
+  console.log('ok       chapter two played start to finish');
 } finally {
   await browser.close();
 }

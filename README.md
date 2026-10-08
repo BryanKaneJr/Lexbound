@@ -24,7 +24,18 @@ Chapter One, on real engines:
 7. **The Emberhog.** It shouts before every move. ACQUA puts out "Fuoco!"; TERRA walls off "All'attacco!". By now ACQUA has lost its icon; the words you haven't used still have theirs. Listen, and nothing lands on Milo.
 8. **After.** The Emberhog says something to Milo you can't follow yet. Two Puffkins whisper about him. Milo acts out the fight at camp. At the Lodge, Pip insists his Puffkin is restless; you can hear it's hungry.
 
-Then Whisperwood keeps going: seven repeatable encounters picked by a scheduler that brings back the words you're losing, in new situations and from new voices. Camp, map, Milo's page, a journal (story, field notes, a bestiary with remembered lines, strange things heard), a bag, accessibility settings and developer tools come with it.
+Then Whisperwood keeps going: repeatable encounters picked by a scheduler that brings back the words you're losing, in new situations and from new voices.
+
+Chapter Two, the Old Hollow:
+
+1. **Milo's game.** He knocks pinecones off a log, announcing every shot: "Attacco con l'acqua!", "Mi difendo con la terra!". From now on you can tell him how, not just what: DIFENDI + CON LA TERRA.
+2. **A spar with Bluster.** "Vento grande!" means a gale no attack can stop. A wall can.
+3. **The Old Hollow.** "Aspetta!", a step before the ground gives way. A Flickerwing too scared to glow: "Non ho fame... ho paura." Words carved in a standing stone, and under them, MILO.
+4. **The Craglings' plan.** Keep listening behind the rocks and you'll know how they mean to fight.
+5. **Old Cinderback.** "Ora... il fuoco grande!" Shield it, or lose.
+6. **After.** Milo says something at camp you understand completely. Maren holds the rubbing next to the tag from his basket.
+
+Camp, map, Milo's page, a journal (story, field notes, a bestiary with remembered lines, strange things heard or found carved), a bag, accessibility settings and developer tools come with it.
 
 ## Run it
 
@@ -40,7 +51,7 @@ npm run web          # in a browser
 
 ```bash
 npm run check        # typecheck, lint, copy lint, unit + content tests, sound files up to date
-npm run e2e          # builds for web and plays the whole slice in Chromium
+npm run e2e          # builds for web and plays chapters one and two in Chromium
 npm run screens      # the same, saving screenshots to ./screens
 ```
 
@@ -49,11 +60,11 @@ npm run screens      # the same, saving screenshots to ./screens
 | Folder | What |
 | --- | --- |
 | `packages/core` | The engines: language model, encounters, battles, scheduler, progression, save. Pure TypeScript, fully unit-tested. |
-| `content` | The game as data: concepts, Italian lines, Lexlings, places, encounters. Its tests validate every reference and play the slice. |
+| `content` | The game as data: concepts, Italian lines, Lexlings, places, encounters. Its tests validate every reference, play both chapters and check battle balance. |
 | `app` | The Expo app. Art is drawn in code (`app/src/art`). |
-| `e2e` | Playwright: plays the slice in a browser build. |
+| `e2e` | Playwright: plays both chapters in a browser build. |
 | `docs` | `language-design.md` (the language contract), `game-bible.md` (the vision), `decisions.md` (how it was built and what changed), `content-guide.md` (writing encounters). |
 
 ## Not yet
 
-Command composition ("ATTACCA + CON + ACQUA"), constructions like "voglio / non voglio", written Lexling language, more Lexling species and regions, recorded voices (creature lines use the device's Italian text-to-speech for now), and a native Italian speaker's review of every line. See `docs/decisions.md`.
+Constructions like "voglio / non voglio", more regions (Riverlands, Ember Ridge, Saltglass Coast), recorded voices (creature lines use the device's Italian text-to-speech for now), and a native Italian speaker's review of every line. See `docs/decisions.md`.

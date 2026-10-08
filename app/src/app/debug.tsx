@@ -30,6 +30,25 @@ function forced(prev: ConceptState, level: number, now: number): ConceptState {
   }
 }
 
+/** Marks every story scene before `order` as played, with the flags, items and journal entries it gives. */
+function skipStory(s: Save, order: number, xp: number): Save {
+  const flags = { ...s.flags };
+  const items: Record<string, number> = { flask: 1, sunberries: 1, stick: 1, charm: 1, ...s.items };
+  const journal = new Set(s.journal.entries);
+  const encounters = { ...s.encounters };
+  for (const e of content.encounters) {
+    if (e.kind !== 'story' || (e.order ?? 0) >= order) continue;
+    encounters[e.id] = { count: 1, lastExplore: 0 };
+    for (const step of e.steps) {
+      if (step.type !== 'reward') continue;
+      for (const f of step.effects.flags ?? []) flags[f] = true;
+      for (const j of step.effects.journal ?? []) journal.add(j);
+      for (const [i, n] of Object.entries(step.effects.items ?? {})) items[i] = Math.max(items[i] ?? 0, n);
+    }
+  }
+  return { ...s, flags, items, encounters, journal: { ...s.journal, entries: [...journal] }, milo: { ...s.milo, xp: Math.max(s.milo.xp, xp) } };
+}
+
 export default function Debug() {
   const save = useGame((s) => s.save);
   const replace = useGame((s) => s.replace);
@@ -56,7 +75,8 @@ export default function Debug() {
       concepts: Object.fromEntries(Object.entries(s.concepts).map(([k, c]) => [k, { ...c, lastSeen: c.lastSeen ? c.lastSeen - days * DAY : 0 }])),
     }));
 
-  const weights = chooseEncounter(content, save, 'whisperwood', now, 1).candidates;
+  const explorable = content.locations.filter((l) => l.kind === 'explore');
+  const weights = explorable.map((l) => ({ place: l, candidates: chooseEncounter(content, save, l.id, now, 1).candidates }));
 
   return (
     <Screen>
@@ -108,14 +128,17 @@ export default function Debug() {
           </View>
         </Card>
 
-        <Card style={{ gap: space.sm }}>
-          <Txt style={[type.label, styles.section]}>Whisperwood scheduler weights</Txt>
-          {weights.map((w) => (
-            <Txt key={w.id} style={[type.small, { fontWeight: '500' }]}>
-              {w.id}: {Number.isFinite(w.weight) ? w.weight.toFixed(1) : 'story'} {w.reasons.length ? `(${w.reasons.join(' ')})` : ''}
-            </Txt>
-          ))}
-        </Card>
+        {weights.map(({ place, candidates }) => (
+          <Card key={place.id} style={{ gap: space.sm }}>
+            <Txt style={[type.label, styles.section]}>{place.name} scheduler weights</Txt>
+            {candidates.length === 0 && <Txt style={type.small}>Nothing ready.</Txt>}
+            {candidates.map((w) => (
+              <Txt key={w.id} style={[type.small, { fontWeight: '500' }]}>
+                {w.id}: {Number.isFinite(w.weight) ? w.weight.toFixed(1) : 'story'} {w.reasons.length ? `(${w.reasons.join(' ')})` : ''}
+              </Txt>
+            ))}
+          </Card>
+        ))}
 
         <Card style={{ gap: space.sm }}>
           <Txt style={[type.label, styles.section]}>Force an encounter</Txt>
@@ -137,7 +160,9 @@ export default function Debug() {
               <Txt style={[type.small, { fontWeight: '600' }]}>{f} ✕</Txt>
             </Pressable>
           ))}
-          <Button label="Skip to after the Emberhog" kind="secondary" onPress={() => edit((s) => ({ ...s, flags: { ...s.flags, 'intro.done': true, 'camp.first_meal.done': true, 'ww.first_steps.done': true, 'ww.stream.done': true, 'ww.hungry_pebblit.done': true, 'ww.thirsty.done': true, 'ww.emberhog.won': true }, items: { flask: 1, sunberries: 1, stick: 1, charm: 1, ...s.items }, encounters: { ...s.encounters, 'lodge.intro': { count: 1, lastExplore: 0 }, 'camp.first_meal': { count: 1, lastExplore: 0 }, 'ww.hungry_pebblit': { count: 1, lastExplore: 0 }, 'ww.first_steps': { count: 1, lastExplore: 0 }, 'ww.stream': { count: 1, lastExplore: 0 }, 'ww.thirsty': { count: 1, lastExplore: 0 }, 'ww.emberhog': { count: 1, lastExplore: 0 } } }))} />
+          <Button label="Skip to after the Emberhog" kind="secondary" onPress={() => edit((s) => skipStory(s, 8, 30))} />
+          <Button label="Skip to Chapter Two" kind="secondary" onPress={() => edit((s) => skipStory(s, 11, 30))} />
+          <Button label="Skip to the Old Hollow" kind="secondary" onPress={() => edit((s) => skipStory(s, 13, 55))} />
         </Card>
 
         <Card style={{ gap: space.sm }}>

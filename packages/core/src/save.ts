@@ -21,7 +21,7 @@ const conceptStateSchema = z.object({
   lastSeen: z.number(),
   contexts: z.array(z.string()),
   speakers: z.array(z.string()),
-  modalities: z.array(z.enum(['milo', 'lexling', 'enemy', 'command', 'action'])),
+  modalities: z.array(z.enum(['milo', 'lexling', 'enemy', 'writing', 'command', 'action'])),
   successContexts: z.array(z.string()),
   lastSuccess: z.number(),
   spaced: z.boolean(),
@@ -192,9 +192,13 @@ export type Notice =
 
 const RECENT = 6;
 
+/** The speaker id of words that are written, not spoken: carvings, signs (language bible §37). */
+export const WRITING = 'writing';
+
 /** Which channel a speaker's words reach the player through. */
 export function modalityOf(content: Content, speaker: string): Modality {
   if (speaker === 'milo') return 'milo';
+  if (speaker === WRITING) return 'writing';
   return content.lexling.get(speaker)?.temperament === 'hostile' ? 'enemy' : 'lexling';
 }
 

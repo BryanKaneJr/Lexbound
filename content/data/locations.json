@@ -42,6 +42,25 @@
     },
     "locked": "Milo is far too hungry to go anywhere. Check on him at camp."
   },
+  {
+    "id": "hollow",
+    "name": "The Old Hollow",
+    "kind": "explore",
+    "background": "hollow",
+    "blurb": "The oldest part of Whisperwood: deep shade, standing stones, and a quiet that listens back.",
+    "action": "Explore",
+    "quiet": "The Hollow is very still.",
+    "requires": {
+      "flags": [
+        "ch2.hollow_open"
+      ]
+    },
+    "locked": "Maren wants to see you at the Lodge first.",
+    "map": {
+      "x": 0.17,
+      "y": 0.14
+    }
+  },
   {"id": "riverlands", "name": "Riverlands", "kind": "explore", "background": "forest_stream", "blurb": "Wide water and wider skies.", "comingSoon": true, "map": {"x": 0.62, "y": 0.45}},
   {"id": "mountains", "name": "Ember Ridge", "kind": "explore", "background": "sunny_path", "blurb": "Where the Emberhogs are supposed to stay.", "comingSoon": true, "map": {"x": 0.78, "y": 0.18}},
   {"id": "coast", "name": "Saltglass Coast", "kind": "explore", "background": "forest_stream", "blurb": "The sea, and things that live in it.", "comingSoon": true, "map": {"x": 0.85, "y": 0.62}}

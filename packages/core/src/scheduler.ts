@@ -1,7 +1,7 @@
 import { encounterConcepts } from './encounter';
 import { isDue, isTransfer } from './language';
 import { createRng, weightedPick } from './rng';
-import { meets, type Save } from './save';
+import { meets, WRITING, type Save } from './save';
 import type { Content, Encounter } from './schema';
 
 /**
@@ -68,9 +68,9 @@ export function encounterLines(content: Content, encounter: Encounter): { line: 
   return out;
 }
 
-/** The Lexlings (not Milo) who speak in an encounter. */
+/** The Lexlings (not Milo, not writing) who speak in an encounter. */
 export function encounterSpeakers(content: Content, encounter: Encounter): string[] {
-  return [...new Set(encounterLines(content, encounter).map((l) => l.speaker))].filter((s) => s !== 'milo');
+  return [...new Set(encounterLines(content, encounter).map((l) => l.speaker))].filter((s) => s !== 'milo' && s !== WRITING);
 }
 
 export function weigh(content: Content, save: Save, encounter: Encounter, now: number): Candidate {
