@@ -95,9 +95,10 @@ function Eye({ x, y, rx, ry, iris, face, lid }: { x: number; y: number; rx: numb
 
 export const MAREN_ASPECT = 120 / 260;
 
-const M_HAIR: Tone = { lit: '#F4F0EB', mid: '#D4CDD3', shade: '#A39BB2', line: '#6E657B' };
-const M_COAT: Tone = { lit: '#9F7DBE', mid: '#7C5B9F', shade: '#5A4280', line: '#452A55' };
-const M_LAPEL: Tone = { lit: '#7E5F9F', mid: '#654684', shade: '#4B3469', line: '#452A55' };
+const M_HAIR: Tone = { lit: '#E9E5E3', mid: '#C5BEC7', shade: '#958DA6', line: '#665D73' };
+const M_BUN_T: Tone = { lit: '#D9D4D5', mid: '#B7AFBB', shade: '#8A8199', line: '#665D73' };
+const M_COAT: Tone = { lit: '#9F7DBE', mid: '#7C5B9F', shade: '#5A4280', line: '#4D3062' };
+const M_LAPEL: Tone = { lit: '#7E5F9F', mid: '#654684', shade: '#4B3469', line: '#4D3062' };
 const M_CUFF: Tone = { lit: '#CBB4E0', mid: '#B096CC', shade: '#8D73AE', line: '#5D4377' };
 const M_GOLD: Tone = { lit: '#F6D57E', mid: '#DDAC47', shade: '#AE7B3C', line: '#7B4E23' };
 const M_BOOT: Tone = { lit: '#83634D', mid: '#634938', shade: '#46342F', line: '#2F201A' };
@@ -110,8 +111,8 @@ const M_SLEEVE_NEAR = 'M46 105 C35 103 28 112 26 126 C24 146 21 166 17 184 C24 1
 const M_SLEEVE_FAR = 'M80 106 C91 106 97 116 99 130 C101 148 104 166 107 183 C101 188 94 189 89 187 C88 170 86 150 84 132 C83 122 82 112 80 106 Z';
 const M_HEAD = 'M37 64 C36 46 47 35 61 35 C75 35 85 45 86 60 C87 70 85 80 80 87 C76 93 70 97 63 97 C53 97 44 90 40 80 C38 75 37 70 37 64 Z';
 const M_HAIR_D =
-  'M36 79 C30 64 30 44 43 35 C53 28 72 27 82 35 C88 40 90 48 89 57 C84 50 76 46 66 46 C58 46 51 51 48 58 C47 62 45 66 43 69 C42 73 40 77 36 79 Z';
-const M_BUN = 'M33 27 C32 18 39 13 46 14 C53 14 58 20 57 27 C57 34 51 39 44 38 C37 38 33 33 33 27 Z';
+  'M36 79 C31 74 29 67 31 61 C29 55 31 49 34 45 C36 39 40 35 45 33 C50 29 56 28 62 28 C69 26 76 28 81 33 C86 36 89 42 89 48 C90 52 90 55 89 58 C87 55 84 52 81 51 C78 48 74 48 71 48 C67 46 62 47 58 49 C54 50 51 53 49 57 C48 60 47 63 45 65 C44 69 42 72 41 74 C40 77 38 78 36 79 Z';
+const M_BUN = 'M28 34 C27 25 33 19 41 19 C49 19 54 25 53 33 C53 40 47 45 40 44 C33 44 28 40 28 34 Z';
 
 function MarenFace({ face }: { face: Face }) {
   const brow = { stroke: '#8F889C', strokeWidth: 2.1, strokeLinecap: 'round' as const, fill: 'none' };
@@ -129,8 +130,7 @@ function MarenFace({ face }: { face: Face }) {
       <Ellipse cx={53} cy={80} rx={5} ry={3} fill={BLUSH} opacity={face === 'sad' ? 0.25 : 0.45} />
       <Ellipse cx={81} cy={79} rx={3.6} ry={2.6} fill={BLUSH} opacity={face === 'sad' ? 0.25 : 0.45} />
       {/* laugh lines: she has smiled a lot */}
-      <Path d="M48 70 L45 69 M48 73 L45 74" stroke={SKIN.line} strokeWidth={0.8} strokeLinecap="round" opacity={0.6} />
-      <Path d="M66 79 Q63 83 65 88" stroke={SKIN.line} strokeWidth={0.9} strokeLinecap="round" fill="none" opacity={0.5} />
+      <Path d="M65.5 79.5 Q63 83 64.5 87.5" stroke={SKIN.line} strokeWidth={0.8} strokeLinecap="round" fill="none" opacity={0.35} />
       <Eye x={59} y={69} rx={2.3} ry={2.8} iris="#566A8E" face={face} lid={SKIN.mid} />
       <Eye x={77} y={68.5} rx={2} ry={2.7} iris="#566A8E" face={face} lid={SKIN.mid} />
       {/* round glasses, catching the light */}
@@ -142,7 +142,6 @@ function MarenFace({ face }: { face: Face }) {
       <Path d={brows[face]} {...brow} />
       {/* nose */}
       <Path d="M72 70 C73 74 77 76 77 78.5 C77 80.5 74 81 71.5 80" stroke={SKIN.line} strokeWidth={1.1} strokeLinecap="round" fill="none" />
-      <Ellipse cx={73} cy={76} rx={1.6} ry={2.2} fill="#FFF1E2" opacity={0.6} />
       {face === 'happy' ? (
         <G>
           <Path d="M64 85 Q71 93 78 84 Q71 87 64 85 Z" fill={MOUTH} stroke={MOUTH} strokeWidth={0.8} strokeLinejoin="round" />
@@ -173,7 +172,7 @@ export function MarenArt({ width, mood = 'idle' }: { width: number; mood?: strin
       <Form g={g} id="boot-far" d="M63 232 L79 232 L80 244 C88 245 94 248 95 252 C96 255 94 256 91 256 L62 256 Z" t={M_BOOT} step={0.25} lw={1.4} rim={0.25} />
       <Form g={g} id="boot-near" d="M38 234 L56 234 L57 246 C65 247 71 250 72 253 C73 256 71 257 68 257 L37 257 C36 250 37 242 38 234 Z" t={M_BOOT} step={0.25} lw={1.4} rim={0.25} />
       {/* the long coat */}
-      <Form g={g} id="coat" d={M_COAT_D} t={M_COAT} step={0.62} lw={1.6} rim={0.35} />
+      <Form g={g} id="coat" d={M_COAT_D} t={M_COAT} step={0.62} lw={1.4} rim={0.35} />
       <G clipPath={`url(#${g('coat')})`}>
         {/* folds falling from the sash to the hem */}
         <Path d={crease(38, 158, 33, 198, 31, 238, 3.4)} fill={M_COAT.shade} opacity={0.85} />
@@ -212,12 +211,12 @@ export function MarenArt({ width, mood = 'idle' }: { width: number; mood?: strin
       <Circle cx={53.5} cy={118} r={1.4} fill="#4FA39A" />
       <Circle cx={52.6} cy={117} r={0.7} fill="#FFF6D6" />
       {/* far arm */}
-      <Form g={g} id="sleeve-far" d={M_SLEEVE_FAR} t={M_COAT} step={0.32} lw={1.5} rim={0.25} />
+      <Form g={g} id="sleeve-far" d={M_SLEEVE_FAR} t={M_COAT} step={0.32} lw={1.35} rim={0.25} />
       <Path d={crease(90, 150, 95, 156, 101, 152, 0, 2.4)} fill={M_COAT.shade} />
       <Form g={g} id="cuff-far" d="M88 183 C95 186 101 186 107 182 L108 190 C102 194 94 194 88 191 Z" t={M_CUFF} step={0.2} lw={1.2} rim={0.3} />
       <Form g={g} id="hand-far" d="M92 191 C97 190 104 191 105 195 C106 200 103 204 99 204 C95 204 92 201 91 197 C91 194 91 192 92 191 Z" t={SKIN} step={0.18} lw={1.2} rim={0.3} />
       {/* near arm, holding her notebook */}
-      <Form g={g} id="sleeve-near" d={M_SLEEVE_NEAR} t={M_COAT} step={0.34} lw={1.5} rim={0.4} />
+      <Form g={g} id="sleeve-near" d={M_SLEEVE_NEAR} t={M_COAT} step={0.34} lw={1.35} rim={0.4} />
       <Path d={crease(29, 146, 36, 152, 45, 147, 0, 2.6)} fill={M_COAT.shade} />
       <Path d={crease(27, 162, 33, 166, 43, 163, 0, 2)} fill={M_COAT.shade} opacity={0.7} />
       <Form g={g} id="book" d="M5 193 L24 189.5 L28 218 L9 221.5 Z" t={M_BOOK} step={0.25} lw={1.3} rim={0.4} />
@@ -233,25 +232,33 @@ export function MarenArt({ width, mood = 'idle' }: { width: number; mood?: strin
         <Form g={g} id="scarf-tail1" d="M66 107 C64 115 63 123 64 131 L70 130 C70 123 70 115 71 107 Z" t={M_GOLD} step={0.2} lw={1.1} rim={0.3} />
         <Form g={g} id="scarf-tail2" d="M71 107 C74 115 78 121 80 127 L85 124 C82 117 77 111 74 105 Z" t={M_GOLD} step={0.2} lw={1.1} rim={0.3} />
         <Form g={g} id="scarf-knot" d="M66 105 C66 101 70 99 73 100 C76 101 77 105 75 108 C73 110 68 110 66 105 Z" t={M_GOLD} step={0.2} lw={1.1} rim={0.4} />
-        {/* the bun, with a pencil through it */}
-        <Form g={g} id="bun" d={M_BUN} t={M_HAIR} step={0.28} lw={1.4} rim={0.45} />
-        <Path d="M37 24 C39 18 48 17 51 23 C53 28 49 33 44 32 C40 31 40 26 44 25" stroke={M_HAIR.shade} strokeWidth={1} strokeLinecap="round" fill="none" />
-        <Path d="M27 38 L60 15" stroke="#7B4E23" strokeWidth={4.6} strokeLinecap="round" />
-        <Path d="M29 37 L58.5 16" stroke="#E8B94A" strokeWidth={2.8} strokeLinecap="butt" />
-        <Path d="M29 36 L58 15.5" stroke="#FBE08A" strokeWidth={0.9} />
-        <Path d="M58 16 L61 13.9" stroke="#E58A8C" strokeWidth={3} strokeLinecap="round" />
-        <Path d="M29.5 36.5 L26 39.2" stroke="#E9C9A0" strokeWidth={2.6} strokeLinecap="round" />
-        <Circle cx={25.6} cy={39.5} r={0.9} fill="#3A3240" />
-        <Form g={g} id="head" d={M_HEAD} t={SKIN} step={0.42} lw={1.5} rim={0.45} />
+        <Form g={g} id="head" d={M_HEAD} t={SKIN} step={0.42} lw={1.35} rim={0.45} />
         {/* soft under the chin */}
         <Path d="M50 92 Q62 99 74 93" stroke={SKIN.shade} strokeWidth={1.6} strokeLinecap="round" fill="none" opacity={0.8} />
-        <Form g={g} id="hair" d={M_HAIR_D} t={M_HAIR} step={0.4} lw={1.5} rim={0.5} />
+        <Form g={g} id="hair" d={M_HAIR_D} t={M_HAIR} step={0.4} lw={1.35} rim={0.3} />
         <G clipPath={`url(#${g('hair')})`}>
-          <Path d={crease(84, 44, 66, 36, 46, 42, 0, 1.6)} fill={M_HAIR.shade} opacity={0.8} />
-          <Path d={crease(86, 52, 66, 41, 42, 52, 0, 1.4)} fill={M_HAIR.shade} opacity={0.7} />
-          <Path d={crease(74, 33, 58, 30, 40, 38, 0, 1.2)} fill={M_HAIR.shade} opacity={0.6} />
-          <Path d={crease(78, 38, 62, 32, 44, 36, 0, 1.2)} fill="#FFFFFF" opacity={0.55} />
+          {/* strands swept back to the bun */}
+          <Path d={crease(86, 50, 66, 40, 44, 46, 0, 1.8)} fill={M_HAIR.shade} opacity={0.85} />
+          <Path d={crease(80, 40, 62, 34, 42, 40, 0, 1.5)} fill={M_HAIR.shade} opacity={0.75} />
+          <Path d={crease(70, 31, 56, 31, 40, 37, 0, 1.2)} fill={M_HAIR.shade} opacity={0.6} />
+          <Path d={crease(88, 56, 70, 47, 46, 58, 0, 1.4)} fill={M_HAIR.shade} opacity={0.6} />
+          <Path d={crease(36, 52, 34, 62, 37, 72, 1.4)} fill={M_HAIR.shade} opacity={0.6} />
+          <Path d={crease(76, 36, 60, 31, 44, 35, 0, 1.3)} fill="#FFFFFF" opacity={0.6} />
+          <Path d={crease(84, 46, 68, 40, 50, 44, 0, 1)} fill="#FFFFFF" opacity={0.4} />
         </G>
+        {/* the bun, with a pencil pushed through it */}
+        <Path d="M22 45 L57 19" stroke="#7B4E23" strokeWidth={4.6} strokeLinecap="round" />
+        <Path d="M24 43.6 L55.6 20.2" stroke="#E8B94A" strokeWidth={2.8} />
+        <Path d="M24 42.7 L55 19.6" stroke="#FBE08A" strokeWidth={0.9} />
+        <Path d="M55.4 20.2 L58.2 18.1" stroke="#E58A8C" strokeWidth={3} strokeLinecap="round" />
+        <Path d="M24.4 43.4 L21 46" stroke="#E9C9A0" strokeWidth={2.6} strokeLinecap="round" />
+        <Circle cx={20.6} cy={46.3} r={0.9} fill="#3A3240" />
+        <Form g={g} id="bun" d={M_BUN} t={M_BUN_T} step={0.28} lw={1.3} rim={0.4} />
+        <Path d={crease(31, 30, 38, 22, 50, 26, 0, 2)} fill={M_BUN_T.shade} />
+        <Path d={crease(30, 38, 40, 30, 52, 35, 0, 2)} fill={M_BUN_T.shade} opacity={0.8} />
+        <Path d={crease(33, 27, 40, 22, 46, 23, 0, 1.2)} fill="#FFFFFF" opacity={0.5} />
+        <Path d="M45 25 L52 20.4" stroke="#7B4E23" strokeWidth={4.6} strokeLinecap="round" />
+        <Path d="M45.6 24.4 L52.4 19.8" stroke="#E8B94A" strokeWidth={2.8} />
         {/* an ear, and a few wisps that escaped the bun */}
         <Path d="M42 66 C37 64 35 69 37 74 C38 78 42 79 44 77" fill={SKIN.mid} stroke={SKIN.line} strokeWidth={1.2} strokeLinecap="round" />
         <Path d="M40.5 69.5 C39.5 71 40 73.5 42 74.5" stroke={SKIN.line} strokeWidth={0.8} strokeLinecap="round" fill="none" />
@@ -297,28 +304,25 @@ function PipFace({ face }: { face: Face }) {
   };
   return (
     <G>
-      <Ellipse cx={49} cy={74} rx={5} ry={3} fill={BLUSH} opacity={0.4} />
-      <Ellipse cx={77} cy={73} rx={3.6} ry={2.6} fill={BLUSH} opacity={0.4} />
-      <G fill="#B9694B" opacity={0.75}>
-        <Circle cx={47} cy={72} r={0.8} />
-        <Circle cx={50.5} cy={74.5} r={0.8} />
-        <Circle cx={45.5} cy={75.5} r={0.7} />
-        <Circle cx={52} cy={71} r={0.6} />
-        <Circle cx={75} cy={71} r={0.7} />
-        <Circle cx={78.5} cy={73.5} r={0.7} />
-        <Circle cx={68} cy={70} r={0.6} />
-        <Circle cx={71} cy={68.5} r={0.6} />
+      <Ellipse cx={49} cy={74} rx={5} ry={3} fill={BLUSH} opacity={0.3} />
+      <Ellipse cx={77} cy={73} rx={3.6} ry={2.6} fill={BLUSH} opacity={0.3} />
+      <G fill="#C07A5C" opacity={0.6}>
+        <Circle cx={47} cy={72.5} r={0.65} />
+        <Circle cx={50.5} cy={74.5} r={0.6} />
+        <Circle cx={46} cy={75.8} r={0.55} />
+        <Circle cx={75.5} cy={71} r={0.55} />
+        <Circle cx={78.5} cy={73.4} r={0.55} />
+        <Circle cx={69.5} cy={69} r={0.5} />
       </G>
       <Eye x={55} y={63} rx={2.8} ry={3.5} iris="#6B8A4E" face={face} lid={SKIN.mid} />
       <Eye x={71.5} y={62.5} rx={2.4} ry={3.4} iris="#6B8A4E" face={face} lid={SKIN.mid} />
       <Path d={brows[face]} {...brow} />
       {/* a small turned-up nose */}
       <Path d="M71 66 C72 69 76 70 76 72.5 C76 74.5 73 75 71 74" stroke={SKIN.line} strokeWidth={1.1} strokeLinecap="round" fill="none" />
-      <Ellipse cx={72.5} cy={70} rx={1.4} ry={1.8} fill="#FFF1E2" opacity={0.6} />
       {face === 'happy' ? (
         <G>
-          <Path d="M58 77 Q68 90 80 75 Q69 80 58 77 Z" fill={MOUTH} stroke={MOUTH} strokeWidth={0.8} strokeLinejoin="round" />
-          <Path d="M59.5 77.8 Q69 80.5 78.6 76.4 L77.6 78.4 Q69 81.6 60.6 79.4 Z" fill={TEETH} />
+          <Path d="M58 77 Q67.5 89.5 78.5 75.5 Q68.5 80 58 77 Z" fill={MOUTH} stroke={MOUTH} strokeWidth={0.8} strokeLinejoin="round" />
+          <Path d="M59.5 77.8 Q68.5 80.4 77.2 76.6 L76.3 78.5 Q68.5 81.6 60.6 79.4 Z" fill={TEETH} />
           <Path d="M64 84.2 Q69 86.4 74 83.4 Q69 82.6 64 84.2 Z" fill={TONGUE} />
         </G>
       ) : face === 'surprised' ? (
@@ -334,9 +338,9 @@ function PipFace({ face }: { face: Face }) {
       ) : (
         <G>
           {/* the grin: wider on one side */}
-          <Path d="M60 78 Q69 87 80 75 Q70 81 60 78 Z" fill={MOUTH} stroke={MOUTH} strokeWidth={0.8} strokeLinejoin="round" />
-          <Path d="M61.5 78.8 Q70 81.4 78.8 76.4 L78 78.2 Q70 82.2 62.6 80.2 Z" fill={TEETH} />
-          <Path d="M80 75 Q81.5 73.5 82 72" stroke={MOUTH} strokeWidth={1.2} strokeLinecap="round" fill="none" />
+          <Path d="M60 78 Q68.5 86.5 78 75.5 Q69 81 60 78 Z" fill={MOUTH} stroke={MOUTH} strokeWidth={0.8} strokeLinejoin="round" />
+          <Path d="M61.5 78.8 Q69.5 81.2 77 76.6 L76.3 78.3 Q69.5 82 62.6 80.2 Z" fill={TEETH} />
+          <Path d="M78 75.5 Q79.2 74.2 79.6 72.6" stroke={MOUTH} strokeWidth={1.2} strokeLinecap="round" fill="none" />
         </G>
       )}
     </G>
@@ -361,7 +365,7 @@ export function PipArt({ width, mood = 'idle' }: { width: number; mood?: string 
       <Form g={g} id="boot-near" d="M35 203 L52 203 C52 208 53 212 56 213 C62 214 67 217 67 221 C67 224 65 226 62 226 L34 226 C33 218 34 210 35 203 Z" t={P_BOOT} step={0.25} lw={1.4} rim={0.3} />
       <Path d="M35 207 L52 207 M61 205 L77 205" stroke={P_BOOT.line} strokeWidth={1} opacity={0.8} />
       {/* the green coat */}
-      <Form g={g} id="coat" d={P_COAT_D} t={P_COAT} step={0.56} lw={1.6} rim={0.35} />
+      <Form g={g} id="coat" d={P_COAT_D} t={P_COAT} step={0.56} lw={1.4} rim={0.35} />
       <G clipPath={`url(#${g('coat')})`}>
         <Path d={crease(36, 150, 32, 170, 31, 190, 2.8)} fill={P_COAT.shade} opacity={0.8} />
         <Path d={crease(82, 146, 86, 168, 88, 188, -2.8)} fill={P_COAT.shade} opacity={0.8} />
@@ -397,12 +401,12 @@ export function PipArt({ width, mood = 'idle' }: { width: number; mood?: string 
       <Path d="M87 160.5 L91.5 160.5 L91.5 167 L87 167 Z" fill="none" stroke={P_GOLD} strokeWidth={1.3} />
       <Path d="M89.2 154 L89.2 164" stroke={P_LEATHER.line} strokeWidth={2.4} strokeLinecap="round" />
       {/* near arm, hand on hip */}
-      <Form g={g} id="sleeve-near" d={P_SLEEVE_NEAR} t={P_COAT} step={0.3} lw={1.5} rim={0.4} />
+      <Form g={g} id="sleeve-near" d={P_SLEEVE_NEAR} t={P_COAT} step={0.3} lw={1.35} rim={0.4} />
       <Path d={crease(12, 128, 16, 134, 13, 140, 2.2, 0)} fill={P_COAT.shade} />
       <Path d="M22 150 L31 144 L35.5 149 L27 157 Z" fill={P_COAT.shade} stroke={P_COAT.line} strokeWidth={1.1} strokeLinejoin="round" />
       <Form g={g} id="fist" d="M28 150 C28 145 33 143 37 145 C40 147 40 153 37 156 C34 158 29 156 28 150 Z" t={SKIN} step={0.15} lw={1.2} rim={0.35} />
       {/* far arm up: "Watch." */}
-      <Form g={g} id="sleeve-far" d={P_SLEEVE_FAR} t={P_COAT} step={0.3} lw={1.5} rim={0.35} />
+      <Form g={g} id="sleeve-far" d={P_SLEEVE_FAR} t={P_COAT} step={0.3} lw={1.35} rim={0.35} />
       <Path d={crease(84, 112, 92, 110, 99, 114, 0, 2.4)} fill={P_COAT.shade} />
       <Path d="M91.5 86.5 L104.5 85.5 L104.8 91.5 L92 92.4 Z" fill={P_COAT.shade} stroke={P_COAT.line} strokeWidth={1.1} strokeLinejoin="round" />
       <Form g={g} id="hand-far" d="M93 85 C92 80 93 75 96 74 L96 64 C96 61.5 99.5 61.5 99.5 64 L99.5 74 C102 74 104 77 104 81 C104 85 101 87 98 87 C95 87 93 87 93 85 Z" t={SKIN} step={0.15} lw={1.2} rim={0.35} />
@@ -416,11 +420,11 @@ export function PipArt({ width, mood = 'idle' }: { width: number; mood?: string 
       <Form g={g} id="scarf-front" d="M60 104 C63 114 64 124 62 134 L70 133 C72 123 71 112 67 102 Z" t={P_SCARF} step={0.2} lw={1.2} rim={0.35} />
       <Path d="M62.6 134 L62 137.5 M65.2 133.8 L65 137.4 M67.8 133.4 L68.2 137" stroke={P_SCARF.line} strokeWidth={1} strokeLinecap="round" />
       {/* head */}
-      <Form g={g} id="head" d={P_HEAD} t={SKIN} step={0.42} lw={1.5} rim={0.45} />
+      <Form g={g} id="head" d={P_HEAD} t={SKIN} step={0.42} lw={1.35} rim={0.45} />
       <Path d="M44 86 Q56 93 70 88" stroke={SKIN.shade} strokeWidth={1.4} strokeLinecap="round" fill="none" opacity={0.7} />
       <Path d="M38 61 C33 59 31 64 33 69 C34 73 38 74 40 72" fill={SKIN.mid} stroke={SKIN.line} strokeWidth={1.2} strokeLinecap="round" />
       <Path d="M36.5 64.5 C35.5 66 36 68.5 38 69.5" stroke={SKIN.line} strokeWidth={0.8} strokeLinecap="round" fill="none" />
-      <Form g={g} id="hair" d={P_HAIR_D} t={P_HAIR} step={0.4} lw={1.5} rim={0.5} />
+      <Form g={g} id="hair" d={P_HAIR_D} t={P_HAIR} step={0.4} lw={1.35} rim={0.5} />
       <G clipPath={`url(#${g('hair')})`}>
         <Path d={crease(80, 36, 62, 28, 42, 34, 0, 1.6)} fill={P_HAIR.shade} opacity={0.7} />
         <Path d={crease(70, 22, 58, 26, 52, 38, 1.4, 0)} fill={P_HAIR.shade} opacity={0.7} />
