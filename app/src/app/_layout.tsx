@@ -1,10 +1,12 @@
-import {
-  AtkinsonHyperlegible_400Regular,
-  AtkinsonHyperlegible_400Regular_Italic,
-  AtkinsonHyperlegible_700Bold,
-  AtkinsonHyperlegible_700Bold_Italic,
-} from '@expo-google-fonts/atkinson-hyperlegible';
-import { Fraunces_400Regular_Italic, Fraunces_600SemiBold, Fraunces_700Bold, Fraunces_900Black } from '@expo-google-fonts/fraunces';
+// One import per weight, so only the weights the game uses ship with it.
+import { AtkinsonHyperlegible_400Regular } from '@expo-google-fonts/atkinson-hyperlegible/400Regular';
+import { AtkinsonHyperlegible_400Regular_Italic } from '@expo-google-fonts/atkinson-hyperlegible/400Regular_Italic';
+import { AtkinsonHyperlegible_700Bold } from '@expo-google-fonts/atkinson-hyperlegible/700Bold';
+import { AtkinsonHyperlegible_700Bold_Italic } from '@expo-google-fonts/atkinson-hyperlegible/700Bold_Italic';
+import { Fraunces_400Regular_Italic } from '@expo-google-fonts/fraunces/400Regular_Italic';
+import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold';
+import { Fraunces_700Bold } from '@expo-google-fonts/fraunces/700Bold';
+import { Fraunces_900Black } from '@expo-google-fonts/fraunces/900Black';
 import { useFonts } from 'expo-font';
 import { router, Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
