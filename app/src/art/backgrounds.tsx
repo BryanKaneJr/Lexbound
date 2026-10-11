@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { memo, useId, useMemo } from 'react';
 import Svg, { Circle, ClipPath, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { blade, blob, Fill, Fog, Glow, GroundShadow, type Ids, mix, ridge, rng, Shafts, Shaded, tuft, wave } from './paint';
 
@@ -24,14 +24,25 @@ function hazed([a, b, c]: Tones, haze: string, t: number): Tones {
  * A clump of leaves with volume, cel-shaded like the characters: a soft lit
  * rim up and to the left, the body, a ragged crescent of shade on the lower
  * right, a lit patch toward the light, and a few leafy dabs breaking up the
- * lit edge.
+ * lit edge. `flat` keeps only the rim and body, for clumps far off in the
+ * haze where the rest would not show.
  */
-function leafy(cx: number, cy: number, rad: number, seed: number, [lit, mid, dark]: Tones, dabs = 4) {
+function leafy(cx: number, cy: number, rad: number, seed: number, [lit, mid, dark]: Tones, dabs = 4, flat = false) {
   const r = rng(seed + 5);
+  const rim = <Path d={blob(cx - rad * 0.1, cy - rad * 0.12, rad, { seed, lobes: 9, lobe: 0.2, wobble: 0.1 })} fill={mix(lit, mid, 0.35)} />;
+  const body = <Path d={blob(cx, cy, rad * 0.97, { seed: seed + 1, lobes: 8, lobe: 0.2, wobble: 0.1 })} fill={mid} />;
+  if (flat) {
+    return (
+      <G key={`lf${seed}`}>
+        {rim}
+        {body}
+      </G>
+    );
+  }
   return (
     <G key={`lf${seed}`}>
-      <Path d={blob(cx - rad * 0.1, cy - rad * 0.12, rad, { seed, lobes: 9, lobe: 0.2, wobble: 0.1 })} fill={mix(lit, mid, 0.35)} />
-      <Path d={blob(cx, cy, rad * 0.97, { seed: seed + 1, lobes: 8, lobe: 0.2, wobble: 0.1 })} fill={mid} />
+      {rim}
+      {body}
       <Path d={blob(cx + rad * 0.16, cy + rad * 0.2, rad * 0.76, { seed: seed + 2, lobes: 7, lobe: 0.16, wobble: 0.16 })} fill={dark} />
       <Path d={blob(cx - rad * 0.03, cy - rad * 0.03, rad * 0.7, { seed: seed + 3, lobes: 7, lobe: 0.18, wobble: 0.16 })} fill={mid} />
       <Path
@@ -166,31 +177,36 @@ function bez([a, b, c, d]: [number, number][], t: number): [number, number] {
   return [k(0), k(1)];
 }
 
+/** A circle as path data, so many dots can share one path. */
+const dot = (x: number, y: number, r: number) => `M${f1(x - r)} ${f1(y)} a${f1(r)} ${f1(r)} 0 1 0 ${f1(2 * r)} 0 a${f1(r)} ${f1(r)} 0 1 0 ${f1(-2 * r)} 0 Z`;
+
 /** Wildflowers in a drift around (x, y): each a few petals round a bright eye, smaller with distance. */
 function blooms(x: number, y: number, seed: number, colors: string[], stem: string, horizon = 300, eye = '#F6D86A') {
   const r = rng(seed);
   const s = 0.55 + Math.max(0, y - horizon) / 110;
   const c = colors[seed % colors.length]!;
+  let stems = '';
+  let leaves = '';
+  let petals = '';
+  let eyes = '';
+  for (let i = 0; i < 5; i++) {
+    const fx = x + (r() - 0.5) * 34 * s;
+    const fy = y + (r() - 0.5) * 8 * s;
+    const h = (2.5 + r() * 3.5) * s;
+    const tx = fx + (r() - 0.5) * 2;
+    const ty = fy - h;
+    const p = 0.95 * s;
+    stems += `M${f1(fx)} ${f1(fy)} Q${f1(fx)} ${f1(fy - h / 2)} ${f1(tx)} ${f1(ty)} `;
+    leaves += `M${f1(fx - 2.5 * s)} ${f1(fy)} Q${f1(fx - 1.5 * s)} ${f1(fy - h * 0.6)} ${f1(fx)} ${f1(fy - h * 0.2)} Z `;
+    for (let k = 0; k < 4; k++) petals += dot(tx + Math.cos(k * 1.57 + i) * p, ty + Math.sin(k * 1.57 + i) * p * 0.7, 1.05 * s) + ' ';
+    eyes += dot(tx, ty, 0.55 * s) + ' ';
+  }
   return (
     <G key={`bl${seed}`}>
-      {Array.from({ length: 5 }, (_, i) => {
-        const fx = x + (r() - 0.5) * 34 * s;
-        const fy = y + (r() - 0.5) * 8 * s;
-        const h = (2.5 + r() * 3.5) * s;
-        const tx = fx + (r() - 0.5) * 2;
-        const ty = fy - h;
-        const p = 0.95 * s;
-        return (
-          <G key={i}>
-            <Path d={`M${f1(fx)} ${f1(fy)} Q${f1(fx)} ${f1(fy - h / 2)} ${f1(tx)} ${f1(ty)}`} stroke={stem} strokeWidth={f1(0.7 * s)} fill="none" opacity={0.8} />
-            <Path d={`M${f1(fx - 2.5 * s)} ${f1(fy)} Q${f1(fx - 1.5 * s)} ${f1(fy - h * 0.6)} ${f1(fx)} ${f1(fy - h * 0.2)} Z`} fill={stem} opacity={0.7} />
-            {[0, 1, 2, 3].map((k) => (
-              <Circle key={k} cx={f1(tx + Math.cos(k * 1.57 + i) * p)} cy={f1(ty + Math.sin(k * 1.57 + i) * p * 0.7)} r={f1(1.05 * s)} fill={c} />
-            ))}
-            <Circle cx={f1(tx)} cy={f1(ty)} r={f1(0.55 * s)} fill={eye} />
-          </G>
-        );
-      })}
+      <Path d={stems} stroke={stem} strokeWidth={f1(0.7 * s)} fill="none" opacity={0.8} />
+      <Path d={leaves} fill={stem} opacity={0.7} />
+      <Path d={petals} fill={c} />
+      <Path d={eyes} fill={eye} />
     </G>
   );
 }
@@ -212,16 +228,18 @@ const BOOKS = ['#9A4636', '#BF8A3E', '#5A7A54', '#3A666C', '#68465F', '#D6C298',
 function shelfRow(x0: number, x1: number, floor: number, room: number, seed: number, extra?: 'stack' | 'jar') {
   const r = rng(seed);
   const out: React.ReactNode[] = [];
+  // the light on each spine, its shaded side and its gilt bands share one path each
+  let lit = '';
+  let dark = '';
+  let gilt = '';
   let k = 0;
-  const book = (bx: number, w: number, h: number, c: string, rot?: string) => (
-    <G key={k++} transform={rot}>
-      <Rect x={f1(bx)} y={f1(floor - h)} width={f1(w)} height={f1(h)} fill={c} />
-      <Rect x={f1(bx)} y={f1(floor - h)} width={1.3} height={f1(h)} fill={mix(c, '#FFE6BC', 0.35)} />
-      <Rect x={f1(bx + w - 1.5)} y={f1(floor - h)} width={1.5} height={f1(h)} fill={mix(c, '#1A0C12', 0.45)} />
-      {w > 7.5 && <Rect x={f1(bx)} y={f1(floor - h + 3.5)} width={f1(w)} height={1.1} fill={mix(c, '#F2D08A', 0.55)} />}
-      {w > 7.5 && <Rect x={f1(bx)} y={f1(floor - 5)} width={f1(w)} height={1.1} fill={mix(c, '#F2D08A', 0.55)} />}
-    </G>
-  );
+  const rect = (x: number, y: number, w: number, h: number) => `M${f1(x)} ${f1(y)} h${f1(w)} v${f1(h)} h${f1(-w)} Z `;
+  const book = (bx: number, w: number, h: number, c: string) => {
+    out.push(<Rect key={k++} x={f1(bx)} y={f1(floor - h)} width={f1(w)} height={f1(h)} fill={c} />);
+    lit += rect(bx, floor - h, 1.3, h);
+    dark += rect(bx + w - 1.5, floor - h, 1.5, h);
+    if (w > 7.5) gilt += rect(bx, floor - h + 3.5, w, 1.1) + rect(bx, floor - 5, w, 1.1);
+  };
   const extraAt = extra ? x0 + (x1 - x0) * (0.35 + r() * 0.3) : Infinity;
   let x = x0 + 1;
   let placed = false;
@@ -230,15 +248,11 @@ function shelfRow(x0: number, x1: number, floor: number, room: number, seed: num
       placed = true;
       if (extra === 'stack') {
         for (let i = 0; i < 3; i++) {
-          const c = BOOKS[(seed + i * 3) % BOOKS.length]!;
           const w = 22 - i * 2.5;
-          out.push(
-            <G key={k++}>
-              <Rect x={f1(x + i * 1.2)} y={floor - (i + 1) * 5.2} width={w} height={5} fill={c} />
-              <Rect x={f1(x + i * 1.2)} y={floor - (i + 1) * 5.2} width={w} height={1.1} fill={mix(c, '#FFE6BC', 0.35)} />
-              <Rect x={f1(x + i * 1.2)} y={floor - (i + 1) * 5.2 + 3.9} width={w} height={1.1} fill={mix(c, '#1A0C12', 0.4)} />
-            </G>,
-          );
+          const y = floor - (i + 1) * 5.2;
+          out.push(<Rect key={k++} x={f1(x + i * 1.2)} y={f1(y)} width={w} height={5} fill={BOOKS[(seed + i * 3) % BOOKS.length]!} />);
+          lit += rect(x + i * 1.2, y, w, 1.1);
+          dark += rect(x + i * 1.2, y + 3.9, w, 1.1);
         }
         x += 25;
       } else {
@@ -261,14 +275,24 @@ function shelfRow(x0: number, x1: number, floor: number, room: number, seed: num
     const c = BOOKS[Math.floor(r() * BOOKS.length)]!;
     if (x1 - x < 17 && x1 - x > 9) {
       // the last book leans on the case
-      out.push(book(x + 1, 7, room * 0.8, c, `rotate(15 ${f1(x + 1)} ${floor})`));
+      const h = room * 0.8;
+      out.push(
+        <G key={k++} transform={`rotate(15 ${f1(x + 1)} ${floor})`}>
+          <Rect x={f1(x + 1)} y={f1(floor - h)} width={7} height={f1(h)} fill={c} />
+          <Rect x={f1(x + 1)} y={f1(floor - h)} width={1.3} height={f1(h)} fill={mix(c, '#FFE6BC', 0.35)} />
+          <Rect x={f1(x + 6.5)} y={f1(floor - h)} width={1.5} height={f1(h)} fill={mix(c, '#1A0C12', 0.45)} />
+        </G>,
+      );
       break;
     }
     const w = Math.min(6 + r() * 5, x1 - x);
     if (w < 4) break;
-    out.push(book(x, w, room * (0.6 + r() * 0.34), c));
+    book(x, w, room * (0.6 + r() * 0.34), c);
     x += w + 0.5;
   }
+  out.push(<Path key={k++} d={lit} fill="#FFE6BC" opacity={0.32} />);
+  out.push(<Path key={k++} d={dark} fill="#1A0C12" opacity={0.42} />);
+  out.push(<Path key={k++} d={gilt} fill="#F2D08A" opacity={0.5} />);
   return out;
 }
 
@@ -328,11 +352,9 @@ function camp(g: Ids, night: boolean) {
           <G transform="rotate(-30 280 130)">
             <Fog g={g} id="milky" x={-120} width={800} y={130} height={80} color="#9AAAD8" opacity={0.12} />
           </G>
-          {Array.from({ length: 90 }, (_, i) => {
-            const x = stars() * 400;
-            const y = Math.pow(stars(), 1.3) * 260;
-            return <Circle key={`st${i}`} cx={f1(x)} cy={f1(y)} r={f1(0.35 + stars() * 0.85)} fill="#FFF6DC" opacity={f1(0.3 + stars() * 0.6)} />;
-          })}
+          {[0.4, 0.6, 0.85].map((o, k) => (
+            <Path key={`st${k}`} d={Array.from({ length: 30 }, () => dot(stars() * 400, Math.pow(stars(), 1.3) * 260, 0.35 + stars() * 0.85)).join(' ')} fill="#FFF6DC" opacity={o} />
+          ))}
           {[[232, 30], [374, 22], [360, 150], [214, 120], [392, 206]].map(([x, y], i) => (
             <G key={`sg${i}`}>
               <Glow g={g} id={`sg${i}`} cx={x!} cy={y!} r={8} color="#FFF6DC" opacity={0.7} />
@@ -369,7 +391,7 @@ function camp(g: Ids, night: boolean) {
       {[[156, 290, 10], [176, 288, 7], [372, 284, 9]].map(([x, y, s], i) => (
         <G key={`ht${i}`}>
           <Path d={`M${x} ${y} L${x} ${y! - s! * 1.4}`} stroke={mix(c('#5E4836', '#141A26'), haze, 0.35)} strokeWidth={1.6} />
-          {leafy(x!, y! - s! * 1.7, s!, 640 + i * 5, hazed(leaf, haze, 0.35), 0)}
+          {leafy(x!, y! - s! * 1.7, s!, 640 + i * 5, hazed(leaf, haze, 0.35), 0, true)}
         </G>
       ))}
       <Path d={ridge({ y: 326, amp: 4, seed: 16, freq: 1.2, bottom: 460 })} fill={c('#CADE8E', '#36524C')} />
@@ -609,9 +631,7 @@ const BACKGROUNDS: Record<string, Bg> = {
             <Rect x={0} y={f1(y + 1 + i * 0.14)} width={400} height={f1(0.8 + i * 0.06)} fill="#D8A472" opacity={0.16} />
           </G>
         ))}
-        {joints.map((j, i) => (
-          <Rect key={`fj${i}`} x={j.x} y={j.y} width={1.2} height={j.h} fill="#341C14" opacity={0.45} />
-        ))}
+        <Path d={joints.map((j) => `M${j.x} ${j.y} h1.2 v${j.h} h-1.2 Z`).join(' ')} fill="#341C14" opacity={0.45} />
         <Rect x={0} y={343} width={400} height={9} fill="#4E3022" />
         <Rect x={0} y={343} width={400} height={1.6} fill="#B88050" opacity={0.6} />
         <Fill g={g} id="skirtShadow" y={352} height={14} stops={[[0, '#120808', 0.5], [1, '#120808', 0]]} />
@@ -621,10 +641,15 @@ const BACKGROUNDS: Record<string, Bg> = {
         <Path d={rug(163)} fill="#C18A40" />
         <Path d={rug(156)} fill="#6A2A26" />
         <Path d={rug(141)} fill="#A24638" />
-        {Array.from({ length: 28 }, (_, i) => {
-          const th = (i / 28) * Math.PI * 2;
-          return <Ellipse key={`rd${i}`} cx={f1(206 + 159.5 * Math.cos(th))} cy={f1(416 + 159.5 * 0.19 * Math.sin(th))} rx={2.2} ry={0.9} fill="#6A2A26" />;
-        })}
+        <Path
+          d={Array.from({ length: 28 }, (_, i) => {
+            const th = (i / 28) * Math.PI * 2;
+            const x = 206 + 159.5 * Math.cos(th);
+            const y = 416 + 159.5 * 0.19 * Math.sin(th);
+            return `M${f1(x - 2.2)} ${f1(y)} a2.2 0.9 0 1 0 4.4 0 a2.2 0.9 0 1 0 -4.4 0 Z`;
+          }).join(' ')}
+          fill="#6A2A26"
+        />
         <Path d="M146 416 L206 405 L266 416 L206 427 Z" fill="#3A6264" />
         <Path d="M164 416 L206 408.5 L248 416 L206 423.5 Z" fill="#C18A40" />
         <Path d="M184 416 L206 412 L228 416 L206 420 Z" fill="#E8D2A2" />
@@ -712,7 +737,7 @@ const BACKGROUNDS: Record<string, Bg> = {
           if (Math.abs(x - 215) < 26) return null;
           return <Path key={`ft${i}`} d={trunkD(x, 296, w, 40)} fill={mix('#56483A', haze, t)} />;
         })}
-        {[[30, 14, 84], [150, -14, 72], [276, -4, 80], [386, 26, 76]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 300 + i * 7, hazed(leaf, haze, 0.62), 0))}
+        {[[30, 14, 84], [150, -14, 72], [276, -4, 80], [386, 26, 76]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 300 + i * 7, hazed(leaf, haze, 0.62), 0, true))}
         <Path d={ridge({ y: 292, amp: 3, seed: 24, crowns: 14, crownAmp: 16 })} fill={mix('#557A5E', haze, 0.58)} />
         <Path d={ridge({ y: 296, amp: 3, seed: 25, crowns: 18, crownAmp: 12 })} fill={mix('#557A5E', haze, 0.58)} />
         <Fog g={g} id="fog1" y={284} height={96} color={haze} opacity={0.62} />
@@ -720,8 +745,8 @@ const BACKGROUNDS: Record<string, Bg> = {
         {[[40, 312, 8], [120, 306, 6], [258, 306, 6], [306, 310, 7.5], [374, 314, 9]].map(([x, y, w], i) => (
           <Path key={`it${i}`} d={trunkD(x!, y!, w!)} fill={mix('#5A4A3C', haze, 0.48)} />
         ))}
-        {[[46, 120, 46], [136, 76, 40], [290, 70, 42], [366, 112, 48]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 310 + i * 7, hazed(leaf, haze, 0.48), 0))}
-        {[[18, 294, 38], [94, 300, 28], [134, 304, 18], [290, 302, 20], [332, 296, 32], [394, 290, 40]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 330 + i * 7, hazed(leaf, haze, 0.44), 2))}
+        {[[46, 120, 46], [136, 76, 40], [290, 70, 42], [366, 112, 48]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 310 + i * 7, hazed(leaf, haze, 0.48), 0, true))}
+        {[[18, 294, 38], [94, 300, 28], [134, 304, 18], [290, 302, 20], [332, 296, 32], [394, 290, 40]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 330 + i * 7, hazed(leaf, haze, 0.44), 0, true))}
         <Fog g={g} id="fog2" y={300} height={40} color={haze} opacity={0.35} />
         {/* the middle trees */}
         {[[88, 330, 15, -6], [148, 316, 9, 4], [286, 318, 11, -3], [336, 332, 17, 7]].map(([x, y, w, lean], i) => (
@@ -919,6 +944,7 @@ const BACKGROUNDS: Record<string, Bg> = {
         <Path d={ridge({ y: 224, amp: 8, seed: 31, crowns: 6, crownAmp: 20 })} fill={mix('#6E9080', haze, 0.7)} />
         {/* the tree line across the clearing: crowns lit from the upper left, trunks standing in their shade */}
         <Rect x={0} y={250} width={400} height={80} fill={shade} />
+        {[[128, 224, 24], [196, 214, 30], [232, 226, 22], [286, 220, 26]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 815 + i * 3, hazed(leaf, haze, 0.36), 0, true))}
         <Path d={ridge({ y: 244, amp: 6, seed: 32, crowns: 11, crownAmp: 30, from: -18, to: 402, bottom: 296 })} fill={mix('#B4D08A', haze, 0.2)} />
         <Fill g={g} id="crowns" d={ridge({ y: 249, amp: 6, seed: 32, crowns: 11, crownAmp: 30, from: -10, to: 410, bottom: 300 })} stops={[[0, mix('#5A8A60', haze, 0.3)], [0.38, mix('#3E6A50', haze, 0.28)], [0.6, shade], [1, shade]]} />
         {Array.from({ length: 13 }, (_, i) => {
@@ -1347,12 +1373,13 @@ export function lookFor(id: string): Look {
   return LOOKS[id] ?? DEFAULT_LOOK;
 }
 
-export function Background({ id, width, height }: { id: string; width: number; height: number }) {
+/** A painted location. Memoized: a scene's painting is costly to build and never changes while it is shown. */
+export const Background = memo(function Background({ id, width, height }: { id: string; width: number; height: number }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const draw = BACKGROUNDS[id] ?? BACKGROUNDS.forest_path!;
+  const painting = useMemo(() => (BACKGROUNDS[id] ?? BACKGROUNDS.forest_path!)((n) => `${n}${uid}`), [id, uid]);
   return (
     <Svg width={width} height={height} viewBox="0 0 400 460" preserveAspectRatio="xMidYMax slice">
-      {draw((n) => `${n}${uid}`)}
+      {painting}
     </Svg>
   );
-}
+});
