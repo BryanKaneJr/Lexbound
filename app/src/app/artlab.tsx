@@ -14,7 +14,7 @@ import { color, space, type } from '@/theme/tokens';
  */
 const GUESTS = ['emberhog', 'drizzlet', 'pebblit', 'puffkin', 'flickerwing', 'cragling', 'cinderback', 'bluster'];
 const MILO_MOODS = ['idle', 'happy', 'excited', 'curious', 'confused', 'annoyed', 'scared', 'tired', 'hurt', 'sad', 'surprised', 'fierce', 'proud', 'disgusted'];
-const LEXLING_MOODS = ['idle', 'happy', 'angry', 'hurt', 'scared', 'sad', 'blazing'];
+const LEXLING_MOODS = ['idle', 'happy', 'angry', 'hurt', 'scared', 'confused', 'sad', 'blazing'];
 
 export default function ArtLab() {
   const { width } = useWindowDimensions();
@@ -103,6 +103,35 @@ export default function ArtLab() {
           />
         </View>
       ))}
+      <View testID="ap-zoom1" style={{ width: w, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-end', backgroundColor: '#C9C2B4', gap: 4, padding: 4 }}>
+        <Portrait art="basket" width={180} />
+        <Portrait art="campfire" width={180} />
+        <Portrait art="leafpile" width={180} />
+        <Portrait art="pit" width={180} />
+        <Portrait art="pouch" width={110} />
+        <Portrait art="shiny_stone" width={110} />
+        <Portrait art="pinecone" width={100} />
+      </View>
+      <View testID="ap-zoom4" style={{ width: w, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-end', backgroundColor: '#C9C2B4', gap: 4, padding: 4 }}>
+        <Portrait art="bowl" width={170} />
+        <Portrait art="well" width={170} />
+        <Portrait art="glowshroom" width={170} />
+        <Portrait art="mushroom" width={130} />
+        <View style={{ backgroundColor: '#6DA8B4', padding: 6 }}>
+          <Portrait art="ripple" width={220} />
+        </View>
+        <Portrait art="puddle" width={220} />
+      </View>
+      <View testID="ap-zoom2" style={{ width: w, flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', backgroundColor: '#C9C2B4', overflow: 'hidden', height: 420 }}>
+        <View style={{ marginBottom: -260 }}>
+          <Portrait art="maren" width={300} />
+        </View>
+      </View>
+      <View testID="ap-zoom3" style={{ width: w, flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', backgroundColor: '#C9C2B4', overflow: 'hidden', height: 420 }}>
+        <View style={{ marginBottom: -200 }}>
+          <Portrait art="pip" width={300} />
+        </View>
+      </View>
       {/* AGENT-PROPS PREVIEW END */}
       <Sheet title="props" width={w}>
         {Object.keys(PROP_ART).map((p) => (
