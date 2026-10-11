@@ -303,7 +303,7 @@ function camp(g: Ids, night: boolean) {
   const c = (day: string, dark: string) => (night ? dark : day);
   const haze = c('#E6E8D2', '#2E3F62');
   const r = rng(76);
-  const leaf: Tones = night ? ['#2C4658', '#1C3036', '#13222A'] : ['#9CBE6E', '#588A52', '#3A6644'];
+  const leaf: Tones = night ? ['#28404F', '#1C3036', '#13222A'] : ['#9CBE6E', '#588A52', '#3A6644'];
   const flowers = night ? ['#4E5670', '#4A5068', '#565070', '#4C566C'] : ['#F8F0DC', '#F4D67C', '#EBA6AE', '#B8A6DA'];
   const stars = rng(5);
   const tentFront = 'M244 334 Q271 279 292 222 Q313 281 338 336 Q291 329 244 334 Z';
@@ -423,7 +423,7 @@ function camp(g: Ids, night: boolean) {
       </G>
       {/* the old tree on the left */}
       <Path d={trunk} fill={`url(#${g('trunk')})`} />
-      <Path d="M40 200 C42 250 44 300 40 350 M52 210 C56 260 58 310 62 352" stroke={c('#2E221C', '#121216')} strokeWidth={2} fill="none" opacity={0.4} />
+      <Path d="M51 200 C52 250 53 300 50 350 M58 210 C60 260 62 310 67 354" stroke={c('#2E221C', '#121216')} strokeWidth={2} fill="none" opacity={0.4} />
       {night && <Path d="M66 310 C68 340 78 356 98 368" stroke={fireRim} strokeWidth={2} fill="none" opacity={0.55} />}
       <Path d="M46 202 C62 174 92 154 126 140 M42 192 C30 170 14 152 -6 144 M50 198 C80 188 124 186 158 170" stroke={c('#5E4836', '#22222A')} strokeWidth={5} strokeLinecap="round" fill="none" />
       {leafy(150, 74, 42, 650, leaf, 3)}
@@ -982,7 +982,7 @@ const BACKGROUNDS: Record<string, Bg> = {
     // fence posts along the left of the path, near to far: x, foot, height
     const posts: [number, number, number][] = [[20, 394, 46], [78, 364, 30], [118, 345, 22], [146, 331, 16.5], [166, 321, 12.5], [180, 314, 9.5], [190, 309, 7.5]];
     const rail = (k: number) => `M${posts.map(([x, y, h]) => `${f1(x)} ${f1(y - h * k)}`).join(' L')}`;
-    const blades = Array.from({ length: 70 }, (_, i) => {
+    const blades = Array.from({ length: 48 }, (_, i) => {
       const y = 300 + Math.pow(r(), 0.8) * 150;
       const t = (y - 284) / 186;
       const mid = 242 - 40 * t;
@@ -1021,11 +1021,20 @@ const BACKGROUNDS: Record<string, Bg> = {
         {/* the dry hills and the open ground */}
         <Path d={ridge({ y: 284, amp: 6, seed: 46, freq: 0.9 })} fill="#F8E8B6" />
         <Fill g={g} id="hills" d={ridge({ y: 287, amp: 6, seed: 46, freq: 0.9 })} stops={[[0, '#E6CF92'], [0.2, '#D6BA7C']]} />
-        {[[30, 290, 10], [62, 294, 7], [320, 290, 9], [352, 296, 12], [384, 292, 8]].map(([x, y, rad], i) => leafy(x!, y!, rad!, 455 + i * 5, hazed(scrub, haze, 0.25), 0))}
+        {[[30, 292, 11], [62, 295, 7], [320, 291, 9], [352, 297, 12], [384, 293, 8]].map(([x, y, rad], i) => {
+          const [lit, mid, dark] = hazed(scrub, haze, 0.25);
+          return (
+            <G key={`sb${i}`}>
+              <Path d={blob(x!, y!, rad!, { seed: 455 + i, lobes: 6, lobe: 0.2, wobble: 0.12, squash: 0.62 })} fill={dark} />
+              <Path d={blob(x! - rad! * 0.12, y! - rad! * 0.14, rad! * 0.86, { seed: 460 + i, lobes: 6, lobe: 0.2, wobble: 0.12, squash: 0.56 })} fill={mid} />
+              <Path d={blob(x! - rad! * 0.3, y! - rad! * 0.26, rad! * 0.46, { seed: 465 + i, lobes: 5, lobe: 0.2, wobble: 0.15, squash: 0.5 })} fill={lit} />
+            </G>
+          );
+        })}
         <Path d={ridge({ y: 302, amp: 3, seed: 47, freq: 1.3, bottom: 460 })} fill="#F2E0A8" />
         <Fill g={g} id="ground" d={ridge({ y: 305, amp: 3, seed: 47, freq: 1.3, bottom: 460 })} stops={[[0, '#DCC284'], [0.3, '#CBAA68'], [1, '#A38244']]} />
         {blades.map((b, i) => (
-          <Path key={`db${i}`} d={blade(b.x, b.y, b.h, b.lean, 0.9 + b.h * 0.06)} fill={b.lit ? '#EDD48E' : '#B08C4C'} />
+          <Path key={`db${i}`} d={tuft(b.x, b.y, b.h, 940 + i, 4)} fill={b.lit ? '#E6CC86' : '#B08C4C'} />
         ))}
         <Fill g={g} id="path" d={pathD} stops={[[0, '#FFF6DE'], [0.3, '#F2E0B2'], [1, '#DABE88']]} />
         <Ellipse cx={242} cy={287} rx={20} ry={2.6} fill="#FFFFFF" opacity={0.55} />
@@ -1189,7 +1198,7 @@ const BACKGROUNDS: Record<string, Bg> = {
             </G>
           );
         })}
-        <Path d="M210 292 L210 304 M215 290 L218 302 L221 290 M209 312 Q214 308 219 312" stroke="#2A3E3E" strokeWidth={1.1} strokeLinecap="round" fill="none" opacity={0.6} />
+        <Path d="M214.5 296 Q214.5 294 216.6 294.6 Q218.6 295.6 217.6 298.4 Q216 300.6 213 299.8 Q210.2 298.4 211 294.6 Q212.4 291 217.2 291.4 M210 306 L219.5 306 M212.2 306 L211.6 310 M217.2 306 L217.8 310" stroke="#2A3E3E" strokeWidth={1} strokeLinecap="round" fill="none" opacity={0.6} />
         {shrooms(178, 332, 0.4, 550)}
         {shrooms(252, 333, 0.4, 551)}
         <Fog g={g} id="mist2" y={346} height={34} color="#86B0A4" opacity={0.36} />
@@ -1208,6 +1217,9 @@ const BACKGROUNDS: Record<string, Bg> = {
         )}
         {dapples([[214, 384, 54], [244, 414, 36], [186, 436, 30]], '#D6EEC0', 0.14, 'ld')}
         {[[190, 386, 0.5], [264, 382, 0.55], [24, 412, 0.9], [168, 446, 0.7]].map(([x, y, s], i) => shrooms(x!, y!, s!, 590 + i))}
+        {/* a root crawling out across the moss */}
+        <Path d="M30 418 C70 430 120 436 170 440 C200 442 226 446 250 452 C226 450 200 448 170 446 C120 443 70 438 26 428 Z" fill="#1A2018" />
+        <Path d="M30 418 C70 430 120 436 170 440 C200 442 226 446 250 452" stroke="#4E7A48" strokeWidth={1.6} fill="none" opacity={0.6} />
         {/* the old tree on the left, standing on great mossy roots */}
         <Path d="M-12 -10 L60 -10 C56 110 58 200 66 262 C76 318 110 352 150 378 C122 382 96 374 78 360 C72 374 60 388 46 396 C42 372 32 354 22 348 C14 370 2 386 -12 394 Z" fill={`url(#${g('oldTree')})`} />
         <Path d="M14 0 C10 120 16 240 22 330 M36 0 C34 130 40 230 50 300 M48 0 C46 110 50 200 58 260" stroke="#0C100C" strokeWidth={2.6} fill="none" opacity={0.45} />
@@ -1223,7 +1235,7 @@ const BACKGROUNDS: Record<string, Bg> = {
           <Path key={`am${i}`} d={blob(x!, y!, s!, { seed: 630 + i, lobes: 6, lobe: 0.25, squash: 0.7 })} fill="#3E6A44" />
         ))}
         <Path d="M412 277 C380 275 356 293 345 327 C341 346 339 362 337 378" stroke="#6E9858" strokeWidth={1.8} strokeLinecap="round" fill="none" opacity={0.65} />
-        {[[84, 368, 1], [104, 374, 0.8], [140, 382, 0.9], [346, 392, 0.85], [370, 398, 0.7], [380, 444, 1.3], [44, 448, 1.3]].map(([x, y, s], i) => shrooms(x!, y!, s!, 600 + i))}
+        {[[84, 368, 1], [104, 374, 0.8], [140, 382, 0.9], [346, 392, 0.85], [370, 398, 0.7], [312, 448, 1.3], [104, 450, 1.3]].map(([x, y, s], i) => shrooms(x!, y!, s!, 600 + i))}
         {ferns(-8, 460, 1, 0.95, ['#18342A', '#1E3E2E'], 610)}
         {ferns(408, 460, -1, 0.85, ['#18342A', '#1E3E2E'], 611)}
       </G>
@@ -1258,7 +1270,7 @@ const DEFAULT_LOOK: Look = { light: ['#FFF4D8', 0], shade: ['#1B2433', 0.12], vi
 
 export const LOOKS: Record<string, Look> = {
   lodge: {
-    light: ['#FFD08A', 0.16],
+    light: ['#FFD08A', 0.05],
     shade: ['#2A1420', 0.3],
     vignette: 0.46,
     motes: { color: '#FFE2A6', count: 9, size: 1.5, rise: 12 },
@@ -1327,7 +1339,7 @@ export const LOOKS: Record<string, Look> = {
     motes: { color: '#B8FFE6', count: 9, size: 1.6, rise: 18 },
     apron: ['#1C3626', '#0A1810'],
     apronEdge: 'moss',
-    apronEdgeColor: '#24442E',
+    apronEdgeColor: '#1F3C2A',
   },
 };
 
