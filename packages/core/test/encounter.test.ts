@@ -170,6 +170,6 @@ describe('encounter engine', () => {
 
   it('lists the concepts an encounter teaches, including battle telegraphs', () => {
     const content = fixture({ encounters: [encounter] });
-    expect(encounterConcepts(content, content.encounter.get('wood.test')!).sort()).toEqual(['fire', 'look', 'water']);
+    expect(encounterConcepts(content, content.encounter.get('wood.test')!).sort()).toEqual(['attack', 'fire', 'look', 'water']);
   });
 });

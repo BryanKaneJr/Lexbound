@@ -4,9 +4,12 @@ import concepts from './data/concepts.json';
 import elements from './data/elements.json';
 import camp from './data/it/encounters/camp.json';
 import lodge from './data/it/encounters/lodge.json';
+import hollow from './data/it/encounters/hollow.json';
 import whisperwood from './data/it/encounters/whisperwood.json';
 import language from './data/it/language.json';
 import lines from './data/it/lines.json';
+import notes from './data/it/notes.json';
+import phrasing from './data/it/phrasing.json';
 import words from './data/it/words.json';
 import items from './data/items.json';
 import journal from './data/journal.json';
@@ -23,6 +26,7 @@ import npcs from './data/npcs.json';
  */
 export const raw = {
   language,
+  phrasing,
   concepts,
   words,
   lines,
@@ -34,7 +38,8 @@ export const raw = {
   items,
   locations,
   journal,
-  encounters: [...lodge, ...camp, ...whisperwood],
+  notes,
+  encounters: [...lodge, ...camp, ...whisperwood, ...hollow],
 };
 
 export const content: Content = loadContent(raw);

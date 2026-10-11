@@ -1,0 +1,12 @@
+{
+  "verbs": {
+    "attack": "Attacca",
+    "defend": "Difendi"
+  },
+  "with": {
+    "water": "con l'acqua",
+    "fire": "con il fuoco",
+    "earth": "con la terra",
+    "wind": "con il vento"
+  }
+}

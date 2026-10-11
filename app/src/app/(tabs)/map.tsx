@@ -33,6 +33,19 @@ function Parchment({ w, h }: { w: number; h: number }) {
           <Circle cx={(x as number) - 4} cy={(y as number) - 4} r={8} fill="#9CC78A" />
         </G>
       ))}
+      {/* the Old Hollow: the darkest, oldest trees, past Whisperwood */}
+      {[
+        [52, 62],
+        [76, 50],
+        [92, 72],
+        [64, 84],
+      ].map(([x, y], i) => (
+        <G key={`h${i}`}>
+          <Circle cx={x} cy={y} r={15} fill="#4E7A5A" />
+          <Circle cx={(x as number) - 4} cy={(y as number) - 4} r={7} fill="#6A9572" />
+        </G>
+      ))}
+      <Polygon points="70,74 73,58 77,74" fill="#8E928A" />
       {/* Ember Ridge */}
       <Polygon points="270,110 300,50 330,110" fill="#B9A58A" />
       <Polygon points="300,110 335,40 370,110" fill="#A89377" />
@@ -42,8 +55,8 @@ function Parchment({ w, h }: { w: number; h: number }) {
       {/* coast */}
       <Path d="M360 200 Q392 260 380 340 L392 340 L392 200 Z" fill="#9FD2F2" />
       <Path d="M366 230 Q376 236 372 246 M372 290 Q382 296 378 306" stroke="#fff" strokeWidth={2} fill="none" />
-      {/* path from camp to lodge and the woods */}
-      <Path d="M120 270 Q160 300 220 340 M120 270 Q100 220 90 160" stroke="#B8946A" strokeWidth={3} strokeDasharray="6 6" fill="none" />
+      {/* path from camp to the Lodge, the woods and the Hollow */}
+      <Path d="M120 270 Q160 300 220 340 M120 270 Q100 220 90 160 Q66 120 70 76" stroke="#B8946A" strokeWidth={3} strokeDasharray="6 6" fill="none" />
       <Ellipse cx={200} cy={410} rx={60} ry={8} fill="#E6D3AE" />
     </Svg>
   );
@@ -65,6 +78,8 @@ export default function MapScreen() {
           <Parchment w={w} h={h} />
           {content.locations.map((loc) => {
             const open = !loc.comingSoon && meets(save, loc.requires);
+            // A place that's only waiting on the story can still be visited, to read why it's locked.
+            const visitable = open || !loc.comingSoon;
             const story = open && !!nextStory(content, save, loc.id);
             const go = () => {
               tapFeedback();
@@ -74,7 +89,7 @@ export default function MapScreen() {
             return (
               <Pressable
                 key={loc.id}
-                disabled={!open}
+                disabled={!visitable}
                 accessibilityRole="button"
                 accessibilityLabel={open ? loc.name : `${loc.name} (not yet)`}
                 onPress={go}

@@ -1,8 +1,13 @@
 [
-  { "id": "water_bolt", "name": "Water Bolt", "element": "water", "power": 12 },
-  { "id": "flame_burst", "name": "Flame Burst", "element": "fire", "power": 12 },
-  { "id": "stone_strike", "name": "Stone Strike", "element": "earth", "power": 12 },
-  { "id": "gust", "name": "Gust", "element": "wind", "power": 8 },
-  { "id": "flame_spit", "name": "Flame Spit", "element": "fire", "power": 7 },
-  { "id": "tackle", "name": "Tackle", "element": null, "power": 6 }
+  {"id": "water_bolt", "name": "Water Bolt", "element": "water", "power": 12, "counters": ["fire"]},
+  {"id": "flame_burst", "name": "Flame Burst", "element": "fire", "power": 12},
+  {"id": "stone_strike", "name": "Stone Wall", "element": "earth", "power": 12, "counters": ["physical", "wind"]},
+  {"id": "gust", "name": "Gust", "element": "wind", "power": 8, "counters": ["earth"]},
+  {"id": "flame_spit", "name": "Flame Spit", "element": "fire", "power": 7},
+  {"id": "charge", "name": "Charge", "element": null, "power": 10},
+  {"id": "rock_toss", "name": "Rock Toss", "element": "earth", "power": 8},
+  {"id": "inferno", "name": "Inferno", "element": "fire", "power": 26, "unstoppable": true},
+  {"id": "small_gust", "name": "Little Gust", "element": "wind", "power": 6},
+  {"id": "swoop", "name": "Swoop", "element": null, "power": 6},
+  {"id": "big_gust", "name": "Gale", "element": "wind", "power": 14, "unstoppable": true}
 ]

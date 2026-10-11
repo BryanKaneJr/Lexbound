@@ -14,6 +14,10 @@ export const ACTOR_ART: Record<string, { height: number; idle: Idle }> = {
   puffkin: { height: 0.17, idle: 'float' },
   maren: { height: 0.6, idle: 'breathe' },
   pip: { height: 0.52, idle: 'breathe' },
+  bluster: { height: 0.17, idle: 'float' },
+  flickerwing: { height: 0.07, idle: 'float' },
+  cragling: { height: 0.16, idle: 'breathe' },
+  cinderback: { height: 0.36, idle: 'breathe' },
 };
 
 export const PROP_ART: Record<string, { height: number; idle: Idle }> = {
@@ -28,9 +32,17 @@ export const PROP_ART: Record<string, { height: number; idle: Idle }> = {
   campfire: { height: 0.16, idle: 'flicker' },
   puddle: { height: 0.05, idle: 'none' },
   well: { height: 0.25, idle: 'none' },
+  pouch: { height: 0.06, idle: 'none' },
+  bowl: { height: 0.2, idle: 'none' },
+  pinecone: { height: 0.06, idle: 'none' },
+  dirtwall: { height: 0.16, idle: 'none' },
+  leafpile: { height: 0.07, idle: 'none' },
+  pit: { height: 0.06, idle: 'none' },
+  standing_stone: { height: 0.36, idle: 'none' },
+  glowshroom: { height: 0.09, idle: 'flicker' },
 };
 
-export const BACKGROUND_ART = ['lodge', 'camp', 'forest_path', 'forest_stream', 'forest_clearing', 'sunny_path'];
+export const BACKGROUND_ART = ['lodge', 'camp', 'camp_night', 'forest_path', 'forest_stream', 'forest_clearing', 'sunny_path', 'hollow'];
 
 export const ART_IDS = {
   backgrounds: new Set(BACKGROUND_ART),

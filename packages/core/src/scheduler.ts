@@ -1,27 +1,31 @@
 import { encounterConcepts } from './encounter';
-import { isDue } from './language';
+import { isDue, isTransfer } from './language';
 import { createRng, weightedPick } from './rng';
-import { meets, type Save } from './save';
+import { meets, WRITING, type Save } from './save';
 import type { Content, Encounter } from './schema';
 
 /**
- * The encounter scheduler (bible §27, §49, Phase 8): disguised spaced
- * repetition. It never opens a review lesson; it just makes the forest more
- * likely to hand you a scene that uses the words you're losing.
+ * The encounter scheduler: adventure, not homework (language bible §16,
+ * §68). It never opens a review. It picks a believable next thing to
+ * happen, leaning toward scenes that help the player's understanding:
  *
- *   eligible encounters
- *   -> story first: the next story encounter here always wins
- *   -> drop unmet requirements, finished one-offs, encounters on cooldown
- *   -> penalise recently seen ones
- *   -> boost ones that use concepts due for reinforcement
- *   -> hold back ones that would introduce too many new words at once
- *   -> weighted random pick
+ *   story first: the next story beat at this place always wins
+ *   + scenes that use words the player is losing, most when the scene is a
+ *     situation they haven't met the word in (contextual diversity, §15)
+ *   + scenes where someone new uses a word the player already has a guess
+ *     about (cross-creature transfer, §18)
+ *   - what was just seen, and the same speaker twice in a row
+ *   - scenes that would pile on too many new words at once
  */
 
 export const SCHEDULER = {
   recentPenalty: 0.25,
-  /** Up to this much extra weight when every concept in an encounter is due. */
+  sameSpeakerPenalty: 0.6,
+  /** Up to this much extra weight when every concept in a scene is due and the scene is a new situation for them. */
   dueBoost: 1.5,
+  /** A due concept in a situation the player already met it in counts this much toward the boost. */
+  familiarContextShare: 0.4,
+  transferBoost: 1,
   /** More unseen concepts than this in one non-story encounter is too many at once. */
   maxNewConcepts: 2,
   overloadPenalty: 0.2,
@@ -49,20 +53,71 @@ export function nextStory(content: Content, save: Save, location: string): Encou
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0];
 }
 
+/** Every creature line an encounter can play, with who says it (battle telegraphs included). */
+export function encounterLines(content: Content, encounter: Encounter): { line: string; speaker: string }[] {
+  const out: { line: string; speaker: string }[] = [];
+  for (const step of encounter.steps) {
+    if (step.type === 'say') {
+      const line = content.line.get(step.line);
+      if (line) out.push({ line: line.id, speaker: line.speaker });
+    }
+    if (step.type === 'battle') {
+      for (const m of content.lexling.get(step.enemy)?.battle?.moves ?? []) if (m.telegraph) out.push({ line: m.telegraph, speaker: step.enemy });
+    }
+  }
+  return out;
+}
+
+/** The Lexlings (not Milo, not writing) who speak in an encounter. */
+export function encounterSpeakers(content: Content, encounter: Encounter): string[] {
+  return [...new Set(encounterLines(content, encounter).map((l) => l.speaker))].filter((s) => s !== 'milo' && s !== WRITING);
+}
+
 export function weigh(content: Content, save: Save, encounter: Encounter, now: number): Candidate {
   const reasons: string[] = [];
   let weight = encounter.weight;
+
   if (save.recent.includes(encounter.id)) {
     weight *= SCHEDULER.recentPenalty;
     reasons.push('recent');
   }
+
+  const last = save.recent.at(-1);
+  const lastEncounter = last && last !== encounter.id ? content.encounter.get(last) : undefined;
+  if (lastEncounter) {
+    const before = new Set(encounterSpeakers(content, lastEncounter));
+    const same = encounterSpeakers(content, encounter).filter((s) => before.has(s));
+    if (same.length) {
+      weight *= SCHEDULER.sameSpeakerPenalty;
+      reasons.push(`same-speaker:${same.join(',')}`);
+    }
+  }
+
   const concepts = encounterConcepts(content, encounter);
   if (concepts.length) {
-    const due = concepts.filter((c) => isDue(save.concepts[c], now));
+    let share = 0;
+    const due: string[] = [];
+    for (const c of concepts) {
+      const state = save.concepts[c];
+      if (!isDue(state, now)) continue;
+      due.push(c);
+      share += state && state.contexts.includes(encounter.id) ? SCHEDULER.familiarContextShare : 1;
+    }
     if (due.length) {
-      weight *= 1 + SCHEDULER.dueBoost * (due.length / concepts.length);
+      weight *= 1 + SCHEDULER.dueBoost * (share / concepts.length);
       reasons.push(`due:${due.join(',')}`);
     }
+
+    const transfers = new Set<string>();
+    for (const { line, speaker } of encounterLines(content, encounter)) {
+      if (speaker === 'milo') continue;
+      for (const c of content.line.get(line)?.concepts ?? []) if (isTransfer(save.concepts[c], speaker, now)) transfers.add(`${c}@${speaker}`);
+    }
+    if (transfers.size) {
+      weight *= 1 + SCHEDULER.transferBoost;
+      reasons.push(`transfer:${[...transfers].join(',')}`);
+    }
+
     const unseen = concepts.filter((c) => !save.concepts[c] || save.concepts[c].exposures === 0);
     if (unseen.length > SCHEDULER.maxNewConcepts) {
       weight *= SCHEDULER.overloadPenalty;

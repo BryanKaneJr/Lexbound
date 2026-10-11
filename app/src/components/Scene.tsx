@@ -29,6 +29,8 @@ type Props = {
   reduced?: boolean;
   speaker?: string | null;
   bubble?: ReactNode;
+  /** A soft glow behind one prop or actor (the help ladder's "look here"). */
+  highlight?: string;
   children?: ReactNode;
 };
 
@@ -55,7 +57,7 @@ function Placed({ left, top, children }: { left: number; top: number; children: 
   return <Animated.View style={{ position: 'absolute', left: 0, top: 0, transform: pos.getTranslateTransform() }}>{children}</Animated.View>;
 }
 
-export function Scene({ scene, width, anims = {}, looks = {}, moods = {}, tappable, onTap, reduced, speaker, bubble, children }: Props) {
+export function Scene({ scene, width, anims = {}, looks = {}, moods = {}, tappable, onTap, reduced, speaker, bubble, highlight, children }: Props) {
   const W = width;
   const H = width / SCENE_ASPECT;
   const [bubbleSize, setBubbleSize] = useState({ w: 0, h: 0 });
@@ -77,6 +79,13 @@ export function Scene({ scene, width, anims = {}, looks = {}, moods = {}, tappab
       <View style={StyleSheet.absoluteFill}>
         <Background id={scene.background} width={W} height={H} />
       </View>
+      {(() => {
+        const target = everyone.find((p) => p.id === highlight && !p.hidden);
+        if (!target) return null;
+        const box = placementBox(target.art, target.x, target.y, target.scale, W, H);
+        const r = Math.max(box.width, box.height) * 0.7;
+        return <View pointerEvents="none" style={{ position: 'absolute', left: box.left + box.width / 2 - r, top: box.top + box.height / 2 - r, width: r * 2, height: r * 2, borderRadius: r, backgroundColor: 'rgba(255, 236, 160, 0.45)', borderWidth: 3, borderColor: 'rgba(255, 214, 102, 0.9)' }} />;
+      })()}
       {scene.props.map((p) => {
         if (p.hidden) return null;
         const box = placementBox(p.art, p.x, p.y, p.scale, W, H);

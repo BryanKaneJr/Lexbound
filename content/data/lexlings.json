@@ -6,23 +6,52 @@
     "habitat": "whisperwood",
     "temperament": "hostile",
     "description": "A stocky Lexling whose quills smoulder when it's cross, which is most of the time. Usually keeps to the dry ridges.",
-    "voice": { "pitch": 0.7, "rate": 0.9 },
+    "voice": {
+      "pitch": 0.7,
+      "rate": 0.9
+    },
     "battle": {
       "level": 1,
       "hp": 54,
       "moves": [
-        { "ability": "flame_spit", "telegraph": "emberhog.fuoco", "windup": "embers" },
-        { "ability": "tackle", "windup": "paw" }
+        {
+          "ability": "flame_spit",
+          "telegraph": "emberhog.fuoco",
+          "windup": "embers"
+        },
+        {
+          "ability": "charge",
+          "telegraph": "emberhog.attacco",
+          "windup": "paw"
+        }
       ],
-      "pattern": [0, 1, 0, 0, 1],
+      "pattern": [
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
       "xp": 30,
       "reactions": {
-        "start": ["emberhog.grrr"],
-        "strong": ["emberhog.acqua.no"],
-        "absorbed": ["emberhog.grazie"],
-        "fanned": ["emberhog.si.fuoco"],
-        "victory": ["emberhog.laugh"],
-        "defeat": ["emberhog.flee"]
+        "start": [
+          "emberhog.grrr"
+        ],
+        "strong": [
+          "emberhog.acqua.no"
+        ],
+        "absorbed": [
+          "emberhog.grazie"
+        ],
+        "fanned": [
+          "emberhog.si.fuoco"
+        ],
+        "victory": [
+          "emberhog.laugh"
+        ],
+        "defeat": [
+          "emberhog.flee"
+        ]
       },
       "clue": "Milo glances at the stream behind you, then back at the Emberhog's flames."
     }
@@ -34,7 +63,10 @@
     "habitat": "whisperwood",
     "temperament": "playful",
     "description": "A droplet-shaped Lexling that lives in fast, cold streams. It will splash anyone, any time, for any reason.",
-    "voice": { "pitch": 1.9, "rate": 1.1 }
+    "voice": {
+      "pitch": 1.9,
+      "rate": 1.1
+    }
   },
   {
     "id": "pebblit",
@@ -43,7 +75,10 @@
     "habitat": "whisperwood",
     "temperament": "shy",
     "description": "A small, pebble-shelled Lexling that burrows under rocks. Mutters to itself while it digs.",
-    "voice": { "pitch": 0.9, "rate": 0.8 }
+    "voice": {
+      "pitch": 0.9,
+      "rate": 0.8
+    }
   },
   {
     "id": "puffkin",
@@ -52,6 +87,175 @@
     "habitat": "whisperwood",
     "temperament": "playful",
     "description": "A seed-puff of a Lexling that rides every breeze it can find. Lighter than it looks, and it looks very light.",
-    "voice": { "pitch": 1.8, "rate": 1.2 }
+    "voice": {
+      "pitch": 1.8,
+      "rate": 1.2
+    },
+    "battle": {
+      "level": 2,
+      "hp": 34,
+      "moves": [
+        {
+          "ability": "small_gust",
+          "telegraph": "puffkin.spar.vento",
+          "windup": "gust"
+        },
+        {
+          "ability": "swoop",
+          "telegraph": "puffkin.spar.attacco",
+          "windup": "dive"
+        },
+        {
+          "ability": "big_gust",
+          "telegraph": "puffkin.spar.grande",
+          "windup": "gale"
+        }
+      ],
+      "pattern": [
+        0,
+        2,
+        1,
+        2
+      ],
+      "xp": 20,
+      "reactions": {
+        "start": [
+          "puffkin.vento"
+        ],
+        "weak": [
+          "puffkin.spar.difendo"
+        ],
+        "defeat": [
+          "puffkin.spar.bravo"
+        ],
+        "victory": [
+          "puffkin.spar.si"
+        ]
+      },
+      "clue": "Bluster puffs himself up bigger and bigger before his strongest gust. Milo plants his feet, as if he'd like a wall between them."
+    }
+  },
+  {
+    "id": "flickerwing",
+    "name": "Flickerwing",
+    "element": "fire",
+    "habitat": "hollow",
+    "temperament": "shy",
+    "description": "A moth-sized Lexling with a tail that glows like a coal: bright when it's happy, nearly dark when it's frightened. Proof that not every fire Lexling is looking for a fight.",
+    "voice": {
+      "pitch": 1.9,
+      "rate": 0.9
+    }
+  },
+  {
+    "id": "cragling",
+    "name": "Cragling",
+    "element": "earth",
+    "habitat": "hollow",
+    "temperament": "hostile",
+    "description": "A rock-shelled Lexling with heavy pincers. Craglings throw stones, hold grudges, and don't usually take orders from anyone.",
+    "voice": {
+      "pitch": 0.6,
+      "rate": 0.85
+    },
+    "battle": {
+      "level": 2,
+      "hp": 48,
+      "moves": [
+        {
+          "ability": "rock_toss",
+          "telegraph": "cragling.terra",
+          "windup": "rocks"
+        },
+        {
+          "ability": "charge",
+          "telegraph": "cragling.attacco",
+          "windup": "paw"
+        }
+      ],
+      "pattern": [
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "xp": 35,
+      "reactions": {
+        "start": [
+          "cragling.grr"
+        ],
+        "strong": [
+          "cragling.vento.no"
+        ],
+        "victory": [
+          "cragling.ahah"
+        ],
+        "defeat": [
+          "cragling.basta"
+        ]
+      },
+      "clue": "A cold draught blows from the cave mouth. The Cragling hunches against it and hangs on."
+    }
+  },
+  {
+    "id": "cinderback",
+    "name": "Old Cinderback",
+    "element": "fire",
+    "habitat": "hollow",
+    "temperament": "hostile",
+    "description": "An Emberhog older than anyone at the Lodge, grey at the snout and scarred along the quills. The other Emberhogs follow it.",
+    "voice": {
+      "pitch": 0.55,
+      "rate": 0.8
+    },
+    "battle": {
+      "level": 4,
+      "hp": 120,
+      "moves": [
+        {
+          "ability": "flame_spit",
+          "telegraph": "cinderback.fuoco",
+          "windup": "embers"
+        },
+        {
+          "ability": "charge",
+          "telegraph": "cinderback.attacco",
+          "windup": "paw"
+        },
+        {
+          "ability": "inferno",
+          "telegraph": "cinderback.grande",
+          "windup": "inferno"
+        }
+      ],
+      "pattern": [
+        0,
+        2,
+        1,
+        2,
+        0,
+        2
+      ],
+      "xp": 120,
+      "reactions": {
+        "start": [
+          "cinderback.grrr"
+        ],
+        "strong": [
+          "cinderback.acqua"
+        ],
+        "absorbed": [
+          "cinderback.grazie"
+        ],
+        "fanned": [
+          "cinderback.si_fuoco"
+        ],
+        "victory": [
+          "cinderback.vieni"
+        ]
+      },
+      "clue": "Old Cinderback draws in a huge breath before its biggest blast. Milo looks back at you and braces, as if he wants a shield, not an attack."
+    }
   }
 ]

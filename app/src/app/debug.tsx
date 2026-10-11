@@ -1,4 +1,4 @@
-import { chooseEncounter, isDue, LANGUAGE, scaffoldLevel, strengthAt, xpForLevel, levelForXp, newConcept, type Save } from '@lexbound/core';
+import { chooseEncounter, comprehension, isDue, LANGUAGE, scaffoldLevel, strengthAt, xpForLevel, levelForXp, newConcept, type ConceptState, type Save } from '@lexbound/core';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -15,7 +15,39 @@ import { color, radius, space, type } from '@/theme/tokens';
  * returning player get their help back.
  */
 const DAY = 86_400_000;
-const LEVEL_STRENGTH = [0.95, 0.7, 0.4, 0.05];
+/** A concept record that lands on a given scaffold level (3 exposed, 2 suspected, 1 demonstrated, 0 internalized). */
+function forced(prev: ConceptState, level: number, now: number): ConceptState {
+  const base = { ...prev, lastSeen: now, exposures: Math.max(prev.exposures, 2) };
+  switch (level) {
+    case 3:
+      return { ...base, strength: 0.05, successes: 0, successContexts: [], contexts: ['debug'], spaced: false };
+    case 2:
+      return { ...base, strength: 0.4, successes: 0, successContexts: [], contexts: ['debug', 'debug.2'], spaced: false };
+    case 1:
+      return { ...base, strength: 0.7, successes: Math.max(1, prev.successes), successContexts: ['debug'], lastSuccess: now, spaced: false };
+    default:
+      return { ...base, strength: 0.95, successes: Math.max(3, prev.successes), successContexts: ['debug', 'debug.2', 'debug.3'], speakers: ['milo', 'debug'], lastSuccess: now, spaced: true };
+  }
+}
+
+/** Marks every story scene before `order` as played, with the flags, items and journal entries it gives. */
+function skipStory(s: Save, order: number, xp: number): Save {
+  const flags = { ...s.flags };
+  const items: Record<string, number> = { flask: 1, sunberries: 1, stick: 1, charm: 1, ...s.items };
+  const journal = new Set(s.journal.entries);
+  const encounters = { ...s.encounters };
+  for (const e of content.encounters) {
+    if (e.kind !== 'story' || (e.order ?? 0) >= order) continue;
+    encounters[e.id] = { count: 1, lastExplore: 0 };
+    for (const step of e.steps) {
+      if (step.type !== 'reward') continue;
+      for (const f of step.effects.flags ?? []) flags[f] = true;
+      for (const j of step.effects.journal ?? []) journal.add(j);
+      for (const [i, n] of Object.entries(step.effects.items ?? {})) items[i] = Math.max(items[i] ?? 0, n);
+    }
+  }
+  return { ...s, flags, items, encounters, journal: { ...s.journal, entries: [...journal] }, milo: { ...s.milo, xp: Math.max(s.milo.xp, xp) } };
+}
 
 export default function Debug() {
   const save = useGame((s) => s.save);
@@ -32,7 +64,7 @@ export default function Debug() {
         ...s,
         concepts: {
           ...s.concepts,
-          [concept]: { ...prev, strength: LEVEL_STRENGTH[level]!, lastSeen: now, exposures: Math.max(1, prev.exposures), successes: level < 2 ? Math.max(1, prev.successes) : prev.successes },
+          [concept]: forced(prev, level, now),
         },
       };
     });
@@ -43,7 +75,8 @@ export default function Debug() {
       concepts: Object.fromEntries(Object.entries(s.concepts).map(([k, c]) => [k, { ...c, lastSeen: c.lastSeen ? c.lastSeen - days * DAY : 0 }])),
     }));
 
-  const weights = chooseEncounter(content, save, 'whisperwood', now, 1).candidates;
+  const explorable = content.locations.filter((l) => l.kind === 'explore');
+  const weights = explorable.map((l) => ({ place: l, candidates: chooseEncounter(content, save, l.id, now, 1).candidates }));
 
   return (
     <Screen>
@@ -64,8 +97,9 @@ export default function Debug() {
                     {wordFor(c.id)} <Txt style={[type.small, { color: color.inkMuted }]}>{c.gloss}</Txt>
                   </Txt>
                   <Txt style={[type.small, { color: color.inkSoft, fontWeight: '500' }]}>
-                    s {strengthAt(st ?? newConcept(), now).toFixed(2)} · seen {st?.exposures ?? 0} · ✓{st?.successes ?? 0} ✗{st?.failures ?? 0} · hints {st?.hints ?? 0}
+                    {comprehension(st, now)} · s {strengthAt(st ?? newConcept(), now).toFixed(2)} · seen {st?.exposures ?? 0} in {st?.contexts.length ?? 0} · ✓{st?.successes ?? 0} in {st?.successContexts.length ?? 0} ✗{st?.failures ?? 0} · hints {st?.hints ?? 0}
                     {isDue(st, now) ? ' · due' : ''}
+                    {st?.speakers.length ? `\nheard from ${st.speakers.join(', ')} · via ${st.modalities.join(', ')}` : ''}
                   </Txt>
                 </View>
                 {[3, 2, 1, 0].map((l) => (
@@ -76,7 +110,7 @@ export default function Debug() {
               </View>
             );
           })}
-          <Txt style={[type.small, { color: color.inkMuted, fontWeight: '500' }]}>Levels: 3 heavy context, 2 moderate, 1 light, 0 fluent. Due below {LANGUAGE.dueBelow}.</Txt>
+          <Txt style={[type.small, { color: color.inkMuted, fontWeight: '500' }]}>Levels: 3 new, 2 suspected (or rusty), 1 demonstrated or understood, 0 internalized. Due below {LANGUAGE.dueBelow}. Never shown to players.</Txt>
           <View style={{ flexDirection: 'row', gap: space.sm }}>
             <Button label="+3 days" kind="secondary" onPress={() => timeTravel(3)} style={{ flex: 1 }} />
             <Button label="+14 days" kind="secondary" onPress={() => timeTravel(14)} style={{ flex: 1 }} />
@@ -94,14 +128,17 @@ export default function Debug() {
           </View>
         </Card>
 
-        <Card style={{ gap: space.sm }}>
-          <Txt style={[type.label, styles.section]}>Whisperwood scheduler weights</Txt>
-          {weights.map((w) => (
-            <Txt key={w.id} style={[type.small, { fontWeight: '500' }]}>
-              {w.id}: {Number.isFinite(w.weight) ? w.weight.toFixed(1) : 'story'} {w.reasons.length ? `(${w.reasons.join(' ')})` : ''}
-            </Txt>
-          ))}
-        </Card>
+        {weights.map(({ place, candidates }) => (
+          <Card key={place.id} style={{ gap: space.sm }}>
+            <Txt style={[type.label, styles.section]}>{place.name} scheduler weights</Txt>
+            {candidates.length === 0 && <Txt style={type.small}>Nothing ready.</Txt>}
+            {candidates.map((w) => (
+              <Txt key={w.id} style={[type.small, { fontWeight: '500' }]}>
+                {w.id}: {Number.isFinite(w.weight) ? w.weight.toFixed(1) : 'story'} {w.reasons.length ? `(${w.reasons.join(' ')})` : ''}
+              </Txt>
+            ))}
+          </Card>
+        ))}
 
         <Card style={{ gap: space.sm }}>
           <Txt style={[type.label, styles.section]}>Force an encounter</Txt>
@@ -123,7 +160,9 @@ export default function Debug() {
               <Txt style={[type.small, { fontWeight: '600' }]}>{f} ✕</Txt>
             </Pressable>
           ))}
-          <Button label="Skip to after the Emberhog" kind="secondary" onPress={() => edit((s) => ({ ...s, flags: { ...s.flags, 'intro.done': true, 'ww.first_steps.done': true, 'ww.stream.done': true, 'ww.thirsty.done': true, 'ww.emberhog.won': true }, items: { flask: 1, sunberries: 1, stick: 1, charm: 1, ...s.items }, encounters: { ...s.encounters, 'lodge.intro': { count: 1, lastExplore: 0 }, 'ww.first_steps': { count: 1, lastExplore: 0 }, 'ww.stream': { count: 1, lastExplore: 0 }, 'ww.thirsty': { count: 1, lastExplore: 0 }, 'ww.emberhog': { count: 1, lastExplore: 0 } } }))} />
+          <Button label="Skip to after the Emberhog" kind="secondary" onPress={() => edit((s) => skipStory(s, 8, 30))} />
+          <Button label="Skip to Chapter Two" kind="secondary" onPress={() => edit((s) => skipStory(s, 11, 30))} />
+          <Button label="Skip to the Old Hollow" kind="secondary" onPress={() => edit((s) => skipStory(s, 13, 55))} />
         </Card>
 
         <Card style={{ gap: space.sm }}>

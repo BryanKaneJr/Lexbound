@@ -4,12 +4,20 @@ import { loadContent, type ContentInput, type Content } from '../src';
 export function fixture(overrides: Partial<ContentInput> = {}): Content {
   const base: ContentInput = {
     language: { code: 'it', name: 'Italian', speechLocale: 'it-IT' },
+    phrasing: {
+      verbs: { attack: 'Attacca', defend: 'Difendi' },
+      with: { water: "con l'acqua", fire: 'con il fuoco', wind: 'con il vento', earth: 'con la terra' },
+    },
     concepts: [
       { id: 'water', gloss: 'water', category: 'element', stage: 1, icon: 'water' },
       { id: 'fire', gloss: 'fire', category: 'element', stage: 1, icon: 'fire' },
       { id: 'wind', gloss: 'wind', category: 'element', stage: 1, icon: 'wind' },
       { id: 'yes', gloss: 'yes', category: 'answer', stage: 1 },
       { id: 'look', gloss: 'look', category: 'action', stage: 1 },
+      { id: 'earth', gloss: 'earth', category: 'element', stage: 1, icon: 'earth' },
+      { id: 'attack', gloss: 'attack', category: 'action', stage: 1 },
+      { id: 'defend', gloss: 'defend', category: 'action', stage: 4 },
+      { id: 'with', gloss: 'with', category: 'action', stage: 5 },
     ],
     words: [
       { concept: 'water', word: 'acqua', forms: ["l'acqua"] },
@@ -17,6 +25,10 @@ export function fixture(overrides: Partial<ContentInput> = {}): Content {
       { concept: 'wind', word: 'vento' },
       { concept: 'yes', word: 'sì' },
       { concept: 'look', word: 'guarda' },
+      { concept: 'earth', word: 'terra' },
+      { concept: 'attack', word: 'attacca', forms: ["all'attacco"] },
+      { concept: 'defend', word: 'difendi' },
+      { concept: 'with', word: 'con' },
     ],
     lines: [
       { id: 'milo.acqua', speaker: 'milo', text: 'Acqua!', concepts: ['water'], gloss: 'Water!' },
@@ -27,12 +39,16 @@ export function fixture(overrides: Partial<ContentInput> = {}): Content {
       { id: 'hog.grazie', speaker: 'hog', text: 'Grazie!', gloss: 'Thanks!' },
       { id: 'hog.ahi', speaker: 'hog', text: "No! L'acqua no!", concepts: ['water'], gloss: 'Not the water!' },
       { id: 'hog.flee', speaker: 'hog', text: 'Ahi!', gloss: 'Ow!' },
+      { id: 'hog.attacco', speaker: 'hog', text: "All'attacco!", concepts: ['attack'], gloss: 'Charge!' },
+      { id: 'hog.grande', speaker: 'hog', text: 'FUOCO!!', concepts: ['fire'], gloss: 'FIRE!!' },
+      { id: 'stone.acqua', speaker: 'writing', text: 'QUI ACQUA', concepts: ['water'], gloss: 'WATER HERE', journal: 'strange' },
     ],
     elements: {
       elements: [
         { id: 'water', concept: 'water', color: '#00f' },
         { id: 'fire', concept: 'fire', color: '#f00' },
         { id: 'wind', concept: 'wind', color: '#0f0' },
+        { id: 'earth', concept: 'earth', color: '#a70' },
       ],
       chart: {
         water: { fire: { multiplier: 2 } },
@@ -41,11 +57,13 @@ export function fixture(overrides: Partial<ContentInput> = {}): Content {
       },
     },
     abilities: [
-      { id: 'water_bolt', name: 'Water Bolt', element: 'water', power: 10 },
+      { id: 'water_bolt', name: 'Water Bolt', element: 'water', power: 10, counters: ['fire'] },
+      { id: 'stone', name: 'Stone Wall', element: 'earth', power: 5, counters: ['physical'] },
       { id: 'flame', name: 'Flame', element: 'fire', power: 10 },
       { id: 'gust', name: 'Gust', element: 'wind', power: 10 },
       { id: 'spit', name: 'Spit', element: 'fire', power: 8 },
       { id: 'tackle', name: 'Tackle', element: null, power: 6 },
+      { id: 'blast', name: 'Blast', element: 'fire', power: 20, unstoppable: true },
     ],
     lexlings: [
       {
@@ -61,7 +79,8 @@ export function fixture(overrides: Partial<ContentInput> = {}): Content {
           hp: 40,
           moves: [
             { ability: 'spit', telegraph: 'hog.fuoco', windup: 'embers' },
-            { ability: 'tackle', windup: 'paw' },
+            { ability: 'tackle', telegraph: 'hog.attacco', windup: 'paw' },
+            { ability: 'blast', telegraph: 'hog.grande', windup: 'inferno' },
           ],
           pattern: [0, 1],
           xp: 20,
@@ -78,9 +97,15 @@ export function fixture(overrides: Partial<ContentInput> = {}): Content {
         { id: 'water', concepts: ['water'], ability: 'water_bolt' },
         { id: 'fire', concepts: ['fire'], ability: 'flame' },
         { id: 'wind', concepts: ['wind'], ability: 'gust' },
+        { id: 'earth', concepts: ['earth'], ability: 'stone' },
+      ],
+      verbs: [
+        { id: 'attack', effect: 'attack', concepts: ['attack', 'with'] },
+        { id: 'defend', effect: 'shield', concepts: ['defend', 'with'], requires: { flags: ['can.defend'] } },
       ],
       reactions: { strong: ['milo.si'], fanned: ['milo.ops'] },
       idle: ['milo.si'],
+      camp: { hungry: 'milo.si', snack: 'milo.si' },
     },
     npcs: [{ id: 'maren', name: 'Maren', title: 'Warden', color: '#000' }],
     items: [

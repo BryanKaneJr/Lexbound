@@ -5,6 +5,11 @@
     "title": "A Lexling in a basket",
     "kind": "story",
     "order": 1,
+    "teaching": {
+      "purpose": "Maren hands over a mystery Lexling that arrived in a basket, and it picks you as its partner on the spot.",
+      "introduces": ["hello"],
+      "grounding": [{ "concept": "hello", "type": "gesture", "how": "Maren says hello to Milo; Milo waves back at her, then turns and waves at you." }]
+    },
     "scene": {
       "background": "lodge",
       "props": [{ "id": "basket", "art": "basket", "x": 0.36, "y": 0.9 }],
@@ -16,14 +21,14 @@
     "steps": [
       { "type": "narrate", "text": "The Translators' Lodge smells of old paper and woodsmoke. Lexlings chatter somewhere up in the rafters." },
       { "type": "talk", "npc": "maren", "text": "There you are. Welcome to the Lodge, Translator-in-training. I'm Maren." },
-      { "type": "talk", "npc": "maren", "text": "Anyone can tell when a Lexling is happy or scared. A Translator learns what they're actually saying. It takes years. Some never get there." },
+      { "type": "talk", "npc": "maren", "text": "Anyone can tell when a Lexling is happy or scared. A Translator learns what they want: food, water, come, go, danger. A handful of sounds. It takes years, and that's about as far as anyone gets." },
       { "type": "talk", "npc": "maren", "text": "Now. This arrived this morning. No letter. Just a tag." },
       { "type": "act", "actor": "basket", "anim": "wiggle", "text": "The basket wiggles." },
       { "type": "stage", "show": ["milo"] },
       { "type": "act", "actor": "milo", "anim": "pop", "mood": "curious", "text": "A small, round Lexling pops out, ears first." },
       { "type": "talk", "npc": "maren", "text": "Hello there, little one." },
       { "type": "say", "line": "milo.ciao", "anim": "wave", "mood": "happy" },
-      { "type": "talk", "npc": "maren", "text": "Ha! Did you hear that? He's greeting us." },
+      { "type": "talk", "npc": "maren", "text": "Ha! He's greeting us. They pick that up from people, you know." },
       { "type": "act", "actor": "milo", "anim": "hop", "mood": "happy", "text": "He turns to you and waves again." },
       { "type": "say", "line": "milo.ciao", "anim": "wave", "mood": "excited" },
       {
@@ -41,7 +46,7 @@
       { "id": "friends", "type": "talk", "npc": "maren", "text": "Well, I'll be. He's chosen you. I've never seen a Lexling pick a partner that fast." },
       { "type": "talk", "npc": "maren", "text": "The tag says MILO. Found at the edge of Whisperwood. And I'll be honest: I don't know what kind of Lexling he is. I've never seen one like him." },
       { "type": "reward", "effects": { "items": { "flask": 1, "sunberries": 1, "stick": 1, "charm": 1 }, "journal": ["story.met_milo", "milo.first_word", "places.lodge", "places.camp"], "flags": ["intro.done"] } },
-      { "type": "talk", "npc": "maren", "text": "Take these: a flask, some sunberries, a charm, and a good stick. Every adventurer needs a good stick. Your camp's down the hill. Whisperwood is past it, when you're ready." },
+      { "type": "talk", "npc": "maren", "text": "Take these: a flask, some sunberries, a charm, and a good stick. Every adventurer needs a good stick. Your camp's down the hill. Get him settled, and Whisperwood is past it when you're ready." },
       { "type": "talk", "npc": "maren", "text": "And listen to him. Really listen. That's the whole job." },
       { "type": "end" }
     ]
@@ -51,16 +56,20 @@
     "location": "lodge",
     "title": "One element. One.",
     "kind": "story",
-    "order": 2,
+    "order": 10,
     "requires": { "flags": ["ww.emberhog.won"] },
+    "teaching": {
+      "purpose": "You report the Emberhog to Maren, who learns what Milo can do. Pip turns up sure he knows what his Puffkin wants.",
+      "reinforces": ["hungry", "ho_fame", "tasty", "thanks"]
+    },
     "scene": {
       "background": "lodge",
-      "props": [{ "id": "well", "art": "well", "x": 0.16, "y": 0.9 }],
+      "props": [{ "id": "bowl", "art": "bowl", "x": 0.16, "y": 0.92 }],
       "actors": [
         { "id": "milo", "art": "milo", "x": 0.4, "y": 0.86, "mood": "happy" },
         { "id": "maren", "art": "maren", "x": 0.76, "y": 0.92, "facing": "left" },
         { "id": "pip", "art": "pip", "x": 0.58, "y": 0.92, "facing": "left", "hidden": true },
-        { "id": "bluster", "art": "puffkin", "x": 0.2, "y": 0.5, "hidden": true }
+        { "id": "bluster", "art": "bluster", "x": 0.18, "y": 0.56, "hidden": true }
       ]
     },
     "steps": [
@@ -69,29 +78,31 @@
       { "type": "talk", "npc": "maren", "text": "Four?" },
       { "type": "talk", "npc": "maren", "text": "Lexlings have one element. One. Fire Lexlings breathe fire. Water Lexlings make water. That's how it has always been." },
       { "type": "act", "actor": "milo", "anim": "tilt", "mood": "curious", "text": "Milo scratches his ear, unbothered." },
-      { "type": "talk", "npc": "maren", "text": "Whatever he is... let's keep it between us for now." },
+      { "type": "talk", "npc": "maren", "text": "Whatever he is, let's keep it between us for now." },
       { "type": "stage", "show": ["pip", "bluster"] },
       { "type": "talk", "npc": "pip", "text": "Maren! Bluster and I tracked that Emberhog halfway to the ridge! Oh. Hello. Pip Calloway, Translator Second Class." },
       { "type": "talk", "npc": "maren", "text": "Self-appointed." },
-      { "type": "talk", "npc": "pip", "text": "Bluster and I understand each other perfectly. Watch." },
-      { "type": "say", "line": "puffkin.acqua", "by": "bluster", "anim": "bob", "look": "well" },
-      { "type": "talk", "npc": "pip", "text": "See? He wants to battle. Fierce little thing." },
+      { "type": "talk", "npc": "pip", "text": "Bluster and I understand each other perfectly. Five years together. Watch." },
+      { "type": "say", "line": "puffkin.ho_fame", "by": "bluster", "anim": "float", "look": "bowl" },
+      { "type": "talk", "npc": "pip", "text": "See that circling? He's restless. Wind Lexlings hate being cooped up indoors. He wants to go back out." },
       {
         "type": "choice",
-        "prompt": "Bluster bobs over the well, pointing down into it.",
+        "prompt": "Bluster drifts in slow circles over the snack bowl.",
         "options": [
-          { "label": "“He wants water.”", "goto": "right", "effects": { "bond": 1 }, "evidence": [{ "concept": "water", "result": "success" }] },
-          { "label": "“Sounds right.”", "goto": "wrong", "evidence": [{ "concept": "water", "result": "fail" }] }
+          { "label": "Offer Bluster a sunberry", "goto": "berry", "effects": { "bond": 1 }, "evidence": [{ "concept": "hungry", "result": "success" }] },
+          { "label": "Open the door for him", "goto": "door", "evidence": [{ "concept": "hungry", "result": "fail" }] }
         ]
       },
-      { "id": "right", "type": "act", "actor": "bluster", "anim": "dive", "text": "Bluster dives into the well bucket and drinks noisily." },
-      { "type": "say", "line": "puffkin.grazie", "by": "bluster", "anim": "bounce" },
-      { "type": "talk", "npc": "pip", "text": "...Obviously. I was testing you." },
-      { "type": "talk", "npc": "maren", "text": "Not bad. Not bad at all.", "next": "close" },
-      { "id": "wrong", "type": "act", "actor": "bluster", "anim": "droop", "text": "Bluster droops, then dives into the well bucket and drinks noisily." },
-      { "type": "talk", "npc": "maren", "text": "Pip. He's thirsty." },
-      { "type": "talk", "npc": "pip", "text": "That's what I said." },
-      { "id": "close", "type": "talk", "npc": "maren", "text": "Keep your ears open out there, both of you. Lexlings have been restless all season. If they're talking to each other, I want to know what they're saying." },
+      { "id": "berry", "type": "act", "actor": "bluster", "anim": "dive", "text": "Bluster snatches the berry out of the air." },
+      { "type": "say", "line": "puffkin.buono", "by": "bluster", "anim": "bounce" },
+      { "type": "say", "line": "puffkin.grazie", "by": "bluster", "anim": "spin" },
+      { "type": "talk", "npc": "pip", "text": "Restless AND hungry. Obviously. That's what I meant." },
+      { "type": "act", "actor": "maren", "anim": "nod", "text": "Maren looks at you over her glasses for a long moment. Then she writes something in her notebook.", "next": "close" },
+      { "id": "door", "type": "act", "actor": "bluster", "anim": "dive", "text": "Pip opens the door. Bluster ignores it completely, drops into the snack bowl and starts eating." },
+      { "type": "say", "line": "puffkin.buono", "by": "bluster", "anim": "bounce" },
+      { "type": "talk", "npc": "maren", "text": "Restless, was he?" },
+      { "type": "talk", "npc": "pip", "text": "Restless and hungry. It's called doing two things at once." },
+      { "id": "close", "type": "talk", "npc": "maren", "text": "Keep your ears open out there, both of you. Lexlings have been restless all season, and I don't mean hungry. Something's stirring in Whisperwood." },
       { "type": "reward", "effects": { "bond": 2, "journal": ["story.report"], "flags": ["chapter1.done"] } },
       { "type": "narrate", "text": "End of Chapter One. Whisperwood is still out there, and so is whoever is looking for Milo." },
       { "type": "end" }
@@ -105,9 +116,10 @@
     "repeatable": true,
     "cooldown": 2,
     "requires": { "flags": ["intro.done"] },
+    "teaching": { "purpose": "Maren passes on a Translator's rule of thumb, and Milo agrees with it.", "reinforces": ["yes"] },
     "scene": { "background": "lodge", "actors": [{ "id": "milo", "art": "milo", "x": 0.36, "y": 0.86 }, { "id": "maren", "art": "maren", "x": 0.74, "y": 0.92, "facing": "left" }] },
     "steps": [
-      { "type": "talk", "npc": "maren", "text": "A tip. When a Lexling says something twice, it usually really means it." },
+      { "type": "talk", "npc": "maren", "text": "A tip. When a Lexling makes the same sound twice, it usually really means it." },
       { "type": "say", "line": "milo.si.si", "anim": "nod", "mood": "happy" },
       { "type": "talk", "npc": "maren", "text": "See?" },
       { "type": "end" }
@@ -116,7 +128,7 @@
   {
     "id": "lodge.chat.wet",
     "location": "lodge",
-    "title": "Maren's tip: wet",
+    "title": "Maren's tip: fire and charges",
     "kind": "explore",
     "repeatable": true,
     "cooldown": 2,
@@ -125,7 +137,8 @@
     "steps": [
       { "type": "talk", "npc": "maren", "text": "Fire Lexlings hate getting wet. Don't tell them I told you." },
       { "type": "talk", "npc": "maren", "text": "And wind only makes a fire bigger. I learned that one the hard way." },
-      { "type": "act", "actor": "milo", "anim": "nod", "mood": "curious", "text": "Milo nods very seriously." },
+      { "type": "talk", "npc": "maren", "text": "If something big charges you, put something solid in its way. A rock, a wall, anything. Lexlings don't announce their charges, so you just have to be quick." },
+      { "type": "act", "actor": "milo", "anim": "tilt", "mood": "curious", "text": "Milo tilts his head, as if that last part wasn't quite right." },
       { "type": "end" }
     ]
   },
@@ -137,11 +150,12 @@
     "repeatable": true,
     "cooldown": 2,
     "requires": { "flags": ["intro.done"] },
+    "teaching": { "purpose": "Tea at the Lodge, and Milo makes sure nobody forgets about him.", "reinforces": ["hungry", "tasty", "thanks"] },
     "scene": { "background": "lodge", "actors": [{ "id": "milo", "art": "milo", "x": 0.36, "y": 0.86 }, { "id": "maren", "art": "maren", "x": 0.74, "y": 0.92, "facing": "left" }] },
     "steps": [
       { "type": "talk", "npc": "maren", "text": "Sit, sit. The kettle's on." },
       { "type": "say", "line": "milo.fame", "anim": "rub", "mood": "tired" },
-      { "type": "talk", "npc": "maren", "text": "That one I don't need translated. There are sunberries in the bowl." },
+      { "type": "talk", "npc": "maren", "text": "That one I don't need explained. There are sunberries in the bowl." },
       {
         "type": "choice",
         "options": [
@@ -155,6 +169,84 @@
       { "type": "talk", "npc": "maren", "text": "Oh, give him one." },
       { "type": "say", "line": "milo.buono", "anim": "eat", "mood": "happy" },
       { "id": "done", "type": "end" }
+    ]
+  },
+  {
+    "id": "lodge.ch2.spar",
+    "location": "lodge",
+    "title": "A friendly spar",
+    "kind": "story",
+    "order": 12,
+    "requires": { "flags": ["camp.practice.done"] },
+    "teaching": { "purpose": "Pip has found the way into the Old Hollow and won't show anyone unless Milo can hold his own against Bluster.", "introduces": ["big"], "reinforces": ["wind", "attack"], "grounding": [{ "concept": "big", "type": "animation", "how": "Bluster puffs himself up to twice his size, cheeks bulging, before his biggest gust." }] },
+    "scene": {
+      "background": "lodge",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.36, "y": 0.86, "mood": "happy" },
+        { "id": "maren", "art": "maren", "x": 0.8, "y": 0.92, "facing": "left" },
+        { "id": "pip", "art": "pip", "x": 0.62, "y": 0.92, "facing": "left" },
+        { "id": "bluster", "art": "bluster", "x": 0.5, "y": 0.5, "facing": "left" }
+      ]
+    },
+    "steps": [
+      { "type": "talk", "npc": "pip", "text": "There you are! Bluster and I have found the way into the Old Hollow. Nobody's been down there in years." },
+      { "type": "talk", "npc": "maren", "text": "Nobody's been down there because it isn't safe, Pip." },
+      { "type": "talk", "npc": "pip", "text": "Which is why it needs a proper Translator. I'll show you the way in, if your little whatever-he-is can hold his own against Bluster. A friendly spar." },
+      { "type": "talk", "npc": "maren", "text": "Friendly. I mean it." },
+      { "type": "act", "actor": "milo", "anim": "bounce", "mood": "excited", "text": "Milo is already bouncing on the spot." },
+      { "type": "battle", "enemy": "puffkin", "name": "Bluster", "actor": "bluster", "win": "won", "lose": "lost" },
+      { "id": "won", "type": "act", "actor": "bluster", "anim": "bob", "text": "Bluster drifts down, deflated, and bumps noses with Milo." },
+      { "type": "talk", "npc": "pip", "text": "I let you win. Obviously. Bluster was barely warmed up.", "next": "open" },
+      { "id": "lost", "type": "act", "actor": "bluster", "anim": "spin", "text": "Bluster does a lap of honour round the rafters." },
+      { "type": "talk", "npc": "pip", "text": "Ha! Well. A deal's a deal, and you'd only get lost without me. I'll show you the way anyway." },
+      { "id": "open", "type": "talk", "npc": "maren", "text": "The Old Hollow is where Lexlings go when they don't want to be found. Keep to the path. And keep him close." },
+      { "type": "reward", "effects": { "bond": 1, "flags": ["ch2.hollow_open"], "journal": ["story.spar", "places.hollow"] } },
+      { "type": "end" }
+    ]
+  },
+  {
+    "id": "lodge.ch2.report",
+    "location": "lodge",
+    "title": "Somebody wrote his name",
+    "kind": "story",
+    "order": 19,
+    "requires": { "flags": ["camp.ch2.night.done"] },
+    "teaching": { "purpose": "Maren compares the rubbing from the Hollow with the tag that came with Milo's basket. Pip has his own theory, and Bluster has an opinion too.", "reinforces": ["yes"] },
+    "scene": {
+      "background": "lodge",
+      "actors": [
+        { "id": "milo", "art": "milo", "x": 0.36, "y": 0.86, "mood": "curious" },
+        { "id": "maren", "art": "maren", "x": 0.78, "y": 0.92, "facing": "left" },
+        { "id": "pip", "art": "pip", "x": 0.6, "y": 0.92, "facing": "left", "hidden": true },
+        { "id": "bluster", "art": "bluster", "x": 0.2, "y": 0.52, "hidden": true }
+      ]
+    },
+    "steps": [
+      { "type": "talk", "npc": "maren", "text": "You went all the way to the heart of the Hollow. And came back. Sit down before I lose my temper." },
+      { "type": "narrate", "text": "You tell her about the Craglings lying in wait, and Old Cinderback, and the stones. Then you unroll the rubbing." },
+      { "type": "act", "actor": "maren", "anim": "nod", "text": "Maren goes very quiet. She takes the tag from Milo's basket out of a drawer and lays it next to the rubbing." },
+      { "type": "talk", "npc": "maren", "text": "Same four letters. Same hand. Look at the M." },
+      { "type": "talk", "npc": "maren", "text": "Somebody carved his name into a stone in the Old Hollow, long before any of us were born. And Lexlings don't write. Everybody knows that." },
+      { "type": "act", "actor": "milo", "anim": "tilt", "mood": "curious", "text": "Milo scratches his ear and doesn't say anything." },
+      { "type": "stage", "show": ["pip", "bluster"] },
+      { "type": "talk", "npc": "pip", "text": "Lexlings, writing? Ridiculous. Some old Translator with a chisel and too much time on his hands. Isn't that right, Bluster?" },
+      { "type": "say", "line": "puffkin.si.si", "by": "bluster", "anim": "bob" },
+      { "type": "talk", "npc": "pip", "text": "See? That's no. When a Puffkin says it twice, he means it." },
+      {
+        "type": "choice",
+        "prompt": "Bluster is still bobbing between the tag and the rubbing.",
+        "options": [
+          { "label": "Hold the rubbing up to Bluster", "goto": "show", "effects": { "bond": 1 } },
+          { "label": "Let Pip have this one", "goto": "leave" }
+        ]
+      },
+      { "id": "show", "type": "say", "line": "puffkin.si.si", "by": "bluster", "anim": "spin" },
+      { "type": "talk", "npc": "pip", "text": "He's confused. It's been a long week for him.", "next": "end" },
+      { "id": "leave", "type": "act", "actor": "bluster", "anim": "float", "text": "Bluster gives up and drifts off to sulk in the rafters." },
+      { "id": "end", "type": "talk", "npc": "maren", "text": "Whoever wrote this knew Milo. Or knew what he is. I need to read some very old books." },
+      { "type": "reward", "effects": { "bond": 2, "flags": ["chapter2.done"], "journal": ["story.ch2_report"] } },
+      { "type": "narrate", "text": "End of Chapter Two. Somebody carved Milo's name in stone, and somebody wants him home." },
+      { "type": "end" }
     ]
   }
 ]

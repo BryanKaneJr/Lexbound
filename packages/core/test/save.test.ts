@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyEvents, levelForXp, loadSave, newSave, saveSchema, SNACK_BOND_PER_DAY, xpForLevel, bondTier, levelProgress } from '../src';
+import { applyEvents, comprehension, levelForXp, loadSave, newSave, saveSchema, SNACK_BOND_PER_DAY, xpForLevel, bondTier, levelProgress } from '../src';
 import { fixture } from './fixture';
 
 const T = 1_700_000_000_000;
@@ -17,6 +17,23 @@ describe('save', () => {
     expect(loadSave('nonsense', T, 1).status).toBe('reset');
     expect(loadSave({ version: 0 }, T, 1).status).toBe('reset');
     expect(loadSave({ version: 1, flags: 'oops' }, T, 1).status).toBe('reset');
+  });
+
+  it('migrates a version 1 save, keeping what the player had shown they know', () => {
+    const v1 = {
+      ...newSave(T, 1),
+      version: 1,
+      concepts: {
+        water: { exposures: 4, successes: 1, failures: 0, hints: 0, strength: 0.6, lastSeen: T, contexts: ['ww.stream', 'ww.thirsty'] },
+        fire: { exposures: 1, successes: 0, failures: 0, hints: 0, strength: 0.18, lastSeen: T, contexts: ['ww.emberhog'] },
+      },
+    };
+    const { save, status } = loadSave(JSON.parse(JSON.stringify(v1)), T, 1);
+    expect(status).toBe('migrated');
+    expect(save.version).toBe(2);
+    expect(save.concepts.water).toMatchObject({ speakers: [], modalities: [], successContexts: ['ww.thirsty'], lastSuccess: T, spaced: false });
+    expect(save.concepts.fire?.successContexts).toEqual([]);
+    expect(comprehension(save.concepts.water, T)).toBe('demonstrated');
   });
 
   it('fills in settings added after a save was written', () => {
@@ -85,5 +102,39 @@ describe('progression', () => {
     expect(bondTier(0).name).toBe('New friends');
     expect(bondTier(30).name).toBe('Partners');
     expect(bondTier(100).name).toBe('Inseparable');
+  });
+});
+
+describe('field notes', () => {
+  it('appear as their triggers come true, and stay', async () => {
+    const { visibleNotes } = await import('../src');
+    const content = fixture({
+      notes: [
+        { id: 'n.heard', concept: 'water', when: 'heard', speaker: 'milo', text: 'Milo says acqua.' },
+        { id: 'n.noticed', concept: 'water', when: 'noticed', text: 'Around water, every time.' },
+        { id: 'n.transfer', concept: 'water', when: 'transfer', text: 'The hog says it too.' },
+        { id: 'n.used', concept: 'water', when: 'used', text: 'It works.' },
+      ],
+    });
+    let s = newSave(T, 1);
+    const ids = () => visibleNotes(content, s).map((n) => n.id);
+    expect(ids()).toEqual([]);
+    s = applyEvents(s, content, [{ type: 'heard', line: 'milo.acqua', context: 'a' }], T).save;
+    expect(ids()).toEqual(['n.heard']);
+    s = applyEvents(s, content, [{ type: 'heard', line: 'milo.acqua', context: 'b' }], T).save;
+    expect(ids()).toEqual(['n.heard', 'n.noticed']);
+    s = applyEvents(s, content, [{ type: 'heard', line: 'hog.ahi', context: 'c' }, { type: 'evidence', concept: 'water', result: 'success', context: 'c' }], T).save;
+    expect(ids()).toEqual(['n.heard', 'n.noticed', 'n.transfer', 'n.used']);
+    // A year away: rusty, but the notes stay written.
+    expect(visibleNotes(content, s).length).toBe(4);
+  });
+});
+
+describe('written words', () => {
+  it('reach the player through their own channel, and are nobody to discover', () => {
+    const { save, notices } = applyEvents(newSave(T, 1), content, [{ type: 'heard', line: 'stone.acqua', context: 'ruins' }], T);
+    expect(save.concepts.water?.modalities).toEqual(['writing']);
+    expect(save.concepts.water?.speakers).toEqual(['writing']);
+    expect(notices.filter((n) => n.type === 'discovered')).toEqual([]);
   });
 });

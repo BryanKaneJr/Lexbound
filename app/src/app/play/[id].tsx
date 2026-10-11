@@ -4,6 +4,7 @@ import {
   currentStep,
   speechPresentation,
   startEncounter,
+  WRITING,
   type EncounterInput,
   type EncounterRun,
   type Step,
@@ -15,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/art/icons';
 import { speakLine, stopVoice } from '@/audio/voice';
 import { Battle } from '@/components/Battle';
+import { Inscription } from '@/components/Inscription';
 import { Scene, SCENE_ASPECT, type SceneAnims } from '@/components/Scene';
 import { SpeechBubble, SpeechHelp } from '@/components/Speech';
 import { Button, IconButton, tapFeedback, Txt, useReducedMotion } from '@/components/ui';
@@ -111,13 +113,22 @@ function Play({ encounterId }: { encounterId: string }) {
   if (!run) return <View style={styles.fill} />;
 
   if (step?.type === 'battle') {
-    return <Battle enemy={step.enemy} background={step.background ?? run.scene.background} context={encounter.id} onEnd={(result) => send({ type: 'battle', result })} />;
+    const fighter = step.actor ? run.scene.actors.find((a) => a.id === step.actor)?.art : undefined;
+    return <Battle enemy={step.enemy} name={step.name} art={fighter} background={step.background ?? run.scene.background} context={encounter.id} onEnd={(result) => send({ type: 'battle', result })} />;
   }
 
   const looks: Record<string, string> = {};
   let speaker: string | null = null;
   let bubble: React.ReactNode = null;
-  if (step?.type === 'say') {
+  let carved: React.ReactNode = null;
+  if (step?.type === 'say' && content.line.get(step.line)?.speaker === WRITING) {
+    // Written words have no speaker: they appear carved, over the scene.
+    carved = (
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { paddingTop: (sceneW / SCENE_ASPECT) * 0.15, alignItems: 'center' }]}>
+        <Inscription lineId={step.line} width={sceneW} />
+      </View>
+    );
+  } else if (step?.type === 'say') {
     const line = content.line.get(step.line);
     speaker = step.by ?? line?.speaker ?? null;
     if (speaker && step.look) looks[speaker] = step.look;
@@ -160,7 +171,9 @@ function Play({ encounterId }: { encounterId: string }) {
             onTap={(prop) => send({ type: 'tap', prop })}
             speaker={speaker}
             bubble={bubble}
-          />
+            highlight={step?.type === 'say' && hint >= 2 ? step.look : undefined}>
+            {carved}
+          </Scene>
           {/* The opening scene can't be skipped: it's where you meet Milo. */}
           {!run.done && encounter.id !== 'lodge.intro' && <IconButton icon="close" label="Leave" onPress={leave} tint={color.paper} style={styles.close} size={18} />}
         </View>

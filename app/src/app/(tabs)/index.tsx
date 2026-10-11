@@ -69,7 +69,7 @@ export default function Camp() {
     const snacksToday = save.stats.snacks.count;
     if (!hungry && Math.random() < (snacksToday < 3 ? 0.3 : 0.08)) {
       setHungry(true);
-      say('milo.fame', 'rub', 'tired');
+      say(content.milo.camp.hungry, 'rub', 'tired');
       return;
     }
     const pool = content.milo.idle.filter((l) => l !== lastIdle.current);
@@ -80,7 +80,7 @@ export default function Camp() {
 
   const snack = () => {
     setHungry(false);
-    say('milo.buono.grazie', 'eat', 'happy');
+    say(content.milo.camp.snack, 'eat', 'happy');
     dispatch([{ type: 'snack' }]);
   };
 

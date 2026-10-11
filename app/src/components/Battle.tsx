@@ -1,6 +1,8 @@
 import {
   battleHint,
   chooseCommand,
+  commandSentence,
+  knownVerbs,
   miloLevel,
   miloMaxHp,
   startBattle,
@@ -14,8 +16,8 @@ import { Animated, Easing, Platform, Pressable, StyleSheet, useWindowDimensions,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/art/icons';
 import { ELEMENT_SFX, playSfx } from '@/audio/sfx';
-import { speakLine } from '@/audio/voice';
-import { content, conceptLevel, elementColor, wordFor } from '@/game/content';
+import { speakCall, speakLine } from '@/audio/voice';
+import { content, conceptLevel, elementColor, lineScaffold, wordFor } from '@/game/content';
 import { useNow } from '@/game/useNow';
 import { takeSeed, useGame } from '@/state/store';
 import { color, radius, shadow, space, type } from '@/theme/tokens';
@@ -28,12 +30,16 @@ import { Bar, Button, tapFeedback, Txt, useReducedMotion } from './ui';
  * language with a visible wind-up; the player taps a command tile; Milo
  * acts; the world shows what happened. Tiles reshuffle every round, and each
  * word's icon fades as the player learns it.
+ *
+ * Once Milo knows verbs (Phase 9), a row of them sits above the tiles: pick
+ * one and the tiles finish the sentence ("DIFENDI" + "CON L'ACQUA"). With no
+ * verb picked, a tile is a plain one-word attack, as in Chapter One.
  */
 const ND = Platform.OS !== 'web';
 const MILO = { x: 0.27, y: 0.9 };
 const FOE = { x: 0.73, y: 0.84 };
 
-type Fx = { key: number; element: string | null; from: 'milo' | 'foe'; kind: 'shot' | 'steam' };
+type Fx = { key: number; element: string | null; from: 'milo' | 'foe'; kind: 'shot' | 'steam' | 'wall'; big?: boolean };
 type Popup = { key: number; target: 'milo' | 'foe'; text: string; tint: string; big: boolean };
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -43,7 +49,18 @@ function readTime(lineId: string): number {
   return 1100 + text.length * 35;
 }
 
-export function Battle({ enemy, background, context, onEnd }: { enemy: string; background: string; context: string; onEnd: (result: 'win' | 'lose') => void }) {
+type BattleProps = {
+  enemy: string;
+  background: string;
+  context: string;
+  /** A name for this one opponent ("Bluster"). */
+  name?: string;
+  /** Art for the opponent, when it isn't the species' own. */
+  art?: string;
+  onEnd: (result: 'win' | 'lose') => void;
+};
+
+export function Battle({ enemy, background, context, name, art, onEnd }: BattleProps) {
   const save = useGame((s) => s.save);
   const dispatch = useGame((s) => s.dispatch);
   const reduced = useReducedMotion();
@@ -64,11 +81,15 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
   const [hint, setHint] = useState<0 | 1 | 2 | 3>(0);
   const [result, setResult] = useState<'win' | 'lose' | null>(null);
   const [lastTelegraph, setLastTelegraph] = useState<string | null>(null);
+  const [verb, setVerb] = useState<string | null>(null);
+  const [call, setCall] = useState<{ key: number; text: string } | null>(null);
+  const [shield, setShield] = useState<{ key: number; element: string | null; hit: number; broken: boolean } | null>(null);
   const [shake] = useState(() => new Animated.Value(0));
   const alive = useRef(true);
   const keys = useRef(0);
   const started = useRef(false);
   const hpRef = useRef({ milo: 1, foe: 1 });
+  const steadyRef = useRef(false);
   const now = useNow();
 
   const animate = useCallback((id: string, name: string) => setAnims((a) => ({ ...a, [id]: { name, key: ++keys.current } })), []);
@@ -91,24 +112,47 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
         if (!alive.current) return;
         switch (b.type) {
           case 'say':
+            setCall(null);
             setBubble({ speaker: b.speaker, line: b.line });
             speakLine(b.line);
             if (b.speaker === enemy && content.lexling.get(enemy)?.battle?.moves.some((m) => m.telegraph === b.line)) setLastTelegraph(b.line);
             animate(b.speaker, b.speaker === 'milo' ? 'hop' : 'stomp');
             await wait(readTime(b.line));
             break;
-          case 'windup':
-            setWindup(b.windup);
-            animate(enemy, b.windup === 'paw' ? 'stomp' : 'crouch');
+          case 'windup': {
+            const tell = windupTell(enemy, b.move, b.windup);
+            setWindup(tell);
+            animate(enemy, WINDUP_ANIM[tell] ?? 'crouch');
+            if (tell === 'inferno') setMoods((m) => ({ ...m, [enemy]: 'blazing' }));
             await wait(650);
             break;
+          }
           case 'command':
             setBubble(null);
             animate('milo', 'attack');
             setMoods((m) => ({ ...m, milo: 'fierce' }));
             playSfx(ELEMENT_SFX[b.element ?? ''] ?? 'hit');
-            setFx({ key: ++keys.current, element: b.element, from: 'milo', kind: 'shot' });
+            setFx({ key: ++keys.current, element: b.element, from: 'milo', kind: 'shot', big: steadyRef.current });
+            steadyRef.current = false;
             await wait(reduced ? 200 : 560);
+            break;
+          case 'shield':
+            setBubble(null);
+            animate('milo', 'brace');
+            setMoods((m) => ({ ...m, milo: 'fierce' }));
+            playSfx(ELEMENT_SFX[b.element ?? ''] ?? 'hit');
+            setShield({ key: ++keys.current, element: b.element, hit: 0, broken: false });
+            await wait(reduced ? 200 : 600);
+            break;
+          case 'blocked':
+            setWindup(null);
+            setMoods((m) => ({ ...m, [enemy]: 'angry', milo: 'proud' }));
+            animate(enemy, 'lunge');
+            await wait(reduced ? 100 : 260);
+            setShield((s) => (s ? { ...s, hit: s.hit + 1 } : s));
+            playSfx(b.by === 'earth' ? 'earth' : 'steam');
+            await wait(reduced ? 200 : 750);
+            setShield(null);
             break;
           case 'hit':
             if (b.target === 'foe') {
@@ -153,24 +197,29 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
             break;
           case 'countered':
             setWindup(null);
-            setFx({ key: ++keys.current, element: null, from: 'foe', kind: 'steam' });
-            playSfx('steam');
+            setFx({ key: ++keys.current, element: b.by, from: 'foe', kind: b.by === 'earth' ? 'wall' : 'steam' });
+            playSfx(b.by === 'earth' ? 'earth' : 'steam');
             await wait(650);
             break;
           case 'foeMove':
             setBubble(null);
+            setCall(null);
             setWindup(null);
             animate(enemy, 'lunge');
             if (b.element) {
               setFx({ key: ++keys.current, element: b.element, from: 'foe', kind: 'shot' });
               playSfx(ELEMENT_SFX[b.element] ?? 'hit');
             }
+            // A shield of the wrong element softens the blow, then gives way.
+            if (b.halved) setShield((s) => (s ? { ...s, hit: s.hit + 1, broken: true } : s));
             await wait(reduced ? 200 : 480);
+            setShield(null);
             setMoods((m) => ({ ...m, [enemy]: 'angry' }));
             break;
           case 'end':
             setResult(b.result);
             setWindup(null);
+            setShield(null);
             setMoods((m) => ({ ...m, milo: b.result === 'win' ? 'proud' : 'tired', [enemy]: b.result === 'win' ? 'hurt' : 'happy' }));
             if (b.result === 'lose') animate('milo', 'slump');
             playSfx(b.result === 'win' ? 'victory' : 'defeat');
@@ -202,7 +251,7 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
     const s = useGame.getState().save;
     const level = miloLevel(s);
     const maxHp = miloMaxHp(content, level);
-    const r = startBattle(content, enemy, { level, maxHp, context, seed: takeSeed() });
+    const r = startBattle(content, enemy, { level, maxHp, context, seed: takeSeed(), verbs: knownVerbs(content, s.flags) });
     useGame.getState().dispatch(r.events);
     setHp({ milo: r.state.milo.hp, miloMax: r.state.milo.maxHp, foe: r.state.foe.hp, foeMax: r.state.foe.maxHp });
     hpRef.current = { milo: r.state.milo.hp, foe: r.state.foe.hp };
@@ -213,7 +262,16 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
   const choose = (commandId: string) => {
     if (!state || busy) return;
     tapFeedback();
-    const r = chooseCommand(content, state, commandId);
+    const v = verb ?? undefined;
+    const r = chooseCommand(content, state, commandId, v);
+    // A held shield last round makes this attack land harder: show it.
+    steadyRef.current = state.steady && v !== 'defend';
+    if (v) {
+      const text = commandSentence(content, commandId, v);
+      setCall({ key: ++keys.current, text });
+      speakCall(text);
+    }
+    setVerb(null);
     dispatch(r.events);
     void play(r.beats, r.state);
   };
@@ -228,16 +286,18 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
     if (rung === 1) animate('milo', 'look');
   };
 
+  const foeArt = art ?? enemy;
+  const verbs = state?.verbs ?? [];
   const sceneState: SceneState = {
     background,
     props: [],
     actors: [
       { id: 'milo', art: 'milo', x: MILO.x, y: MILO.y, scale: 1, facing: 'right', hidden: false },
-      { id: enemy, art: enemy, x: FOE.x, y: FOE.y, scale: 1, facing: 'left', hidden: false },
+      { id: enemy, art: foeArt, x: FOE.x, y: FOE.y, scale: 1, facing: 'left', hidden: false },
     ],
   };
-  const foeName = content.lexling.get(enemy)?.name ?? enemy;
-  const foeBox = placementBox(enemy, FOE.x, FOE.y, 1, sceneW, sceneH);
+  const foeName = name ?? content.lexling.get(enemy)?.name ?? enemy;
+  const foeBox = placementBox(foeArt, FOE.x, FOE.y, 1, sceneW, sceneH);
   const miloBox = placementBox('milo', MILO.x, MILO.y, 1, sceneW, sceneH);
   const centre = (box: typeof foeBox) => ({ x: box.left + box.width / 2, y: box.top + box.height * 0.5 });
 
@@ -255,7 +315,17 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
             bubble={bubble ? <SpeechBubble lineId={bubble.line} icons={false} audioFirst={false} /> : null}>
             {windup === 'embers' && <Embers at={{ x: foeBox.left + foeBox.width * 0.06, y: foeBox.top + foeBox.height * 0.72 }} reduced={reduced} />}
             {windup === 'paw' && <Dust at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height }} reduced={reduced} />}
-            {fx && (
+            {windup === 'ready' && <Smoke at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height * 0.2 }} reduced={reduced} />}
+            {windup === 'inferno' && <Embers at={{ x: foeBox.left + foeBox.width * 0.06, y: foeBox.top + foeBox.height * 0.7 }} reduced={reduced} scale={2.2} />}
+            {windup && PARTICLES[windup] && <Particles key={windup} at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height * 0.55 }} spread={foeBox.width} {...PARTICLES[windup]} reduced={reduced} />}
+            {shield && <Shield key={shield.key} shield={shield} at={{ x: miloBox.left + miloBox.width * 1.05, y: miloBox.top + miloBox.height }} height={miloBox.height * 1.1} reduced={reduced} />}
+            {call && (
+              <View pointerEvents="none" style={[styles.call, { top: Math.max(space.sm, miloBox.top - 52), left: Math.max(space.sm, miloBox.left - space.md), maxWidth: sceneW * 0.55 }]}>
+                <Txt style={styles.callText}>{call.text}</Txt>
+              </View>
+            )}
+            {fx?.kind === 'wall' && <Wall key={fx.key} at={{ x: (miloBox.left + miloBox.width + foeBox.left) / 2, y: foeBox.top + foeBox.height }} height={foeBox.height * 0.9} reduced={reduced} />}
+            {fx && fx.kind !== 'wall' && (
               <Shot
                 key={fx.key}
                 fx={fx}
@@ -285,7 +355,7 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
       <View style={[styles.panel, { paddingBottom: insets.bottom + space.md }]}>
         {result ? (
           <View style={{ gap: space.md }}>
-            <Txt style={[type.title, { textAlign: 'center' }]}>{result === 'win' ? `The ${foeName} backs off!` : 'Milo is worn out.'}</Txt>
+            <Txt style={[type.title, { textAlign: 'center' }]}>{result === 'win' ? `${name ? name : `The ${foeName}`} backs off!` : 'Milo is worn out.'}</Txt>
             <Txt style={[type.body, { textAlign: 'center', color: color.inkSoft }]}>
               {result === 'win' ? `+${content.lexling.get(enemy)?.battle?.xp ?? 0} XP` : 'No harm done. You can always try again.'}
             </Txt>
@@ -310,6 +380,37 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
               </View>
             </View>
             {hint >= 1 && <Txt style={[type.body, { fontStyle: 'italic', color: color.inkSoft, marginBottom: space.sm }]}>{content.lexling.get(enemy)?.battle?.clue}</Txt>}
+            {verbs.length >= 2 && (
+              <View style={styles.verbs} testID="verbs">
+                {verbs.map((id) => {
+                  const v = content.milo.verbs.find((x) => x.id === id)!;
+                  const concept = v.concepts[0]!;
+                  const look = tilePresentation(conceptLevel(save.concepts, concept, now), save.settings);
+                  const icon = (look.icon || hint >= 2) && content.concept.get(concept)?.icon;
+                  const word = (content.phrasing.verbs[id] ?? wordFor(concept)).toUpperCase();
+                  const on = verb === id;
+                  return (
+                    <Pressable
+                      key={id}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                      accessibilityLabel={word}
+                      disabled={busy || !state}
+                      onPress={() => {
+                        tapFeedback();
+                        setVerb(on ? null : id);
+                      }}
+                      style={({ pressed }) => [styles.verb, on && styles.verbOn, { opacity: busy ? 0.55 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
+                      {icon && <Icon name={icon} size={20} color={on ? color.white : undefined} />}
+                      <View style={{ alignItems: 'center' }}>
+                        <Txt style={[type.tile, { fontSize: 17 }, on && { color: color.white }]}>{word}</Txt>
+                        {hint >= 3 && <Txt style={[type.small, { color: on ? color.white : color.inkSoft }]}>{content.concept.get(concept)?.gloss}</Txt>}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
             <View style={styles.tiles}>
               {(state?.order ?? content.milo.commands.map((c) => c.id)).map((id) => {
                 const cmd = content.milo.commands.find((c) => c.id === id)!;
@@ -320,12 +421,13 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
                 const icons = look.icon || hint >= 2;
                 const tint = look.tint || hint >= 2;
                 const el = ability?.element ?? null;
-                const words = cmd.concepts.map(wordFor).join(' ').toUpperCase();
+                const words = (verb && el ? (content.phrasing.with[el] ?? cmd.concepts.map(wordFor).join(' ')) : cmd.concepts.map(wordFor).join(' ')).toUpperCase();
+                const gloss = cmd.concepts.map((c) => content.concept.get(c)?.gloss).join(' ');
                 return (
                   <Pressable
                     key={id}
                     accessibilityRole="button"
-                    accessibilityLabel={words}
+                    accessibilityLabel={verb ? commandSentence(content, id, verb) : words}
                     disabled={busy || !state}
                     onPress={() => choose(id)}
                     style={({ pressed }) => [
@@ -335,8 +437,8 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
                     ]}>
                     {icons && content.concept.get(concept)?.icon && <Icon name={content.concept.get(concept)!.icon!} size={26} />}
                     <View style={{ alignItems: 'center' }}>
-                      <Txt style={type.tile}>{words}</Txt>
-                      {hint >= 3 && <Txt style={[type.small, { color: color.inkSoft }]}>{cmd.concepts.map((c) => content.concept.get(c)?.gloss).join(' ')}</Txt>}
+                      <Txt style={verb ? styles.phrase : type.tile}>{words}</Txt>
+                      {hint >= 3 && <Txt style={[type.small, { color: color.inkSoft }]}>{verb ? `with ${gloss}` : gloss}</Txt>}
                     </View>
                   </Pressable>
                 );
@@ -348,6 +450,31 @@ export function Battle({ enemy, background, context, onEnd }: { enemy: string; b
     </View>
   );
 }
+
+/**
+ * How clearly the enemy shows what's coming. While the word it shouts is new
+ * to the player, the wind-up is a strong visual tell (embers, pawing). Once
+ * the player has acted on that word, the tell becomes a generic "about to
+ * strike" and the word carries the information (language bible §31, §57;
+ * game bible Phase 10). "Keep element pictures" keeps the strong tells.
+ */
+function windupTell(enemy: string, ability: string, windup: string): string {
+  const { save } = useGame.getState();
+  const move = content.lexling.get(enemy)?.battle?.moves.find((m) => m.ability === ability);
+  if (!move?.telegraph || save.settings.persistentIcons) return windup;
+  return lineScaffold(save.concepts, move.telegraph, Date.now()) >= 2 ? windup : 'ready';
+}
+
+/** How the foe moves while it winds up each tell. */
+const WINDUP_ANIM: Record<string, string> = { paw: 'stomp', gale: 'puff', inferno: 'blaze', dive: 'float', gust: 'puff', rocks: 'stomp' };
+
+/** Little particles for the tells that have them: swirling air, a rising gale, stones lifting. */
+const PARTICLES: Record<string, { tint: string; count: number; size: number; rise: number }> = {
+  gust: { tint: '#CDEDE6', count: 4, size: 14, rise: 26 },
+  gale: { tint: '#A9E0D4', count: 7, size: 22, rise: 46 },
+  dive: { tint: '#FFFFFF', count: 3, size: 10, rise: -30 },
+  rocks: { tint: '#9A7547', count: 5, size: 12, rise: 30 },
+};
 
 function hpTint(v: number, max: number) {
   const p = v / max;
@@ -374,7 +501,7 @@ function Shot({ fx, from, to, reduced }: { fx: Fx; from: { x: number; y: number 
     );
   }
   const c = elementColor(fx.element);
-  const size = fx.element ? 46 : 30;
+  const size = (fx.element ? 46 : 30) * (fx.big ? 1.5 : 1);
   return (
     <Animated.View
       pointerEvents="none"
@@ -396,7 +523,7 @@ function Shot({ fx, from, to, reduced }: { fx: Fx; from: { x: number; y: number 
   );
 }
 
-function Embers({ at, reduced }: { at: { x: number; y: number }; reduced: boolean }) {
+function Embers({ at, reduced, scale = 1 }: { at: { x: number; y: number }; reduced: boolean; scale?: number }) {
   const [t] = useState(() => new Animated.Value(0));
   useEffect(() => {
     if (reduced) return;
@@ -405,7 +532,7 @@ function Embers({ at, reduced }: { at: { x: number; y: number }; reduced: boolea
     return () => a.stop();
   }, [t, reduced]);
   return (
-    <Animated.View pointerEvents="none" style={{ position: 'absolute', left: at.x - 15, top: at.y - 15, width: 30, height: 30, borderRadius: 15, backgroundColor: '#FFB347', opacity: t.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0.95] }), transform: [{ scale: t.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1.25] }) }] }}>
+    <Animated.View pointerEvents="none" style={{ position: 'absolute', left: at.x - 15, top: at.y - 15, width: 30, height: 30, borderRadius: 15, backgroundColor: '#FFB347', opacity: t.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0.95] }), transform: [{ scale: t.interpolate({ inputRange: [0, 1], outputRange: [0.8 * scale, 1.25 * scale] }) }] }}>
       <View style={{ position: 'absolute', left: 8, top: 8, width: 14, height: 14, borderRadius: 7, backgroundColor: '#FFE89A' }} />
     </Animated.View>
   );
@@ -425,6 +552,121 @@ function Dust({ at, reduced }: { at: { x: number; y: number }; reduced: boolean 
         <Animated.View key={i} style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#C9B48F', opacity: t.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }), transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, -14 - i * 4] }) }] }} />
       ))}
     </View>
+  );
+}
+
+function Smoke({ at, reduced }: { at: { x: number; y: number }; reduced: boolean }) {
+  const [t] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (reduced) return;
+    const a = Animated.loop(Animated.timing(t, { toValue: 1, duration: 900, useNativeDriver: ND }));
+    a.start();
+    return () => a.stop();
+  }, [t, reduced]);
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: at.x - 36, top: at.y - 10, flexDirection: 'row', gap: 6 }}>
+      {[0, 1, 2].map((i) => (
+        <Animated.View key={i} style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#8D8A87', opacity: t.interpolate({ inputRange: [0, 1], outputRange: [0.7, 0] }), transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, -18 - i * 6] }) }] }} />
+      ))}
+    </View>
+  );
+}
+
+/** A stone wall shooting up between Milo and a charging foe. */
+function Wall({ at, height, reduced }: { at: { x: number; y: number }; height: number; reduced: boolean }) {
+  const [t] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const a = Animated.timing(t, { toValue: 1, duration: reduced ? 1 : 900, useNativeDriver: ND });
+    a.start();
+    return () => a.stop();
+  }, [t, reduced]);
+  const w = height * 0.45;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: at.x - w / 2,
+        top: at.y - height,
+        width: w,
+        height,
+        opacity: t.interpolate({ inputRange: [0, 0.15, 0.8, 1], outputRange: [0, 1, 1, 0] }),
+        transform: [{ translateY: t.interpolate({ inputRange: [0, 0.25, 1], outputRange: [height * 0.6, 0, 0] }) }],
+      }}>
+      <View style={{ flex: 1, borderTopLeftRadius: 10, borderTopRightRadius: 14, backgroundColor: elementColor('earth'), borderWidth: 3, borderColor: '#6B5132', overflow: 'hidden' }}>
+        {[0.25, 0.55, 0.8].map((y) => (
+          <View key={y} style={{ position: 'absolute', left: 0, right: 0, top: `${y * 100}%`, height: 3, backgroundColor: '#6B5132', opacity: 0.6 }} />
+        ))}
+      </View>
+    </Animated.View>
+  );
+}
+
+/** A loop of particles around the foe while it winds up. */
+function Particles({ at, spread, tint, count, size, rise, reduced }: { at: { x: number; y: number }; spread: number; tint: string; count: number; size: number; rise: number; reduced: boolean }) {
+  const [t] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (reduced) return;
+    const a = Animated.loop(Animated.timing(t, { toValue: 1, duration: 800, useNativeDriver: ND }));
+    a.start();
+    return () => a.stop();
+  }, [t, reduced]);
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: at.x - spread / 2, top: at.y, width: spread, height: 1 }}>
+      {Array.from({ length: count }, (_, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            position: 'absolute',
+            left: (spread * (i + 0.5)) / count - size / 2,
+            top: ((i * 37) % 23) - 12,
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: tint,
+            opacity: t.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0.2, 0.85, 0] }),
+            transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, -rise - (i % 3) * 6] }) }, { scale: t.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1.2] }) }],
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+/** Milo's shield: a curtain of his element in front of him. It flashes when something hits it, and cracks if it's the wrong element. */
+function Shield({ shield, at, height, reduced }: { shield: { element: string | null; hit: number; broken: boolean }; at: { x: number; y: number }; height: number; reduced: boolean }) {
+  const [t] = useState(() => new Animated.Value(reduced ? 1 : 0));
+  const [flash] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const a = Animated.timing(t, { toValue: 1, duration: reduced ? 1 : 260, easing: Easing.out(Easing.back(1.5)), useNativeDriver: ND });
+    a.start();
+    return () => a.stop();
+  }, [t, reduced]);
+  useEffect(() => {
+    if (!shield.hit || reduced) return;
+    const a = Animated.sequence([Animated.timing(flash, { toValue: 1, duration: 90, useNativeDriver: ND }), Animated.timing(flash, { toValue: 0, duration: 400, useNativeDriver: ND })]);
+    a.start();
+    return () => a.stop();
+  }, [shield.hit, flash, reduced]);
+  const c = elementColor(shield.element);
+  const w = height * 0.32;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: at.x - w / 2,
+        top: at.y - height,
+        width: w,
+        height,
+        opacity: t,
+        transform: [{ scaleY: t.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }, { scale: flash.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }],
+      }}>
+      <View style={{ flex: 1, borderRadius: w / 2, backgroundColor: c + (shield.broken ? '33' : '55'), borderWidth: 4, borderColor: c, borderStyle: shield.broken ? 'dashed' : 'solid', alignItems: 'center', justifyContent: 'center' }}>
+        {shield.element && <Icon name={shield.element} size={w * 0.55} color="#fff" />}
+      </View>
+      <Animated.View style={[StyleSheet.absoluteFill, { borderRadius: w / 2, backgroundColor: '#fff', opacity: flash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.6] }) }]} />
+    </Animated.View>
   );
 }
 
@@ -448,6 +690,23 @@ const styles = StyleSheet.create({
   panelHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: space.md, paddingVertical: 7, borderRadius: radius.pill, backgroundColor: color.paper, borderWidth: 1, borderColor: color.paperLine },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  verbs: { flexDirection: 'row', gap: space.sm, marginBottom: space.md },
+  verb: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: radius.pill,
+    backgroundColor: color.paper,
+    borderWidth: 2,
+    borderColor: color.paperLine,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.xs,
+  },
+  verbOn: { backgroundColor: color.ink, borderColor: color.ink },
+  phrase: { ...type.tile, fontSize: 16, letterSpacing: 0.5, textAlign: 'center' },
+  call: { position: 'absolute', backgroundColor: 'rgba(251,245,234,0.95)', borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderWidth: 2, borderColor: color.amber, ...shadow.card },
+  callText: { ...type.body, fontWeight: '800', fontStyle: 'italic' },
   tile: {
     flexBasis: '46%',
     flexGrow: 1,

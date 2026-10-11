@@ -1,4 +1,6 @@
-import type { Content, Effects, Encounter } from './schema';
+import type { Content, Effects, Encounter, Step } from './schema';
+import { WRITING } from './save';
+import { validateLanguage } from './validate-language';
 
 /**
  * Cross-reference checks the schema can't express: every id points at
@@ -29,7 +31,7 @@ export function validateContent(content: Content, art?: { backgrounds: Set<strin
   dupes('journal', content.journal);
   dupes('encounters', content.encounters);
 
-  const speakers = new Set(['milo', ...content.lexlings.map((l) => l.id)]);
+  const speakers = new Set(['milo', WRITING, ...content.lexlings.map((l) => l.id)]);
   const elements = new Set(content.elements.elements.map((e) => e.id));
 
   for (const c of content.concepts) if (!content.word.has(c.id)) say(`concept ${c.id}`, 'has no word in the language pack');
@@ -81,6 +83,31 @@ export function validateContent(content: Content, art?: { backgrounds: Set<strin
     if (!content.ability.has(c.ability)) say(`command ${c.id}`, `unknown ability "${c.ability}"`);
     for (const k of c.concepts) if (!content.concept.has(k)) say(`command ${c.id}`, `unknown concept "${k}"`);
   }
+  // Composed commands: every verb and element has a natural phrase, and the words really are in it.
+  const wordIn = (concept: string, text: string) => {
+    const w = content.word.get(concept);
+    return !!w && [w.word, ...w.forms].some((f) => text.toLowerCase().includes(f.toLowerCase()));
+  };
+  for (const v of content.milo.verbs) {
+    const phrase = content.phrasing.verbs[v.id];
+    if (!phrase) {
+      say(`verb ${v.id}`, 'has no phrase in the language pack (phrasing.verbs)');
+      continue;
+    }
+    for (const k of v.concepts) {
+      if (!content.concept.has(k)) say(`verb ${v.id}`, `unknown concept "${k}"`);
+      else if (!wordIn(k, phrase) && !Object.values(content.phrasing.with).every((w) => wordIn(k, w))) say(`verb ${v.id}`, `"${k}" isn't in "${phrase}" or every "with" phrase`);
+    }
+  }
+  if (content.milo.verbs.length) {
+    for (const c of content.milo.commands) {
+      const el = content.ability.get(c.ability)?.element;
+      if (!el) continue;
+      const w = content.phrasing.with[el];
+      if (!w) say(`command ${c.id}`, `no "with" phrase for element "${el}" (phrasing.with)`);
+      else for (const k of c.concepts) if (!wordIn(k, w)) say(`command ${c.id}`, `"${k}" isn't in "${w}"`);
+    }
+  }
   reactionRefs('milo.reactions', content.milo.reactions);
   for (const id of content.milo.idle) lineRef('milo.idle', id);
 
@@ -90,7 +117,71 @@ export function validateContent(content: Content, art?: { backgrounds: Set<strin
   }
 
   for (const enc of content.encounters) problems.push(...validateEncounter(content, enc, art));
+
+  // Every flag something waits for must be set somewhere, or that content can never be reached.
+  const set = new Set<string>();
+  const needed: { flag: string; where: string }[] = [];
+  for (const enc of content.encounters) {
+    for (const f of enc.requires?.flags ?? []) needed.push({ flag: f, where: `encounter ${enc.id}` });
+    for (const step of enc.steps) {
+      for (const e of effectsOf(step)) for (const f of e.flags ?? []) set.add(f);
+      if (step.type === 'branch') for (const f of step.if.flags ?? []) needed.push({ flag: f, where: `encounter ${enc.id}` });
+    }
+  }
+  for (const loc of content.locations) for (const f of loc.requires?.flags ?? []) needed.push({ flag: f, where: `location ${loc.id}` });
+  for (const n of needed) if (!set.has(n.flag)) say(n.where, `waits for flag "${n.flag}", which nothing sets`);
+
+  problems.push(...validateLanguage(content));
   return problems;
+}
+
+function effectsOf(step: Step): Effects[] {
+  const out: (Effects | undefined)[] = [];
+  if (step.type === 'reward') out.push(step.effects);
+  if (step.type === 'choice') out.push(...step.options.map((o) => o.effects));
+  if (step.type === 'tap') out.push(...step.targets.map((t) => t.effects), step.otherwise?.effects);
+  if (step.type === 'give') out.push(...step.items.map((i) => i.effects));
+  return out.filter((e): e is Effects => !!e);
+}
+
+/** Indices of steps reachable from the first one. */
+function reachable(enc: Encounter): Set<number> {
+  const index = new Map(enc.steps.flatMap((s, i) => (s.id ? [[s.id, i] as const] : [])));
+  const seen = new Set<number>();
+  const queue = [0];
+  while (queue.length) {
+    const i = queue.pop()!;
+    const step = enc.steps[i];
+    if (!step || seen.has(i)) continue;
+    seen.add(i);
+    const after = step.next ? index.get(step.next) : i + 1;
+    const to = (target: string | undefined) => (target ? index.get(target) : after);
+    const targets: (number | undefined)[] = [];
+    switch (step.type) {
+      case 'end':
+        break;
+      case 'choice':
+        targets.push(...step.options.map((o) => to(o.goto)));
+        break;
+      case 'tap':
+        targets.push(...step.targets.map((t) => to(t.goto)));
+        if (step.otherwise) targets.push(to(step.otherwise.goto));
+        break;
+      case 'give':
+        targets.push(...step.items.map((it) => to(it.goto)));
+        break;
+      case 'battle':
+        targets.push(to(step.win), to(step.lose));
+        break;
+      case 'branch':
+        targets.push(index.get(step.then), to(step.else));
+        break;
+      default:
+        targets.push(after);
+    }
+    for (const t of targets) if (t !== undefined) queue.push(t);
+  }
+  return seen;
 }
 
 function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds: Set<string>; props: Set<string>; actors: Set<string> }): string[] {
@@ -140,7 +231,9 @@ function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds
       case 'say': {
         const line = content.line.get(s.line);
         if (!line) say(`${name}: unknown line "${s.line}"`);
-        else if (!actors.has(s.by ?? line.speaker)) say(`${name}: speaker "${s.by ?? line.speaker}" isn't in the scene`);
+        else if (line.speaker === WRITING) {
+          if (s.by && !placed.has(s.by)) say(`${name}: the writing is on "${s.by}", which isn't in the scene`);
+        } else if (!actors.has(s.by ?? line.speaker)) say(`${name}: speaker "${s.by ?? line.speaker}" isn't in the scene`);
         if (s.look && !placed.has(s.look)) say(`${name}: looks at missing "${s.look}"`);
         break;
       }
@@ -183,6 +276,7 @@ function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds
         break;
       case 'battle':
         if (!content.lexling.get(s.enemy)?.battle) say(`${name}: "${s.enemy}" can't battle`);
+        if (s.actor && !actors.has(s.actor)) say(`${name}: fighter "${s.actor}" isn't in the scene`);
         goto(s.win, name);
         goto(s.lose, name);
         if (s.background) backgrounds.push(s.background);
@@ -202,6 +296,10 @@ function validateEncounter(content: Content, enc: Encounter, art?: { backgrounds
     }
   });
   if (ends === 0) say('has no end step');
+  const live = reachable(enc);
+  enc.steps.forEach((s, i) => {
+    if (!live.has(i)) say(`step ${s.id ?? i} (${s.type}) can never be reached`);
+  });
   if (art) for (const b of backgrounds) if (!art.backgrounds.has(b)) say(`no background art "${b}"`);
   return problems;
 }

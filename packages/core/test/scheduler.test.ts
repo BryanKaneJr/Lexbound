@@ -23,6 +23,7 @@ const content = fixture({
     enc('gated', { requires: { flags: ['open'] } }),
     enc('water', {}, 'milo.acqua'),
     enc('yes', {}, 'milo.si'),
+    enc('hog.water', { scene: { background: 'forest', actors: [{ id: 'hog', art: 'hog', x: 0.5, y: 0.9 }] } }, 'hog.ahi'),
   ],
 });
 
@@ -43,7 +44,7 @@ describe('scheduler', () => {
     expect(chooseEncounter(content, save, 'wood', T, 1).encounter?.id).toBe('story.two');
     save = finished(save, 'story.two');
     expect(nextStory(content, save, 'wood')).toBeUndefined();
-    expect(['water', 'yes']).toContain(chooseEncounter(content, save, 'wood', T, 1).encounter?.id);
+    expect(['water', 'yes', 'hog.water']).toContain(chooseEncounter(content, save, 'wood', T, 1).encounter?.id);
   });
 
   it('respects requirements and cooldowns', () => {
@@ -64,9 +65,34 @@ describe('scheduler', () => {
     expect(fresh.weight).toBe(10);
     const recent = weigh(content, { ...base, recent: ['water'] }, water, T);
     expect(recent.weight).toBeCloseTo(10 * SCHEDULER.recentPenalty);
-    const due = weigh(content, { ...base, concepts: { water: recordExposure(newConcept(), T, 'x') } }, water, T);
+    const due = weigh(content, { ...base, concepts: { water: recordExposure(newConcept(), T, { context: 'x' }) } }, water, T);
     expect(due.weight).toBeCloseTo(10 * (1 + SCHEDULER.dueBoost));
     expect(due.reasons).toContain('due:water');
+    // Due, but this is the very situation it was met in: a smaller nudge (contextual diversity).
+    const familiar = weigh(content, { ...base, concepts: { water: recordExposure(newConcept(), T, { context: 'water' }) } }, water, T);
+    expect(familiar.weight).toBeCloseTo(10 * (1 + SCHEDULER.dueBoost * SCHEDULER.familiarContextShare));
+  });
+
+  it('favours someone new using a word the player already has a guess about', () => {
+    const base = finished(newSave(T, 1), 'story.one', 'story.two');
+    const guess = recordExposure(recordExposure(newConcept(), T, { context: 'a', speaker: 'milo' }), T, { context: 'b', speaker: 'milo' });
+    const strong = { ...guess, strength: 0.9, successes: 3, successContexts: ['a', 'b', 'c'] };
+    const c = weigh(content, { ...base, concepts: { water: strong } }, content.encounter.get('hog.water')!, T);
+    expect(c.reasons).toContain('transfer:water@hog');
+    expect(c.weight).toBeCloseTo(10 * (1 + SCHEDULER.transferBoost));
+    // Once heard from the hog, it's no longer a transfer.
+    const heard = { ...strong, speakers: ['milo', 'hog'] };
+    expect(weigh(content, { ...base, concepts: { water: heard } }, content.encounter.get('hog.water')!, T).reasons.some((r) => r.startsWith('transfer'))).toBe(false);
+  });
+
+  it('avoids the same Lexling twice in a row', () => {
+    const base = finished(newSave(T, 1), 'story.one', 'story.two', 'hog.water');
+    const c = weigh(content, { ...base, recent: ['hog.water'] }, content.encounter.get('hog.water')!, T);
+    expect(c.reasons).toContain('recent');
+    const other = fixture({ encounters: [...content.encounters, enc('hog.again', { scene: { background: 'forest', actors: [{ id: 'hog', art: 'hog', x: 0.5, y: 0.9 }] } }, 'hog.flee')] });
+    const d = weigh(other, { ...base, recent: ['hog.water'] }, other.encounter.get('hog.again')!, T);
+    expect(d.reasons).toContain('same-speaker:hog');
+    expect(d.weight).toBeCloseTo(10 * SCHEDULER.sameSpeakerPenalty);
   });
 
   it('holds back encounters that would pile on new words', () => {
@@ -81,9 +107,10 @@ describe('scheduler', () => {
 
   it('favours due encounters over many picks', () => {
     const base = finished(newSave(T, 1), 'story.one', 'story.two');
-    const save = { ...base, concepts: { water: recordExposure(newConcept(), T, 'x'), yes: { ...newConcept(), exposures: 9, successes: 9, strength: 0.99, lastSeen: T } } };
+    const save = { ...base, concepts: { water: recordExposure(newConcept(), T, { context: 'x' }), yes: { ...newConcept(), exposures: 9, successes: 9, strength: 0.99, lastSeen: T } } };
     let water = 0;
-    for (let seed = 0; seed < 600; seed++) if (chooseEncounter(content, save, 'wood', T, seed).encounter?.id === 'water') water++;
+    // Both scenes that use the due word ("acqua") should win most picks.
+    for (let seed = 0; seed < 600; seed++) if (['water', 'hog.water'].includes(chooseEncounter(content, save, 'wood', T, seed).encounter?.id ?? '')) water++;
     expect(water / 600).toBeGreaterThan(0.6);
   });
 });

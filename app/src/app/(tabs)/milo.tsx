@@ -70,6 +70,13 @@ export default function MiloScreen() {
               </View>
             ))}
           </View>
+          {save.flags['milo.defend'] && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+              <Icon name="burst" size={22} />
+              <Icon name="shield" size={22} />
+              <Txt style={[type.body, { color: color.inkSoft, flex: 1 }]}>He can throw any of them, or hold one up as a shield. He likes you to say which.</Txt>
+            </View>
+          )}
         </Card>
         <Card style={{ gap: space.xs }}>
           <Txt style={[type.label, { color: color.inkMuted, marginBottom: space.xs }]}>Things Milo says</Txt>

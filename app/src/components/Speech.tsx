@@ -1,3 +1,4 @@
+import { WRITING } from '@lexbound/core';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/art/icons';
 import { content, lineIcons, speakerName } from '@/game/content';
@@ -47,13 +48,16 @@ export function SpeechBubble({ lineId, icons, audioFirst, onReveal }: { lineId: 
 export function SpeechHelp({ lineId, rung, onReplay, onHelp }: { lineId: string; rung: 0 | 1 | 2 | 3; onReplay: () => void; onHelp: () => void }) {
   const line = content.line.get(lineId);
   if (!line) return null;
+  const written = line.speaker === WRITING;
   return (
     <View style={{ gap: space.sm }}>
       <View style={styles.helpRow}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Hear it again" onPress={onReplay} style={styles.chip}>
-          <Icon name="speaker" size={16} color={color.inkSoft} />
-          <Txt style={[type.small, { color: color.inkSoft }]}>Again</Txt>
-        </Pressable>
+        {!written && (
+          <Pressable accessibilityRole="button" accessibilityLabel="Hear it again" onPress={onReplay} style={styles.chip}>
+            <Icon name="speaker" size={16} color={color.inkSoft} />
+            <Txt style={[type.small, { color: color.inkSoft }]}>Again</Txt>
+          </Pressable>
+        )}
         {rung < 3 && (
           <Pressable accessibilityRole="button" accessibilityLabel={rung === 0 ? 'Help' : 'More help'} onPress={onHelp} style={styles.chip}>
             <Icon name="question" size={16} color={color.inkSoft} />
@@ -61,7 +65,7 @@ export function SpeechHelp({ lineId, rung, onReplay, onHelp }: { lineId: string;
           </Pressable>
         )}
       </View>
-      {rung >= 1 && rung < 2 && <Txt style={[type.small, styles.hint]}>{speakerName(line.speaker)} says it again, slowly.</Txt>}
+      {rung >= 1 && rung < 2 && <Txt style={[type.small, styles.hint]}>{written ? 'You trace the letters again, one by one.' : `${speakerName(line.speaker)} says it again, slowly.`}</Txt>}
       {rung >= 2 && line.clue && <Txt style={[type.body, styles.hint]}>{line.clue}</Txt>}
       {rung >= 3 && (
         <Txt style={[type.body, styles.gloss]} testID="gloss">

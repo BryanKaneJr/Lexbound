@@ -7,3 +7,5 @@ export * from './encounter';
 export * from './battle';
 export * from './scheduler';
 export * from './validate';
+export * from './validate-language';
+export * from './notes';

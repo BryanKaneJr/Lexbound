@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { newConcept, recordEvidence, recordExposure, recordHint, type ConceptState } from './language';
+import { newConcept, recordEvidence, recordExposure, recordHint, type ConceptState, type Modality } from './language';
 import { dayKey, levelForXp, MAX_BOND, SNACK_BOND_PER_DAY } from './progression';
 import type { Condition, Content, Effects } from './schema';
 
@@ -10,7 +10,7 @@ import type { Condition, Content, Effects } from './schema';
  * can't break a save. Old saves are migrated forward step by step.
  */
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 const conceptStateSchema = z.object({
   exposures: z.number(),
@@ -20,6 +20,11 @@ const conceptStateSchema = z.object({
   strength: z.number(),
   lastSeen: z.number(),
   contexts: z.array(z.string()),
+  speakers: z.array(z.string()),
+  modalities: z.array(z.enum(['milo', 'lexling', 'enemy', 'writing', 'command', 'action'])),
+  successContexts: z.array(z.string()),
+  lastSuccess: z.number(),
+  spaced: z.boolean(),
 });
 
 export const settingsSchema = z.object({
@@ -89,7 +94,31 @@ export function newSave(now: number, seed: number): Save {
  * object of that version and returns the next version's shape. Add one for
  * every SAVE_VERSION bump; never edit an old one.
  */
-const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string, unknown>> = {};
+const MIGRATIONS: Record<number, (raw: Record<string, unknown>) => Record<string, unknown>> = {
+  /**
+   * v1 -> v2: the richer comprehension model (who said it, through which
+   * channel, where the player used it). Old saves didn't record those, so
+   * they start empty; a v1 success counts as one success context, which
+   * keeps everything the player had already shown they know.
+   */
+  1: (raw) => {
+    const concepts = (raw.concepts ?? {}) as Record<string, Record<string, unknown>>;
+    const upgraded: Record<string, unknown> = {};
+    for (const [id, c] of Object.entries(concepts)) {
+      const successes = typeof c.successes === 'number' ? c.successes : 0;
+      const contexts = Array.isArray(c.contexts) ? (c.contexts as string[]) : [];
+      upgraded[id] = {
+        ...c,
+        speakers: [],
+        modalities: [],
+        successContexts: successes > 0 ? contexts.slice(-1) : [],
+        lastSuccess: successes > 0 && typeof c.lastSeen === 'number' ? c.lastSeen : 0,
+        spaced: false,
+      };
+    }
+    return { ...raw, version: 2, concepts: upgraded };
+  },
+};
 
 export type LoadResult = { save: Save; status: 'ok' | 'migrated' | 'reset' };
 
@@ -163,6 +192,16 @@ export type Notice =
 
 const RECENT = 6;
 
+/** The speaker id of words that are written, not spoken: carvings, signs (language bible §37). */
+export const WRITING = 'writing';
+
+/** Which channel a speaker's words reach the player through. */
+export function modalityOf(content: Content, speaker: string): Modality {
+  if (speaker === 'milo') return 'milo';
+  if (speaker === WRITING) return 'writing';
+  return content.lexling.get(speaker)?.temperament === 'hostile' ? 'enemy' : 'lexling';
+}
+
 function concept(save: Save, id: string): ConceptState {
   return save.concepts[id] ?? newConcept();
 }
@@ -230,7 +269,8 @@ export function applyEvents(save: Save, content: Content, events: readonly GameE
         const line = content.line.get(e.line);
         if (!line) break;
         const concepts = { ...s.concepts };
-        for (const c of line.concepts) concepts[c] = recordExposure(concept(s, c), now, e.context);
+        const source = { context: e.context, speaker: line.speaker, modality: modalityOf(content, line.speaker) };
+        for (const c of line.concepts) concepts[c] = recordExposure(concept(s, c), now, source);
         const prev = s.journal.heard[e.line];
         const heard = { ...s.journal.heard, [e.line]: { count: (prev?.count ?? 0) + 1, first: prev?.first ?? now } };
         s = { ...s, concepts, journal: { ...s.journal, heard } };
@@ -240,12 +280,12 @@ export function applyEvents(save: Save, content: Content, events: readonly GameE
       }
       case 'used': {
         const concepts = { ...s.concepts };
-        for (const c of e.concepts) concepts[c] = recordExposure(concept(s, c), now, e.context);
+        for (const c of e.concepts) concepts[c] = recordExposure(concept(s, c), now, { context: e.context, modality: 'command' });
         s = { ...s, concepts };
         break;
       }
       case 'evidence':
-        s = { ...s, concepts: { ...s.concepts, [e.concept]: recordEvidence(concept(s, e.concept), e.result, now, e.context) } };
+        s = { ...s, concepts: { ...s.concepts, [e.concept]: recordEvidence(concept(s, e.concept), e.result, now, { context: e.context, modality: 'action' }) } };
         break;
       case 'hint': {
         const concepts = { ...s.concepts };
