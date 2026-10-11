@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Polygon, RadialGradient, Stop } from 'react-native-svg';
+import { Shaded as Paint } from './paint';
 
 /**
  * Milo, drawn in code. He has the biggest expression budget in the game
@@ -9,7 +10,9 @@ import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Polygon, RadialGra
  * The four element colours hide in his ear tips, tail tip and forehead gem.
  * Nobody in Lexora has noticed what that means yet.
  *
- * Drawn facing right in a 200 x 220 box, feet on the bottom edge.
+ * Drawn facing right in a 200 x 220 box, feet on the bottom edge. Lit from
+ * the upper left like every scene (docs/art-direction.md): two soft tones of
+ * shade on the lower right of each form, a rim of light on the upper left.
  */
 export type MiloMood =
   | 'idle'
@@ -31,11 +34,13 @@ export type MiloPose = 'rest' | 'wave' | 'point' | 'beckon' | 'clap' | 'up' | 'c
 
 export const MILO_ASPECT = 200 / 220;
 
-const FUR = '#FFF3DF';
-const FUR_SHADE = '#F2DDBD';
-const BELLY = '#FFFBF3';
-const LINE = '#D8B88C';
+const FUR = '#FFF2DE';
+const FUR_MID = '#F3DDBF';
+const FUR_SHADE = '#E2C29E';
+const BELLY = '#FFFAF1';
+const LINE = '#A87C55';
 const EYE = '#2A2236';
+const IRIS = '#4B3A6E';
 const BLUSH = '#F59BAE';
 const MOUTH = '#7A2E3B';
 const TONGUE = '#F28C9C';
@@ -79,8 +84,10 @@ function Eyes({ mood, blink }: { mood: MiloMood; blink: boolean }) {
   const open = (x: number, rx = 11, ry = 14) => (
     <G>
       <Ellipse cx={x} cy={Y} rx={rx} ry={ry} fill={EYE} />
-      <Circle cx={x + rx * 0.35} cy={Y - ry * 0.4} r={rx * 0.38} fill="#fff" />
-      <Circle cx={x - rx * 0.35} cy={Y + ry * 0.35} r={rx * 0.17} fill="#fff" />
+      <Ellipse cx={x} cy={Y + ry * 0.28} rx={rx * 0.78} ry={ry * 0.55} fill={IRIS} />
+      <Ellipse cx={x} cy={Y + ry * 0.5} rx={rx * 0.55} ry={ry * 0.28} fill="#8A73C2" opacity={0.75} />
+      <Circle cx={x + rx * 0.33} cy={Y - ry * 0.38} r={rx * 0.4} fill="#fff" />
+      <Circle cx={x - rx * 0.38} cy={Y + ry * 0.32} r={rx * 0.16} fill="#fff" opacity={0.9} />
     </G>
   );
   const ring = (x: number) => (
@@ -188,7 +195,7 @@ function Eyes({ mood, blink }: { mood: MiloMood; blink: boolean }) {
 }
 
 function Brows({ mood }: { mood: MiloMood }) {
-  const b = (d: string) => <Path d={d} stroke={LINE} strokeWidth={4} strokeLinecap="round" fill="none" />;
+  const b = (d: string) => <Path d={d} stroke={LINE} strokeWidth={4.5} strokeLinecap="round" fill="none" />;
   switch (mood) {
     case 'sad':
     case 'scared':
@@ -272,7 +279,10 @@ function Mouth({ mood }: { mood: MiloMood }) {
 
 function Arms({ pose }: { pose: MiloPose }) {
   const arm = (cx: number, cy: number, rx: number, ry: number, rot: number, key: string) => (
-    <Ellipse key={key} cx={cx} cy={cy} rx={rx} ry={ry} fill={FUR} stroke={LINE} strokeWidth={2} transform={`rotate(${rot} ${cx} ${cy})`} />
+    <G key={key} transform={`rotate(${rot} ${cx} ${cy})`}>
+      <Ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={FUR_SHADE} stroke={LINE} strokeWidth={2.4} />
+      <Ellipse cx={cx - rx * 0.18} cy={cy - ry * 0.16} rx={rx * 0.8} ry={ry * 0.8} fill={FUR} />
+    </G>
   );
   switch (pose) {
     case 'wave':
@@ -298,6 +308,31 @@ function Arms({ pose }: { pose: MiloPose }) {
   }
 }
 
+/** A head with fur tufts at the cheeks and on the crown, as one outline. */
+function headPath(): string {
+  const cx = 100;
+  const cy = 92;
+  const steps = 120;
+  let d = '';
+  for (let i = 0; i <= steps; i++) {
+    const th = (i / steps) * Math.PI * 2;
+    // tufts: three at each cheek (around 15 and 165 degrees), a softer two on top
+    const cheek = (a: number) => Math.max(0, 1 - Math.abs(th - a) / 0.42) * Math.abs(Math.sin((th - a) * 11));
+    const fluff = 7 * (cheek(0.32) + cheek(Math.PI - 0.32)) + 3 * Math.max(0, 1 - Math.abs(th - Math.PI * 1.5) / 0.3) * Math.abs(Math.sin(th * 9));
+    const x = cx + (66 + fluff) * Math.cos(th);
+    const y = cy + (57 + fluff * 0.6) * Math.sin(th);
+    d += `${i ? ' L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  return `${d} Z`;
+}
+const HEAD = headPath();
+const BODY = 'M50 164 A50 44 0 1 0 150 164 A50 44 0 1 0 50 164 Z';
+
+/** Milo's fur, painted with the shared two-tone shading. */
+function Shaded({ d, id, g }: { d: string; id: string; g: (n: string) => string }) {
+  return <Paint g={g} id={id} d={d} shade={FUR_SHADE} mid={FUR_MID} lit={FUR} line={LINE} lineWidth={2.6} rim={0.6} />;
+}
+
 export function MiloArt({ width, mood = 'idle', pose = 'rest', blink = false, glow = false }: { width: number; mood?: MiloMood; pose?: MiloPose; blink?: boolean; glow?: boolean }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const g = (n: string) => `${n}${uid}`;
@@ -315,36 +350,48 @@ export function MiloArt({ width, mood = 'idle', pose = 'rest', blink = false, gl
           <Stop offset="0.22" stopColor="#E8A33D" />
           <Stop offset="0.45" stopColor={FUR} />
         </LinearGradient>
-        <RadialGradient id={g('body')} cx="0.4" cy="0.35" r="0.75">
-          <Stop offset="0" stopColor="#FFFDF8" />
-          <Stop offset="0.7" stopColor={FUR} />
-          <Stop offset="1" stopColor={FUR_SHADE} />
+        <RadialGradient id={g('ground')} cx="0.5" cy="0.5" r="0.5">
+          <Stop offset="0" stopColor="#1A1208" stopOpacity="0.32" />
+          <Stop offset="1" stopColor="#1A1208" stopOpacity="0" />
         </RadialGradient>
+        <LinearGradient id={g('inner')} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#F6B5C4" />
+          <Stop offset="1" stopColor="#FBDCE2" />
+        </LinearGradient>
         <RadialGradient id={g('glow')} cx="0.5" cy="0.5" r="0.5">
           <Stop offset="0" stopColor="#FFF6C8" stopOpacity="0.9" />
           <Stop offset="1" stopColor="#FFF6C8" stopOpacity="0" />
         </RadialGradient>
       </Defs>
       {glow && <Ellipse cx={100} cy={120} rx={100} ry={100} fill={`url(#${g('glow')})`} />}
-      <Ellipse cx={100} cy={213} rx={52} ry={6} fill="#000" opacity={0.13} />
+      <Ellipse cx={100} cy={212} rx={62} ry={9} fill={`url(#${g('ground')})`} />
       {/* tail, behind everything */}
-      <Path d="M132 182 C176 182 196 146 178 112 C170 98 150 100 156 116 C164 136 152 154 128 160 Z" fill={`url(#${g('tail')})`} stroke={LINE} strokeWidth={2} />
+      <Path d="M132 182 C176 182 196 146 178 112 C170 98 150 100 156 116 C164 136 152 154 128 160 Z" fill={`url(#${g('tail')})`} stroke={LINE} strokeWidth={2.4} />
+      <Path d="M140 176 C170 172 184 146 174 120" stroke={FUR_SHADE} strokeWidth={5} strokeLinecap="round" fill="none" opacity={0.7} />
       {/* ears */}
-      <Path d="M66 62 C48 42 36 16 42 6 C52 -2 80 28 88 50 Z" fill={`url(#${g('ear')})`} stroke={LINE} strokeWidth={2} />
-      <Path d="M68 56 C56 42 48 24 50 16 C58 14 74 34 80 48 Z" fill="#F7C6CF" opacity={0.55} />
-      <Path d="M134 62 C152 42 164 16 158 6 C148 -2 120 28 112 50 Z" fill={`url(#${g('ear')})`} stroke={LINE} strokeWidth={2} />
-      <Path d="M132 56 C144 42 152 24 150 16 C142 14 126 34 120 48 Z" fill="#F7C6CF" opacity={0.55} />
+      <Path d="M66 62 C48 42 36 16 42 6 C52 -2 80 28 88 50 Z" fill={`url(#${g('ear')})`} stroke={LINE} strokeWidth={2.4} />
+      <Path d="M68 56 C56 42 48 24 50 16 C58 14 74 34 80 48 Z" fill={`url(#${g('inner')})`} opacity={0.8} />
+      <Path d="M134 62 C152 42 164 16 158 6 C148 -2 120 28 112 50 Z" fill={`url(#${g('ear')})`} stroke={LINE} strokeWidth={2.4} />
+      <Path d="M132 56 C144 42 152 24 150 16 C142 14 126 34 120 48 Z" fill={`url(#${g('inner')})`} opacity={0.65} />
+      <Path d="M134 62 C150 44 160 22 158 10" stroke={FUR_SHADE} strokeWidth={4} strokeLinecap="round" fill="none" opacity={0.5} />
       {/* feet */}
-      <Ellipse cx={78} cy={205} rx={17} ry={9} fill={FUR} stroke={LINE} strokeWidth={2} />
-      <Ellipse cx={122} cy={205} rx={17} ry={9} fill={FUR} stroke={LINE} strokeWidth={2} />
+      {[78, 122].map((x) => (
+        <G key={x}>
+          <Ellipse cx={x} cy={205} rx={17} ry={9} fill={FUR_SHADE} stroke={LINE} strokeWidth={2.4} />
+          <Ellipse cx={x - 3} cy={202.5} rx={13} ry={6} fill={FUR} />
+          <Path d={`M${x - 5} 210 L${x - 5} 206 M${x + 3} 210 L${x + 3} 206`} stroke={LINE} strokeWidth={1.8} strokeLinecap="round" opacity={0.7} />
+        </G>
+      ))}
       {/* body */}
-      <Ellipse cx={100} cy={164} rx={50} ry={44} fill={`url(#${g('body')})`} stroke={LINE} strokeWidth={2} />
-      <Ellipse cx={100} cy={172} rx={31} ry={28} fill={BELLY} />
+      <Shaded d={BODY} id="body-shade" g={g} />
+      <Ellipse cx={96} cy={170} rx={30} ry={27} fill={BELLY} opacity={0.9} />
       {!over && <Arms pose={pose} />}
       {/* head */}
-      <Ellipse cx={100} cy={92} rx={66} ry={57} fill={`url(#${g('body')})`} stroke={LINE} strokeWidth={2} />
+      <Shaded d={HEAD} id="head-shade" g={g} />
       {/* fluff tuft */}
-      <Path d="M88 38 Q94 26 100 36 Q106 24 112 38" stroke={LINE} strokeWidth={2} fill={FUR} />
+      <Path d="M86 39 Q92 24 99 36 Q106 21 114 38" stroke={LINE} strokeWidth={2.4} strokeLinejoin="round" fill={FUR} />
+      {/* muzzle: a lighter patch around the mouth */}
+      <Ellipse cx={98} cy={116} rx={24} ry={15} fill="#FFFAF2" opacity={0.75} />
       {/* forehead gem: four colours, one for each element */}
       <G transform="translate(100 56)">
         <Polygon points="0,-8 6,0 0,8 -6,0" fill="#fff" stroke="#C9B08A" strokeWidth={1.2} />

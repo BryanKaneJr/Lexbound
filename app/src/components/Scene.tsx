@@ -2,6 +2,7 @@ import type { SceneState } from '@lexbound/core';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Actor, artWidth } from '@/art/Actor';
+import { Motes, SceneGrade } from '@/art/atmosphere';
 import { Background } from '@/art/backgrounds';
 import { ACTOR_ART, PROP_ART } from '@/art/ids';
 
@@ -15,6 +16,29 @@ export const SCENE_ASPECT = 400 / 460;
 const ND = Platform.OS !== 'web';
 
 export type SceneAnims = Record<string, { name: string; key: number }>;
+
+/**
+ * How big to draw a scene on this screen, leaving `reserve` px below it for
+ * the dialogue or battle panel. On a tall phone the picture grows to fill
+ * the height, cropping a little off each side (at most 6 percent, the
+ * framing edges, never the stage). `frame` is the visible width; centre the
+ * scene in it with `offset` and clip.
+ */
+export function stageLayout(screenW: number, screenH: number, insetTop: number, insetBottom: number, reserve: number) {
+  const frame = Math.min(screenW, 520);
+  const room = screenH - insetTop - insetBottom - reserve;
+  let width = frame;
+  let height = width / SCENE_ASPECT;
+  if (height < room) {
+    const grow = Math.min(room / height, 1.12);
+    width *= grow;
+    height *= grow;
+  } else if (height > room) {
+    height = Math.max(room, 300);
+    width = height * SCENE_ASPECT;
+  }
+  return { width, height, frame, offset: (frame - width) / 2, crop: Math.max(0, (width - frame) / 2) };
+}
 
 type Props = {
   scene: SceneState;
@@ -31,6 +55,8 @@ type Props = {
   bubble?: ReactNode;
   /** A soft glow behind one prop or actor (the help ladder's "look here"). */
   highlight?: string;
+  /** Px hidden off each side when the screen crops the scene (keeps speech bubbles in view). */
+  crop?: number;
   children?: ReactNode;
 };
 
@@ -57,7 +83,7 @@ function Placed({ left, top, children }: { left: number; top: number; children: 
   return <Animated.View style={{ position: 'absolute', left: 0, top: 0, transform: pos.getTranslateTransform() }}>{children}</Animated.View>;
 }
 
-export function Scene({ scene, width, anims = {}, looks = {}, moods = {}, tappable, onTap, reduced, speaker, bubble, highlight, children }: Props) {
+export function Scene({ scene, width, anims = {}, looks = {}, moods = {}, tappable, onTap, reduced, speaker, bubble, highlight, crop = 0, children }: Props) {
   const W = width;
   const H = width / SCENE_ASPECT;
   const [bubbleSize, setBubbleSize] = useState({ w: 0, h: 0 });
@@ -68,7 +94,7 @@ export function Scene({ scene, width, anims = {}, looks = {}, moods = {}, tappab
   let bubbleStyle: { left: number; top: number } | undefined;
   if (speakerPlacement) {
     const box = placementBox(speakerPlacement.art, speakerPlacement.x, speakerPlacement.y, speakerPlacement.scale, W, H);
-    const left = Math.max(8, Math.min(W - bubbleSize.w - 8, speakerPlacement.x * W - bubbleSize.w / 2));
+    const left = Math.max(8 + crop, Math.min(W - crop - bubbleSize.w - 8, speakerPlacement.x * W - bubbleSize.w / 2));
     let top = box.top - bubbleSize.h - 6;
     if (top < 6) top = Math.min(H - bubbleSize.h - 6, box.top + box.height + 6);
     bubbleStyle = { left, top };
@@ -119,10 +145,12 @@ export function Scene({ scene, width, anims = {}, looks = {}, moods = {}, tappab
           </Placed>
         );
       })}
+      <SceneGrade id={scene.background} width={W} height={H} />
+      <Motes id={scene.background} width={W} height={H} reduced={!!reduced} />
       {children}
       {bubble && bubbleStyle && (
         <View
-          style={[styles.bubbleWrap, { left: bubbleStyle.left, top: bubbleStyle.top, maxWidth: W * 0.78, opacity: bubbleSize.w ? 1 : 0 }]}
+          style={[styles.bubbleWrap, { left: bubbleStyle.left, top: bubbleStyle.top, maxWidth: (W - crop * 2) * 0.86, opacity: bubbleSize.w ? 1 : 0 }]}
           onLayout={(e) => {
             const { width: w, height: h } = e.nativeEvent.layout;
             if (Math.abs(w - bubbleSize.w) > 1 || Math.abs(h - bubbleSize.h) > 1) setBubbleSize({ w, h });

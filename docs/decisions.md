@@ -42,6 +42,18 @@ The language bible's next steps (§81 L9, §37, §79), built as a chapter rather
 
 Not yet: L10 audio refinement, constructions like "voglio / non voglio" (§42, §43), more regions, and a native speaker's review of every line (the new lines included).
 
+## 2026-10-11: A painted storybook look
+
+The first art was programmer art, and the owner needed to see whether the game is worth building. The bible asks for painted backgrounds and illustrated creatures that "feel premium but are inexpensive to produce" (§52), and the language bible makes visuals part of grounding (§73). The art is still drawn in code, but to a written direction (`docs/art-direction.md`):
+
+- **One light per scene**, warm light and cool shade, atmospheric depth, framing foreground shapes, procedural organic silhouettes instead of circles (`app/src/art/paint.tsx`).
+- **Characters shaded the same way**: two soft tones on the lower right, a rim of light on the upper left, outlines in a darker warm version of each colour, contact shadows.
+- **Air over everything** (`LOOKS` in `backgrounds.tsx`, applied by `atmosphere.tsx`): a colour grade laid over actors as well as the painting so they share its light, a vignette, paper grain, drifting motes.
+- **The scene fills the screen.** Encounters and battles grow the picture to the phone's height (cropping at most 6 percent off the framing edges) and continue its ground below it (the apron); dialogue and choices sit in a parchment panel on that ground, with name plates for speakers.
+- **Typefaces**: Fraunces for titles, creature speech, narration and command tiles; Atkinson Hyperlegible for interface text. Bundled, so the game stays offline.
+- **The map** is an inked explorer's map on aged paper.
+- Developer tools gain an **Art lab** (`/artlab`): every scene with actors in it, every actor in every mood, every prop.
+
 ## Stack
 
 - **Expo SDK 57, React Native, TypeScript, Expo Router** (game bible §44), the same versions as the owner's BrainScroll app.
@@ -138,7 +150,7 @@ Story first. Otherwise a weighted pick: x0.25 if seen recently; x0.6 if the same
 
 ## Art
 
-All art is drawn in code with react-native-svg: Milo (14 moods, 10 arm poses, blinking), four Lexling species, Maren, Pip, thirteen props, seven backgrounds, icons. Static drawings come alive through cheap transforms (`art/Actor.tsx`). Milo's ear tips, tail tip and forehead gem carry the four element colours. The language bible ranks visual direction after the language experience (§84), but art is part of grounding (§73): it must show objects, gestures, direction and emotion clearly.
+All art is drawn in code with react-native-svg to the direction in `docs/art-direction.md`: Milo (14 moods, 10 arm poses, blinking), seven Lexling species plus Bluster, Maren, Pip, nineteen props, eight backgrounds, icons. Static drawings come alive through cheap transforms (`art/Actor.tsx`) and drifting motes. Milo's ear tips, tail tip and forehead gem carry the four element colours. The language bible ranks visual direction after the language experience (§84), but art is part of grounding (§73): it must show objects, gestures, direction and emotion clearly.
 
 ## Naming in-world
 

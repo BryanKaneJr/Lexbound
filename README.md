@@ -68,7 +68,7 @@ npm run screens      # the same, saving screenshots to ./screens
 | `content` | The game as data: concepts, Italian lines, Lexlings, places, encounters. Its tests validate every reference, play both chapters and check battle balance. |
 | `app` | The Expo app. Art is drawn in code (`app/src/art`). |
 | `e2e` | Playwright: plays both chapters in a browser build. |
-| `docs` | `language-design.md` (the language contract), `game-bible.md` (the vision), `decisions.md` (how it was built and what changed), `content-guide.md` (writing encounters). |
+| `docs` | `language-design.md` (the language contract), `game-bible.md` (the vision), `decisions.md` (how it was built and what changed), `content-guide.md` (writing encounters), `art-direction.md` (how the art is drawn). |
 
 ## Not yet
 

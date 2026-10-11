@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/art/icons';
-import { color } from '@/theme/tokens';
+import { color, font } from '@/theme/tokens';
 
 /**
  * An RPG's navigation, never a course's (bible §55): Camp, Map, Milo,
@@ -10,7 +10,7 @@ import { color } from '@/theme/tokens';
  */
 function tab(icon: string) {
   return function TabIcon({ focused }: { focused: boolean }) {
-    return <Icon name={icon} size={24} color={focused ? color.amberDeep : color.inkMuted} />;
+    return <Icon name={icon} size={24} color={focused ? color.amber : '#B8A98F'} />;
   };
 }
 
@@ -20,10 +20,10 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: color.ink,
-        tabBarInactiveTintColor: color.inkMuted,
-        tabBarStyle: { backgroundColor: color.paper, borderTopColor: color.paperLine, height: 62 + insets.bottom, paddingTop: 6 },
-        tabBarLabel: ({ color: tint, children }) => <Text style={{ color: tint, fontSize: 11, fontWeight: '800' }}>{children}</Text>,
+        tabBarActiveTintColor: color.amber,
+        tabBarInactiveTintColor: '#B8A98F',
+        tabBarStyle: { backgroundColor: color.night, borderTopColor: '#7A5F3C', borderTopWidth: 1.5, height: 62 + insets.bottom, paddingTop: 6 },
+        tabBarLabel: ({ color: tint, children }) => <Text style={{ color: tint, fontSize: 11, fontFamily: font.uiBold, letterSpacing: 0.4 }}>{children}</Text>,
       }}>
       <Tabs.Screen name="index" options={{ title: 'Camp', tabBarIcon: tab('tent') }} />
       <Tabs.Screen name="map" options={{ title: 'Map', tabBarIcon: tab('map') }} />
