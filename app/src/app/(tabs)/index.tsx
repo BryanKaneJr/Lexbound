@@ -3,14 +3,16 @@ import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Apron, SeamFade } from '@/art/atmosphere';
+import { Background } from '@/art/backgrounds';
 import { Icon } from '@/art/icons';
 import { speakLine } from '@/audio/voice';
 import { Scene, SCENE_ASPECT, type SceneAnims } from '@/components/Scene';
 import { SpeechBubble } from '@/components/Speech';
-import { Bar, Button, Card, IconButton, tapFeedback, Txt, useReducedMotion } from '@/components/ui';
+import { Bar, Button, IconButton, Panel, tapFeedback, Txt, useReducedMotion } from '@/components/ui';
 import { content } from '@/game/content';
 import { useGame } from '@/state/store';
-import { color, radius, space, type } from '@/theme/tokens';
+import { color, font, radius, shadow, space, type } from '@/theme/tokens';
 
 /**
  * Camp: where Milo lives (bible §36). Tap him and he talks to you in the
@@ -31,8 +33,8 @@ export default function Camp() {
   const dispatch = useGame((s) => s.dispatch);
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
-  const { width: screenW, height: screenH } = useWindowDimensions();
-  const sceneW = Math.min(screenW, screenH * 0.5 * SCENE_ASPECT, 520);
+  const { width: screenW } = useWindowDimensions();
+  const sceneW = Math.min(screenW, 520);
   const [anims, setAnims] = useState<SceneAnims>({});
   const [line, setLine] = useState<string | null>(null);
   const [mood, setMood] = useState('happy');
@@ -94,10 +96,11 @@ export default function Camp() {
   };
 
   const places = content.locations.filter((l) => l.kind !== 'home' && !l.comingSoon);
+  const [groundH, setGroundH] = useState(0);
 
   return (
-    <View style={{ flex: 1, backgroundColor: color.paperDeep }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: space.xl }}>
+    <View style={{ flex: 1, backgroundColor: color.night }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ backgroundColor: color.night, paddingTop: insets.top, alignItems: 'center' }}>
           <View>
             <Scene scene={scene} width={sceneW} anims={anims} reduced={reduced} speaker={line ? 'milo' : null} bubble={line ? <SpeechBubble lineId={line} icons={false} audioFirst={false} /> : null}>
@@ -109,35 +112,37 @@ export default function Camp() {
               />
               {story && !line && (
                 <View pointerEvents="none" style={[styles.alert, { left: sceneW * 0.46 - 18, top: sceneW / SCENE_ASPECT * 0.48 }]}>
-                  <Txt style={{ fontSize: 22, fontWeight: '900', color: color.ink }}>!</Txt>
+                  <Txt style={{ fontFamily: font.displayHeavy, fontSize: 22, color: color.ink }}>!</Txt>
                 </View>
               )}
             </Scene>
             <View style={styles.topBar}>
-              <Txt style={[type.title, { color: color.white, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 }]}>Camp</Txt>
-              <IconButton icon="gear" label="Settings" onPress={() => router.push('/settings')} tint={color.white} style={{ backgroundColor: 'rgba(30,43,58,0.35)' }} />
+              <Txt style={[type.title, { color: color.white, textShadowColor: 'rgba(0,0,0,0.45)', textShadowRadius: 8 }]}>Camp</Txt>
+              <IconButton icon="gear" label="Settings" onPress={() => router.push('/settings')} tint={color.white} style={{ backgroundColor: 'rgba(26,34,48,0.5)' }} />
             </View>
           </View>
         </View>
 
-        <View style={{ padding: space.lg, gap: space.lg }}>
-          <Card style={{ gap: space.sm }}>
-            <View style={styles.row}>
-              <Txt style={type.heading}>Milo</Txt>
-              <Txt style={[type.small, { color: color.inkSoft }]}>Level {level}</Txt>
-            </View>
+        {/* The camp's ground carries on below the picture; everything else sits on it. */}
+        <View style={{ flexGrow: 1, alignSelf: 'center', width: sceneW, padding: space.md, paddingTop: space.lg, gap: space.lg }} onLayout={(e) => setGroundH(e.nativeEvent.layout.height)}>
+          <View style={StyleSheet.absoluteFill}>
+            <Apron id="camp" width={sceneW} height={groundH} />
+          </View>
+          <SeamFade id="camp" width={sceneW} height={(sceneW / SCENE_ASPECT) * 0.06} />
+          <Panel name="Milo" nameColor={color.amberDeep}>
             <View style={styles.row}>
               <View style={[styles.row, { gap: 6 }]}>
                 <Icon name="heart" size={16} />
-                <Txt style={[type.small, { color: color.heart }]}>{tier.name}</Txt>
+                <Txt style={{ fontFamily: font.uiBold, fontSize: 14, color: color.heart }}>{tier.name}</Txt>
               </View>
+              <Txt style={{ fontFamily: font.uiBold, fontSize: 14, color: color.inkSoft }}>Level {level}</Txt>
             </View>
             <Bar value={save.milo.bond} max={100} tint={color.heart} height={8} />
-            <Button label={hungry ? 'Share some sunberries' : 'Share a snack'} icon="berries" kind={hungry ? 'primary' : 'secondary'} onPress={snack} style={{ marginTop: space.sm }} />
-          </Card>
+            <Button label={hungry ? 'Share some sunberries' : 'Share a snack'} icon="berries" kind={hungry ? 'primary' : 'secondary'} onPress={snack} />
+          </Panel>
 
           <View style={{ gap: space.sm }}>
-            <Txt style={[type.label, { color: color.inkMuted }]}>Where to?</Txt>
+            <Txt style={[type.label, { color: color.paper, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 }]}>Where to?</Txt>
             {places.map((p) => {
               const waiting = !!nextStory(content, save, p.id);
               return (
@@ -149,16 +154,19 @@ export default function Camp() {
                     tapFeedback();
                     router.push({ pathname: '/place/[id]', params: { id: p.id } });
                   }}
-                  style={({ pressed }) => [styles.place, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}>
+                  style={({ pressed }) => [styles.place, pressed && { backgroundColor: color.amberSoft, transform: [{ translateY: 1 }] }]}>
+                  <View style={styles.thumb}>
+                    <Background id={p.background} width={72} height={72} />
+                  </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Txt style={type.heading}>{p.name}</Txt>
-                    <Txt style={[type.small, { color: color.inkSoft }]} numberOfLines={2}>
+                    <Txt style={{ fontFamily: font.ui, fontSize: 13, lineHeight: 18, color: color.inkSoft }} numberOfLines={2}>
                       {p.blurb}
                     </Txt>
                   </View>
                   {waiting && (
                     <View style={styles.badge}>
-                      <Txt style={{ fontWeight: '900', color: color.ink }}>!</Txt>
+                      <Txt style={{ fontFamily: font.displayHeavy, fontSize: 16, color: color.ink }}>!</Txt>
                     </View>
                   )}
                 </Pressable>
@@ -174,7 +182,8 @@ export default function Camp() {
 const styles = StyleSheet.create({
   topBar: { position: 'absolute', top: space.sm, left: space.lg, right: space.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  alert: { position: 'absolute', width: 36, height: 36, borderRadius: 18, backgroundColor: color.amber, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: color.white },
-  place: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.paper, borderRadius: radius.lg, padding: space.lg, borderWidth: 1, borderColor: color.paperLine },
-  badge: { width: 30, height: 30, borderRadius: 15, backgroundColor: color.amber, alignItems: 'center', justifyContent: 'center' },
+  alert: { position: 'absolute', width: 36, height: 36, borderRadius: 18, backgroundColor: color.amber, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: color.paper, ...shadow.lift },
+  place: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.paper, borderRadius: radius.md, padding: space.sm, paddingRight: space.md, borderWidth: 2, borderBottomWidth: 4, borderColor: color.edge, ...shadow.card },
+  thumb: { width: 72, height: 72, borderRadius: radius.sm, overflow: 'hidden', borderWidth: 1.5, borderColor: color.edgeDark },
+  badge: { width: 30, height: 30, borderRadius: 15, backgroundColor: color.amber, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: color.amberDeep },
 });

@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { blade, blob, Fill, Fog, Glow, mix, ridge, rng, Shafts, tuft, wave } from './paint';
 
 /**
  * Painted locations (bible §9, §52): one illustration each, drawn in code
@@ -182,34 +183,119 @@ const BACKGROUNDS: Record<string, Bg> = {
     </G>
   ),
 
-  forest_stream: (g) => (
-    <G>
-      {sky(g, '#CDEAF2', '#E8F5E8')}
-      {trunk(50, 22, '#B8C9AE')}
-      {trunk(350, 22, '#B8C9AE')}
-      {canopy(60, 40, 80, '#A7CF98')}
-      {canopy(340, 30, 80, '#A7CF98')}
-      {trunk(24, 36, '#7A5634')}
-      {trunk(380, 34, '#6E4A2E')}
-      {canopy(20, 80, 70, '#4E9F6B')}
-      {canopy(390, 70, 70, '#3F8A5A')}
-      <Path d="M0 290 Q200 270 400 290 L400 460 L0 460 Z" fill="#6BA65F" />
-      <Defs>
-        <LinearGradient id={g('water')} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#7CC6F2" />
-          <Stop offset="1" stopColor="#3B8FD9" />
-        </LinearGradient>
-      </Defs>
-      <Path d="M0 318 Q100 300 200 316 T400 312 L400 380 Q300 396 200 382 T0 388 Z" fill={`url(#${g('water')})`} />
-      <Path d="M30 336 Q60 328 90 336 M180 350 Q210 342 240 350 M300 334 Q330 326 360 334" stroke="#fff" strokeWidth={3} strokeLinecap="round" fill="none" opacity={0.8} />
-      <Ellipse cx={120} cy={384} rx={20} ry={9} fill="#9A938A" />
-      <Ellipse cx={290} cy={314} rx={16} ry={7} fill="#9A938A" />
-      <Rect x={0} y={386} width={400} height={74} fill="#5E9C55" />
-      {[40, 340].map((x) => (
-        <G key={x}>{fern(x, 430, 0.9, '#3F8A4E')}</G>
-      ))}
-    </G>
-  ),
+  forest_stream: (g) => {
+    // Morning by a woodland stream. The sun is up and to the left, behind the
+    // canopy: warm light and shafts from there, cool shade on the right.
+    const haze = '#E2EAD2';
+    const r = rng(41);
+    const waterTop = (x: number) => 313 + 3 * wave(51)((x / 400) * Math.PI * 2);
+    const waterBottom = (x: number) => 386 + 4 * wave(52)((x / 400) * Math.PI * 3);
+    const xs = Array.from({ length: 43 }, (_, i) => -10 + i * 10);
+    const water = `M${xs.map((x) => `${x} ${waterTop(x).toFixed(1)}`).join(' L')} L${[...xs].reverse().map((x) => `${x} ${waterBottom(x).toFixed(1)}`).join(' L')} Z`;
+    const reflection = `M${xs.map((x) => `${x} ${waterTop(x).toFixed(1)}`).join(' L')} L${[...xs].reverse().map((x) => `${x} ${(waterTop(x) + 20).toFixed(1)}`).join(' L')} Z`;
+    const rock = (cx: number, cy: number, s: number, seed: number) => (
+      <G key={seed}>
+        <Path d={blob(cx + 2, cy + 4 * s, 15 * s, { seed, lobes: 3, lobe: 0.1, squash: 0.45 })} fill="#3F5559" opacity={0.7} />
+        <Path d={blob(cx, cy, 14 * s, { seed: seed + 1, lobes: 3, lobe: 0.12, squash: 0.62 })} fill="#8E8A80" />
+        <Path d={blob(cx - 3 * s, cy - 3 * s, 9 * s, { seed: seed + 2, lobes: 2, lobe: 0.1, squash: 0.55 })} fill="#C8C1B1" />
+        <Path d={`M${cx - 18 * s} ${cy + 5 * s} Q${cx} ${cy + 11 * s} ${cx + 19 * s} ${cy + 4 * s}`} stroke="#F4FBF8" strokeWidth={2} strokeLinecap="round" fill="none" opacity={0.75} />
+      </G>
+    );
+    const leaves = (cx: number, cy: number, rad: number, seed: number) => (
+      <G key={seed}>
+        <Path d={blob(cx - rad * 0.12, cy - rad * 0.12, rad, { seed, lobes: 9, lobe: 0.22 })} fill="#5C8F63" />
+        <Path d={blob(cx, cy, rad * 0.98, { seed: seed + 1, lobes: 8, lobe: 0.2 })} fill="#2F5A45" />
+        <Path d={blob(cx + rad * 0.16, cy + rad * 0.2, rad * 0.7, { seed: seed + 2, lobes: 6, lobe: 0.18 })} fill="#234636" />
+      </G>
+    );
+    return (
+      <G>
+        <Fill g={g} id="sky" stops={[[0, '#9DCAD2'], [0.42, '#D5E7D2'], [0.7, '#F3EAC4']]} />
+        <Glow g={g} id="sun" cx={112} cy={92} r={200} color="#FFF0C0" opacity={0.95} />
+        {/* the far side of the wood, lost in haze */}
+        <Path d={ridge({ y: 200, amp: 7, seed: 3, crowns: 8, crownAmp: 40 })} fill={mix('#5C8C78', haze, 0.66)} />
+        <Path d={ridge({ y: 208, amp: 6, seed: 4, crowns: 11, crownAmp: 30 })} fill={mix('#5C8C78', haze, 0.66)} />
+        {Array.from({ length: 7 }, (_, i) => {
+          const x = 72 + i * 42 + (r() - 0.5) * 22;
+          const w = 3 + r() * 5;
+          const top = 170 + r() * 40;
+          return <Path key={i} d={`M${x - w * 0.4} ${top} L${x + w * 0.4} ${top} L${x + w * 0.7} 300 L${x - w * 0.7} 300 Z`} fill={mix('#4E3F33', haze, 0.62 + r() * 0.12)} />;
+        })}
+        <Fog g={g} id="fog1" y={236} height={96} color={haze} opacity={0.6} />
+        <Path d={ridge({ y: 264, amp: 6, seed: 9, crowns: 15, crownAmp: 22 })} fill={mix('#4D7C60', haze, 0.36)} />
+        <Shafts g={g} id="shafts" x={60} y={-20} angle={17} length={420} count={5} spread={220} width={30} color="#FFF3CC" opacity={0.3} seed={5} />
+        {/* far bank, its lip catching the light */}
+        <Path d={ridge({ y: 289, amp: 3.5, seed: 21, freq: 1.4 })} fill="#BCD37F" />
+        <Fill g={g} id="bank" d={ridge({ y: 293, amp: 3.5, seed: 21, freq: 1.4 })} stops={[[0, '#97BC63'], [1, '#6A954C']]} />
+        {[40, 96, 180, 250, 318, 372].map((x, i) => (
+          <Path key={x} d={tuft(x, 300, 12 + (i % 3) * 3, 60 + i, 5)} fill="#5A8644" />
+        ))}
+        {/* the stream: sky above it, the far bank reflected under its edge */}
+        <Fill g={g} id="water" d={water} stops={[[0, '#D6EADF'], [0.2, '#A8D1CD'], [0.56, '#6DA8B4'], [1, '#3D7C93']]} />
+        <Fill g={g} id="refl" d={reflection} stops={[[0, '#557F4F', 0.6], [1, '#557F4F', 0]]} />
+        <G transform="translate(132 336) scale(1 0.2) translate(-132 -336)">
+          <Glow g={g} id="glint" cx={132} cy={336} r={110} color="#FFFBEA" opacity={0.85} />
+        </G>
+        {[
+          [24, 330, 34], [92, 346, 26], [160, 326, 40], [214, 358, 30], [282, 338, 36], [340, 362, 28], [60, 372, 22], [250, 376, 24],
+        ].map(([x, y, l], i) => (
+          <Path key={i} d={`M${x} ${y} Q${x! + l! / 2} ${y! - 3} ${x! + l!} ${y}`} stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" fill="none" opacity={0.6} />
+        ))}
+        {[[120, 352, 30], [300, 350, 26], [190, 372, 34]].map(([x, y, l], i) => (
+          <Path key={`d${i}`} d={`M${x} ${y} Q${x! + l! / 2} ${y! + 3} ${x! + l!} ${y}`} stroke="#2C6479" strokeWidth={2} strokeLinecap="round" fill="none" opacity={0.35} />
+        ))}
+        {rock(296, 318, 0.9, 70)}
+        {rock(108, 376, 1.15, 80)}
+        {rock(360, 380, 0.7, 90)}
+        <Fog g={g} id="mist" y={316} height={36} color="#F4F2DE" opacity={0.4} />
+        {/* near bank */}
+        <Path d={ridge({ y: 383, amp: 3, seed: 33, freq: 1.2 })} fill="#A6C875" />
+        <Fill g={g} id="near" d={ridge({ y: 387, amp: 3, seed: 33, freq: 1.2 })} stops={[[0, '#84AD5A'], [0.25, '#6E9B4D'], [1, '#4A7438']]} />
+        {[[70, 392, 4], [150, 395, 3], [236, 390, 3.5], [318, 394, 3]].map(([x, y, s], i) => (
+          <G key={`p${i}`}>
+            <Ellipse cx={x} cy={y} rx={s! * 1.6} ry={s} fill="#8E8673" />
+            <Ellipse cx={x! - 1} cy={y! - 1} rx={s! * 1.1} ry={s! * 0.6} fill="#C3B9A2" />
+          </G>
+        ))}
+        {[[150, 420, 70, 10], [270, 438, 60, 9], [60, 446, 40, 7]].map(([x, y, rx, ry], i) => (
+          <Ellipse key={`l${i}`} cx={x} cy={y} rx={rx} ry={ry} fill="#F6EDB0" opacity={0.17} />
+        ))}
+        {[[44, 404, 16], [120, 412, 12], [206, 404, 14], [292, 410, 13], [352, 402, 15], [90, 450, 20], [330, 452, 22]].map(([x, y, h], i) => (
+          <Path key={`t${i}`} d={tuft(x!, y!, h!, 90 + i, 7)} fill={i > 4 ? '#3B6531' : '#4E7C3B'} />
+        ))}
+        {/* the big trees either side, and the canopy overhead */}
+        <Defs>
+          <LinearGradient id={g('trunkL')} x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0" stopColor="#7A6248" />
+            <Stop offset="0.45" stopColor="#4D3C2D" />
+            <Stop offset="1" stopColor="#2C221B" />
+          </LinearGradient>
+          <LinearGradient id={g('trunkR')} x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0" stopColor="#6B5640" />
+            <Stop offset="0.18" stopColor="#3A2D23" />
+            <Stop offset="1" stopColor="#231A15" />
+          </LinearGradient>
+        </Defs>
+        <Path d="M-20 -10 L30 -10 C26 120 27 262 33 352 C37 400 54 432 72 470 L-20 470 Z" fill={`url(#${g('trunkL')})`} />
+        <Path d="M6 40 C9 140 7 260 12 380 M18 70 C21 170 20 280 24 360" stroke="#231A14" strokeWidth={2.5} fill="none" opacity={0.45} />
+        <Path d={blob(10, 400, 26, { seed: 7, lobes: 5, lobe: 0.25, squash: 0.6 })} fill="#5F7F43" opacity={0.85} />
+        <Path d="M410 -10 L367 -10 C371 110 369 250 365 348 C362 398 345 432 330 470 L410 470 Z" fill={`url(#${g('trunkR')})`} />
+        <Path d="M367 -10 C371 110 369 250 365 348 C362 398 345 432 330 470" stroke="#A98B6A" strokeWidth={2} fill="none" opacity={0.45} />
+        {leaves(24, 8, 74, 100)}
+        {leaves(118, -24, 54, 110)}
+        {leaves(384, 18, 76, 120)}
+        {leaves(296, -26, 50, 130)}
+        {/* ferns in the near corners, in shadow */}
+        {[[-4, 470, 1, 1], [404, 470, -1, 0.75]].map(([x, y, dir, s], i) => (
+          <G key={`f${i}`}>
+            {[0, 1, 2, 3, 4].map((k) => (
+              <Path key={k} d={blade(x!, y!, (64 + k * 12) * s!, dir! * (16 + k * 14) * s!, 6)} fill={k % 2 ? '#25432F' : '#2C4E36'} />
+            ))}
+          </G>
+        ))}
+      </G>
+    );
+  },
 
   forest_clearing: (g) => (
     <G>
@@ -337,6 +423,45 @@ const BACKGROUNDS: Record<string, Bg> = {
 };
 
 export const BACKGROUND_IDS = Object.keys(BACKGROUNDS);
+
+/**
+ * How each scene is lit, beyond its painting: a colour grade laid over
+ * everything in it (actors too, so they stand in the same light), the
+ * vignette, the specks drifting in the air, and the colours of the ground
+ * continuing below the picture (the apron, under the dialogue box).
+ */
+export type Look = {
+  /** Tint falling from above: colour and strength at the top edge. */
+  light: [string, number];
+  /** Shade rising from below: colour and strength at the bottom edge. */
+  shade: [string, number];
+  vignette: number;
+  /** Specks in the air. `rise` is how far each drifts up per loop (negative falls). */
+  motes?: { color: string; count: number; size: number; rise: number };
+  /** The ground below the picture: its colour at the seam, and at the bottom. */
+  apron: [string, string];
+  /** Silhouettes along the apron's top edge (grass, fern, floorboards, stone). */
+  apronEdge?: 'grass' | 'boards' | 'stone' | 'moss';
+  apronEdgeColor?: string;
+};
+
+const DEFAULT_LOOK: Look = { light: ['#FFF4D8', 0], shade: ['#1B2433', 0.12], vignette: 0.28, apron: ['#4F7A40', '#25381F'], apronEdge: 'grass', apronEdgeColor: '#3B6531' };
+
+export const LOOKS: Record<string, Look> = {
+  forest_stream: {
+    light: ['#FFE6AE', 0.14],
+    shade: ['#16323C', 0.24],
+    vignette: 0.38,
+    motes: { color: '#FFF3C4', count: 16, size: 2.2, rise: 26 },
+    apron: ['#4A7438', '#1F331E'],
+    apronEdge: 'grass',
+    apronEdgeColor: '#3B6531',
+  },
+};
+
+export function lookFor(id: string): Look {
+  return LOOKS[id] ?? DEFAULT_LOOK;
+}
 
 export function Background({ id, width, height }: { id: string; width: number; height: number }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');

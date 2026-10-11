@@ -15,15 +15,16 @@ import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/art/icons';
 import { speakLine, stopVoice } from '@/audio/voice';
+import { Apron, SeamFade } from '@/art/atmosphere';
 import { Battle } from '@/components/Battle';
 import { Inscription } from '@/components/Inscription';
-import { Scene, SCENE_ASPECT, type SceneAnims } from '@/components/Scene';
+import { Scene, stageLayout, type SceneAnims } from '@/components/Scene';
 import { SpeechBubble, SpeechHelp } from '@/components/Speech';
-import { Button, IconButton, tapFeedback, Txt, useReducedMotion } from '@/components/ui';
+import { Button, Choice, IconButton, Panel, tapFeedback, Txt, useReducedMotion } from '@/components/ui';
 import { content, lineScaffold, speakerName } from '@/game/content';
 import { useNow } from '@/game/useNow';
 import { takeSeed, useGame } from '@/state/store';
-import { color, radius, shadow, space, type } from '@/theme/tokens';
+import { color, font, radius, shadow, space, type } from '@/theme/tokens';
 
 /**
  * The encounter player. It renders whatever step the encounter engine is on
@@ -43,13 +44,15 @@ function Play({ encounterId }: { encounterId: string }) {
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
   const { width: screenW, height: screenH } = useWindowDimensions();
-  const sceneW = Math.min(screenW, screenH * 0.58 * SCENE_ASPECT, 520);
+  // Room below the picture for a panel of three choices.
+  const stage = stageLayout(screenW, screenH, insets.top, insets.bottom, 268);
 
   const [run, setRun] = useState<EncounterRun | null>(null);
   const [stepKey, setStepKey] = useState(0);
   const [replays, setReplays] = useState(0);
   const [hint, setHint] = useState<0 | 1 | 2 | 3>(0);
   const [revealed, setRevealed] = useState(false);
+  const [apronH, setApronH] = useState(0);
   const started = useRef(false);
   const now = useNow();
 
@@ -124,8 +127,8 @@ function Play({ encounterId }: { encounterId: string }) {
   if (step?.type === 'say' && content.line.get(step.line)?.speaker === WRITING) {
     // Written words have no speaker: they appear carved, over the scene.
     carved = (
-      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { paddingTop: (sceneW / SCENE_ASPECT) * 0.15, alignItems: 'center' }]}>
-        <Inscription lineId={step.line} width={sceneW} />
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { paddingTop: stage.height * 0.15, alignItems: 'center' }]}>
+        <Inscription lineId={step.line} width={stage.width - stage.crop * 2} />
       </View>
     );
   } else if (step?.type === 'say') {
@@ -159,29 +162,37 @@ function Play({ encounterId }: { encounterId: string }) {
 
   return (
     <View style={styles.fill}>
-      <View style={{ paddingTop: insets.top, alignItems: 'center', backgroundColor: color.night }}>
-        <View>
-          <Scene
-            scene={run.scene}
-            width={sceneW}
-            anims={anims}
-            looks={looks}
-            reduced={reduced}
-            tappable={step?.type === 'tap'}
-            onTap={(prop) => send({ type: 'tap', prop })}
-            speaker={speaker}
-            bubble={bubble}
-            highlight={step?.type === 'say' && hint >= 2 ? step.look : undefined}>
-            {carved}
-          </Scene>
-          {/* The opening scene can't be skipped: it's where you meet Milo. */}
-          {!run.done && encounter.id !== 'lodge.intro' && <IconButton icon="close" label="Leave" onPress={leave} tint={color.paper} style={styles.close} size={18} />}
+      <View style={{ width: stage.frame, alignSelf: 'center', flex: 1 }}>
+        <View style={{ paddingTop: insets.top, backgroundColor: color.night }}>
+          <View style={{ height: stage.height, overflow: 'hidden' }}>
+            <View style={{ position: 'absolute', left: stage.offset, top: 0 }}>
+              <Scene
+                scene={run.scene}
+                width={stage.width}
+                crop={stage.crop}
+                anims={anims}
+                looks={looks}
+                reduced={reduced}
+                tappable={step?.type === 'tap'}
+                onTap={(prop) => send({ type: 'tap', prop })}
+                speaker={speaker}
+                bubble={bubble}
+                highlight={step?.type === 'say' && hint >= 2 ? step.look : undefined}>
+                {carved}
+              </Scene>
+            </View>
+            {/* The opening scene can't be skipped: it's where you meet Milo. */}
+            {!run.done && encounter.id !== 'lodge.intro' && <IconButton icon="close" label="Leave" onPress={leave} tint={color.paper} style={styles.close} size={18} />}
+          </View>
         </View>
-      </View>
-      <View style={[styles.panel, { paddingBottom: insets.bottom + space.md }]}>
-        <ScrollView contentContainerStyle={{ gap: space.md, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-          {run.done ? <EndPanel encounterId={encounter.id} complete={run.complete} /> : step && <StepPanel step={step} send={send} hint={hint} onHelp={help} />}
-        </ScrollView>
+        {/* The scene's ground carries on below the picture; the dialogue sits on it. */}
+        <View style={{ flex: 1 }} onLayout={(e) => setApronH(e.nativeEvent.layout.height)}>
+          <Apron id={run.scene.background} width={stage.frame} height={apronH} />
+          <SeamFade id={run.scene.background} width={stage.frame} height={stage.height * 0.07} />
+          <ScrollView contentContainerStyle={[styles.dock, { paddingBottom: insets.bottom + space.md }]} keyboardShouldPersistTaps="handled">
+            {run.done ? <EndPanel encounterId={encounter.id} complete={run.complete} /> : step && <StepPanel step={step} send={send} hint={hint} onHelp={help} />}
+          </ScrollView>
+        </View>
       </View>
     </View>
   );
@@ -189,9 +200,9 @@ function Play({ encounterId }: { encounterId: string }) {
 
 function Continue({ onPress }: { onPress: () => void }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel="Continue" onPress={() => { tapFeedback(); onPress(); }} style={styles.continue}>
-      <Txt style={[type.small, { color: color.inkSoft }]}>Continue</Txt>
-      <Txt style={{ fontSize: 16, color: color.amberDeep, fontWeight: '900' }}>▶</Txt>
+    <Pressable accessibilityRole="button" accessibilityLabel="Continue" onPress={() => { tapFeedback(); onPress(); }} style={({ pressed }) => [styles.continue, pressed && { backgroundColor: color.amberSoft }]}>
+      <Txt style={{ fontFamily: font.uiBold, fontSize: 14, color: color.inkSoft }}>Continue</Txt>
+      <Txt style={{ fontFamily: font.uiBold, fontSize: 13, color: color.amberDeep }}>▶</Txt>
     </Pressable>
   );
 }
@@ -201,62 +212,67 @@ function StepPanel({ step, send, hint, onHelp }: { step: Step; send: (i: Encount
   switch (step.type) {
     case 'narrate':
       return (
-        <Pressable onPress={go} style={{ gap: space.md }} accessible={false}>
-          <Txt style={[type.body, styles.narration]}>{step.text}</Txt>
-          <Continue onPress={go} />
+        <Pressable onPress={go} accessible={false}>
+          <Panel>
+            <Txt style={[type.story, styles.narration]}>{step.text}</Txt>
+            <Continue onPress={go} />
+          </Panel>
         </Pressable>
       );
     case 'talk': {
       const npc = content.npc.get(step.npc);
       return (
-        <Pressable onPress={go} style={{ gap: space.sm }} accessible={false}>
-          <View style={[styles.nameTag, { backgroundColor: npc?.color ?? color.inkSoft }]}>
-            <Txt style={[type.small, { color: color.white }]}>{npc?.name ?? step.npc}</Txt>
-          </View>
-          <Txt style={type.body}>{step.text}</Txt>
-          <Continue onPress={go} />
+        <Pressable onPress={go} accessible={false}>
+          <Panel name={npc?.name ?? step.npc} nameColor={npc?.color}>
+            <Txt style={[type.body, { fontSize: 17, lineHeight: 25 }]}>{step.text}</Txt>
+            <Continue onPress={go} />
+          </Panel>
         </Pressable>
       );
     }
     case 'say': {
       const line = content.line.get(step.line);
+      const who = step.by ? step.by.charAt(0).toUpperCase() + step.by.slice(1) : line ? speakerName(line.speaker) : '';
       return (
-        <View style={{ gap: space.md }}>
-          <Txt style={[type.label, { color: color.inkMuted }]}>{step.by ? step.by.charAt(0).toUpperCase() + step.by.slice(1) : line ? speakerName(line.speaker) : ''}</Txt>
+        <Panel name={who} nameColor={line?.speaker === 'milo' ? color.amberDeep : color.edgeDark}>
           <SpeechHelp lineId={step.line} rung={hint} onReplay={() => speakLine(step.line)} onHelp={onHelp} />
           <Continue onPress={go} />
-        </View>
+        </Panel>
       );
     }
     case 'act':
       return step.text ? (
-        <Pressable onPress={go} style={{ gap: space.md }} accessible={false}>
-          <Txt style={[type.body, styles.narration]}>{step.text}</Txt>
-          <Continue onPress={go} />
+        <Pressable onPress={go} accessible={false}>
+          <Panel>
+            <Txt style={[type.story, styles.narration]}>{step.text}</Txt>
+            <Continue onPress={go} />
+          </Panel>
         </Pressable>
       ) : (
         <View />
       );
     case 'choice':
       return (
-        <View style={{ gap: space.sm }}>
-          {step.prompt && <Txt style={[type.body, styles.narration]}>{step.prompt}</Txt>}
-          {step.options.map((o, i) => (
-            <Button key={o.label} label={o.label} kind="secondary" onPress={() => send({ type: 'choose', option: i })} />
-          ))}
-        </View>
+        <Panel>
+          {step.prompt && <Txt style={[type.story, styles.narration]}>{step.prompt}</Txt>}
+          <View style={{ gap: space.sm }}>
+            {step.options.map((o, i) => (
+              <Choice key={o.label} label={o.label} onPress={() => send({ type: 'choose', option: i })} />
+            ))}
+          </View>
+        </Panel>
       );
     case 'tap':
       return (
-        <View style={{ gap: space.sm }}>
-          <Txt style={[type.body, styles.narration]}>{step.prompt ?? 'Tap something in the scene.'}</Txt>
-        </View>
+        <Panel>
+          <Txt style={[type.story, styles.narration]}>{step.prompt ?? 'Tap something in the scene.'}</Txt>
+        </Panel>
       );
     case 'give': {
       const to = step.to === 'milo' ? 'Milo' : speakerName(step.to);
       return (
-        <View style={{ gap: space.sm }}>
-          <Txt style={[type.body, styles.narration]}>{step.prompt ?? `What do you give ${to}?`}</Txt>
+        <Panel>
+          <Txt style={[type.story, styles.narration]}>{step.prompt ?? `What do you give ${to}?`}</Txt>
           <View style={styles.items}>
             {step.items.map((it) => {
               const item = content.item.get(it.item);
@@ -269,14 +285,14 @@ function StepPanel({ step, send, hint, onHelp }: { step: Step; send: (i: Encount
                     tapFeedback();
                     send({ type: 'give', item: it.item });
                   }}
-                  style={({ pressed }) => [styles.item, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
+                  style={({ pressed }) => [styles.item, pressed && { backgroundColor: color.amberSoft, transform: [{ translateY: 1 }] }]}>
                   <Icon name={item?.icon ?? 'bag'} size={40} />
-                  <Txt style={[type.small, { textAlign: 'center' }]}>{item?.name ?? it.item}</Txt>
+                  <Txt style={{ fontFamily: font.uiBold, fontSize: 13, textAlign: 'center' }}>{item?.name ?? it.item}</Txt>
                 </Pressable>
               );
             })}
           </View>
-        </View>
+        </Panel>
       );
     }
     default:
@@ -296,29 +312,28 @@ function EndPanel({ encounterId, complete }: { encounterId: string; complete: bo
   const home = () => router.replace('/');
   if (encounterId === 'lodge.intro') {
     return (
-      <View style={{ gap: space.md }}>
-        <Txt style={type.heading}>Milo is coming home with you.</Txt>
+      <Panel>
+        <Txt style={type.title}>Milo is coming home with you.</Txt>
         <Button label="Go to camp" onPress={home} />
-      </View>
+      </Panel>
     );
   }
   return (
-    <View style={{ gap: space.sm }}>
-      <Txt style={[type.heading, { marginBottom: space.xs }]}>{complete ? enc.title : 'Back to safety'}</Txt>
+    <Panel>
+      <Txt style={type.title}>{complete ? enc.title : 'Back to safety'}</Txt>
       {location?.kind === 'explore' && <Button label={complete ? 'Keep exploring' : 'Try again'} onPress={exploreAgain} />}
       {location?.kind === 'hub' && <Button label="Back to the Lodge" kind="secondary" onPress={() => router.replace({ pathname: '/place/[id]', params: { id: enc.location } })} />}
       <Button label="Back to camp" kind={location?.kind === 'explore' ? 'secondary' : 'primary'} onPress={home} />
-    </View>
+    </Panel>
   );
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: color.paperDeep },
-  panel: { flex: 1, backgroundColor: color.paperDeep, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.lg, marginTop: -space.lg },
-  close: { position: 'absolute', top: space.sm, left: space.sm, backgroundColor: 'rgba(30,43,58,0.45)' },
-  narration: { color: color.inkSoft, fontStyle: 'italic' },
-  nameTag: { alignSelf: 'flex-start', paddingHorizontal: space.md, paddingVertical: 4, borderRadius: radius.pill },
-  continue: { alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm, paddingHorizontal: space.md, borderRadius: radius.pill, backgroundColor: color.paper, borderWidth: 1, borderColor: color.paperLine },
+  fill: { flex: 1, backgroundColor: color.night },
+  dock: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: space.md, paddingTop: space.xl },
+  close: { position: 'absolute', top: space.sm, left: space.sm, backgroundColor: 'rgba(26,34,48,0.55)' },
+  narration: { color: color.inkSoft },
+  continue: { alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm, paddingHorizontal: space.md, borderRadius: radius.pill, backgroundColor: color.paperDeep, borderWidth: 1.5, borderColor: color.paperLine },
   items: { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' },
-  item: { width: 96, alignItems: 'center', gap: space.xs, padding: space.md, borderRadius: radius.lg, backgroundColor: color.paper, borderWidth: 2, borderColor: color.paperLine, ...shadow.card },
+  item: { width: 96, alignItems: 'center', gap: space.xs, padding: space.md, borderRadius: radius.md, backgroundColor: color.paper, borderWidth: 2, borderBottomWidth: 4, borderColor: color.edge, ...shadow.card },
 });

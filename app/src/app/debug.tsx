@@ -160,6 +160,7 @@ export default function Debug() {
               <Txt style={[type.small, { fontWeight: '600' }]}>{f} ✕</Txt>
             </Pressable>
           ))}
+          <Button label="Art lab" kind="secondary" onPress={() => router.push('/artlab')} />
           <Button label="Skip to after the Emberhog" kind="secondary" onPress={() => edit((s) => skipStory(s, 8, 30))} />
           <Button label="Skip to Chapter Two" kind="secondary" onPress={() => edit((s) => skipStory(s, 11, 30))} />
           <Button label="Skip to the Old Hollow" kind="secondary" onPress={() => edit((s) => skipStory(s, 13, 55))} />

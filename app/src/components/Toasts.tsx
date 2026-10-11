@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingHorizontal: space.lg,
     paddingVertical: space.sm,
-    borderWidth: 1,
-    borderColor: color.paperLine,
+    borderWidth: 1.5,
+    borderColor: color.edge,
     ...shadow.lift,
   },
 });

@@ -55,5 +55,6 @@ Names: the game is **Lexbound**, the world **Lexora**, the creatures **Lexlings*
 - Build from `app/src/components/ui.tsx` and `app/src/theme/tokens.ts`. Text goes through `Txt` so the text-size setting applies.
 - Respect Reduce Motion (`useReducedMotion`): animations collapse to state changes.
 - React lint rules forbid reading refs during render: hold `Animated.Value`s in `useState(() => new Animated.Value(0))`, and read the time with `useNow()` instead of `Date.now()` in render.
-- Art is drawn in code (`app/src/art`). Register sizes in `art/ids.ts` (the content tests check every scene against it) and shapes in `ASPECT` (`art/Actor.tsx`).
+- Art is drawn in code (`app/src/art`) to `docs/art-direction.md`: one light from the upper left, `Shaded` two-tone forms, organic silhouettes from `art/paint.tsx`, a `LOOKS` entry per background. Check it in Developer tools, Art lab. Register sizes in `art/ids.ts` (the content tests check every scene against it) and shapes in `ASPECT` (`art/Actor.tsx`).
+- Text uses the bundled typefaces through `type` and `font` tokens (Fraunces for display, creature speech and narration; Atkinson Hyperlegible for interface text). Custom fonts carry their weight in the family name; `Txt` maps a bare `fontWeight` to the right file.
 - Keep e2e (`e2e/slice.mjs`, `e2e/chapter2.mjs`) in step with button labels it relies on.

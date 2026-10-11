@@ -20,10 +20,11 @@ import { speakCall, speakLine } from '@/audio/voice';
 import { content, conceptLevel, elementColor, lineScaffold, wordFor } from '@/game/content';
 import { useNow } from '@/game/useNow';
 import { takeSeed, useGame } from '@/state/store';
-import { color, radius, shadow, space, type } from '@/theme/tokens';
-import { placementBox, Scene, SCENE_ASPECT, type SceneAnims } from './Scene';
+import { color, font, radius, shadow, space, type } from '@/theme/tokens';
+import { Apron, SeamFade } from '@/art/atmosphere';
+import { placementBox, Scene, stageLayout, type SceneAnims } from './Scene';
 import { SpeechBubble } from './Speech';
-import { Bar, Button, tapFeedback, Txt, useReducedMotion } from './ui';
+import { Bar, Button, Panel, tapFeedback, Txt, useReducedMotion } from './ui';
 
 /**
  * A battle (bible §11-18). The enemy announces its move in the creature
@@ -66,8 +67,11 @@ export function Battle({ enemy, background, context, name, art, onEnd }: BattleP
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
   const { width: screenW, height: screenH } = useWindowDimensions();
-  const sceneW = Math.min(screenW, (screenH * 0.56) * SCENE_ASPECT, 520);
-  const sceneH = sceneW / SCENE_ASPECT;
+  // Room below the picture for the verb row and four tiles.
+  const stage = stageLayout(screenW, screenH, insets.top, insets.bottom, 318);
+  const sceneW = stage.width;
+  const sceneH = stage.height;
+  const [apronH, setApronH] = useState(0);
 
   const [state, setState] = useState<BattleState | null>(null);
   const [busy, setBusy] = useState(true);
@@ -303,149 +307,160 @@ export function Battle({ enemy, background, context, name, art, onEnd }: BattleP
 
   return (
     <View style={{ flex: 1, backgroundColor: color.night }}>
-      <View style={{ paddingTop: insets.top, alignItems: 'center' }}>
-        <Animated.View style={{ transform: [{ translateX: shake }] }}>
-          <Scene
-            scene={sceneState}
-            width={sceneW}
-            anims={anims}
-            moods={moods}
-            reduced={reduced}
-            speaker={bubble?.speaker === 'milo' ? 'milo' : bubble ? enemy : null}
-            bubble={bubble ? <SpeechBubble lineId={bubble.line} icons={false} audioFirst={false} /> : null}>
-            {windup === 'embers' && <Embers at={{ x: foeBox.left + foeBox.width * 0.06, y: foeBox.top + foeBox.height * 0.72 }} reduced={reduced} />}
-            {windup === 'paw' && <Dust at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height }} reduced={reduced} />}
-            {windup === 'ready' && <Smoke at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height * 0.2 }} reduced={reduced} />}
-            {windup === 'inferno' && <Embers at={{ x: foeBox.left + foeBox.width * 0.06, y: foeBox.top + foeBox.height * 0.7 }} reduced={reduced} scale={2.2} />}
-            {windup && PARTICLES[windup] && <Particles key={windup} at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height * 0.55 }} spread={foeBox.width} {...PARTICLES[windup]} reduced={reduced} />}
-            {shield && <Shield key={shield.key} shield={shield} at={{ x: miloBox.left + miloBox.width * 1.05, y: miloBox.top + miloBox.height }} height={miloBox.height * 1.1} reduced={reduced} />}
-            {call && (
-              <View pointerEvents="none" style={[styles.call, { top: Math.max(space.sm, miloBox.top - 52), left: Math.max(space.sm, miloBox.left - space.md), maxWidth: sceneW * 0.55 }]}>
-                <Txt style={styles.callText}>{call.text}</Txt>
-              </View>
-            )}
-            {fx?.kind === 'wall' && <Wall key={fx.key} at={{ x: (miloBox.left + miloBox.width + foeBox.left) / 2, y: foeBox.top + foeBox.height }} height={foeBox.height * 0.9} reduced={reduced} />}
-            {fx && fx.kind !== 'wall' && (
-              <Shot
-                key={fx.key}
-                fx={fx}
-                from={fx.from === 'milo' ? centre(miloBox) : { x: foeBox.left + foeBox.width * 0.15, y: foeBox.top + foeBox.height * 0.6 }}
-                to={fx.from === 'milo' ? centre(foeBox) : centre(miloBox)}
+      <View style={{ width: stage.frame, alignSelf: 'center', flex: 1 }}>
+        <View style={{ paddingTop: insets.top }}>
+          <Animated.View style={{ height: sceneH, overflow: 'hidden', transform: [{ translateX: shake }] }}>
+            <View style={{ position: 'absolute', left: stage.offset, top: 0 }}>
+              <Scene
+                scene={sceneState}
+                width={sceneW}
+                crop={stage.crop}
+                anims={anims}
+                moods={moods}
                 reduced={reduced}
-              />
-            )}
-            {popups.map((p) => (
-              <DamagePop key={p.key} popup={p} at={centre(p.target === 'milo' ? miloBox : foeBox)} reduced={reduced} />
-            ))}
-            <View style={[styles.hpCard, { right: space.sm, top: space.sm }]}>
-              <Txt style={styles.hpName}>{foeName}</Txt>
-              <Bar value={hp.foe} max={hp.foeMax} tint={hpTint(hp.foe, hp.foeMax)} />
+                speaker={bubble?.speaker === 'milo' ? 'milo' : bubble ? enemy : null}
+                bubble={bubble ? <SpeechBubble lineId={bubble.line} icons={false} audioFirst={false} /> : null}>
+                {windup === 'embers' && <Embers at={{ x: foeBox.left + foeBox.width * 0.06, y: foeBox.top + foeBox.height * 0.72 }} reduced={reduced} />}
+                {windup === 'paw' && <Dust at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height }} reduced={reduced} />}
+                {windup === 'ready' && <Smoke at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height * 0.2 }} reduced={reduced} />}
+                {windup === 'inferno' && <Embers at={{ x: foeBox.left + foeBox.width * 0.06, y: foeBox.top + foeBox.height * 0.7 }} reduced={reduced} scale={2.2} />}
+                {windup && PARTICLES[windup] && <Particles key={windup} at={{ x: foeBox.left + foeBox.width * 0.5, y: foeBox.top + foeBox.height * 0.55 }} spread={foeBox.width} {...PARTICLES[windup]} reduced={reduced} />}
+                {shield && <Shield key={shield.key} shield={shield} at={{ x: miloBox.left + miloBox.width * 1.05, y: miloBox.top + miloBox.height }} height={miloBox.height * 1.1} reduced={reduced} />}
+                {call && (
+                  <View pointerEvents="none" style={[styles.call, { top: Math.max(space.sm, miloBox.top - 52), left: Math.max(space.sm, miloBox.left - space.md), maxWidth: sceneW * 0.55 }]}>
+                    <Txt style={styles.callText}>{call.text}</Txt>
+                  </View>
+                )}
+                {fx?.kind === 'wall' && <Wall key={fx.key} at={{ x: (miloBox.left + miloBox.width + foeBox.left) / 2, y: foeBox.top + foeBox.height }} height={foeBox.height * 0.9} reduced={reduced} />}
+                {fx && fx.kind !== 'wall' && (
+                  <Shot
+                    key={fx.key}
+                    fx={fx}
+                    from={fx.from === 'milo' ? centre(miloBox) : { x: foeBox.left + foeBox.width * 0.15, y: foeBox.top + foeBox.height * 0.6 }}
+                    to={fx.from === 'milo' ? centre(foeBox) : centre(miloBox)}
+                    reduced={reduced}
+                  />
+                )}
+                {popups.map((p) => (
+                  <DamagePop key={p.key} popup={p} at={centre(p.target === 'milo' ? miloBox : foeBox)} reduced={reduced} />
+                ))}
+                <View style={[styles.hpCard, { right: stage.crop + space.sm, top: space.sm }]}>
+                  <Txt style={styles.hpName}>{foeName}</Txt>
+                  <Bar value={hp.foe} max={hp.foeMax} tint={hpTint(hp.foe, hp.foeMax)} track="rgba(255,255,255,0.16)" />
+                </View>
+                <View style={[styles.hpCard, { left: stage.crop + space.sm, top: space.sm }]}>
+                  <Txt style={styles.hpName}>Milo · Lv {state?.milo.level ?? miloLevel(save)}</Txt>
+                  <Bar value={hp.milo} max={hp.miloMax} tint={hpTint(hp.milo, hp.miloMax)} track="rgba(255,255,255,0.16)" />
+                  <Txt style={styles.hpNum}>
+                    {hp.milo} / {hp.miloMax}
+                  </Txt>
+                </View>
+              </Scene>
             </View>
-            <View style={[styles.hpCard, { left: space.sm, bottom: space.sm }]}>
-              <Txt style={styles.hpName}>Milo · Lv {state?.milo.level ?? miloLevel(save)}</Txt>
-              <Bar value={hp.milo} max={hp.miloMax} tint={hpTint(hp.milo, hp.miloMax)} />
-              <Txt style={styles.hpNum}>
-                {hp.milo} / {hp.miloMax}
-              </Txt>
-            </View>
-          </Scene>
-        </Animated.View>
-      </View>
+          </Animated.View>
+        </View>
 
-      <View style={[styles.panel, { paddingBottom: insets.bottom + space.md }]}>
-        {result ? (
-          <View style={{ gap: space.md }}>
-            <Txt style={[type.title, { textAlign: 'center' }]}>{result === 'win' ? `${name ? name : `The ${foeName}`} backs off!` : 'Milo is worn out.'}</Txt>
-            <Txt style={[type.body, { textAlign: 'center', color: color.inkSoft }]}>
-              {result === 'win' ? `+${content.lexling.get(enemy)?.battle?.xp ?? 0} XP` : 'No harm done. You can always try again.'}
-            </Txt>
-            <Button label="Continue" onPress={() => onEnd(result)} />
-          </View>
-        ) : (
-          <>
-            <View style={styles.panelHead}>
-              <Txt style={[type.label, { color: color.inkMuted }]}>{busy ? ' ' : 'Your call'}</Txt>
-              <View style={{ flexDirection: 'row', gap: space.sm }}>
-                {lastTelegraph && (
-                  <Pressable accessibilityRole="button" accessibilityLabel="Hear it again" onPress={() => speakLine(lastTelegraph)} style={styles.chip}>
-                    <Icon name="speaker" size={16} color={color.inkSoft} />
-                  </Pressable>
-                )}
-                {hint < 3 && (
-                  <Pressable accessibilityRole="button" accessibilityLabel="Help" onPress={askHint} disabled={busy} style={[styles.chip, busy && { opacity: 0.4 }]}>
-                    <Icon name="question" size={16} color={color.inkSoft} />
-                    <Txt style={[type.small, { color: color.inkSoft }]}>Help</Txt>
-                  </Pressable>
-                )}
-              </View>
-            </View>
-            {hint >= 1 && <Txt style={[type.body, { fontStyle: 'italic', color: color.inkSoft, marginBottom: space.sm }]}>{content.lexling.get(enemy)?.battle?.clue}</Txt>}
-            {verbs.length >= 2 && (
-              <View style={styles.verbs} testID="verbs">
-                {verbs.map((id) => {
-                  const v = content.milo.verbs.find((x) => x.id === id)!;
-                  const concept = v.concepts[0]!;
-                  const look = tilePresentation(conceptLevel(save.concepts, concept, now), save.settings);
-                  const icon = (look.icon || hint >= 2) && content.concept.get(concept)?.icon;
-                  const word = (content.phrasing.verbs[id] ?? wordFor(concept)).toUpperCase();
-                  const on = verb === id;
-                  return (
-                    <Pressable
-                      key={id}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                      accessibilityLabel={word}
-                      disabled={busy || !state}
-                      onPress={() => {
-                        tapFeedback();
-                        setVerb(on ? null : id);
-                      }}
-                      style={({ pressed }) => [styles.verb, on && styles.verbOn, { opacity: busy ? 0.55 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
-                      {icon && <Icon name={icon} size={20} color={on ? color.white : undefined} />}
-                      <View style={{ alignItems: 'center' }}>
-                        <Txt style={[type.tile, { fontSize: 17 }, on && { color: color.white }]}>{word}</Txt>
-                        {hint >= 3 && <Txt style={[type.small, { color: on ? color.white : color.inkSoft }]}>{content.concept.get(concept)?.gloss}</Txt>}
-                      </View>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
-            <View style={styles.tiles}>
-              {(state?.order ?? content.milo.commands.map((c) => c.id)).map((id) => {
-                const cmd = content.milo.commands.find((c) => c.id === id)!;
-                const ability = content.ability.get(cmd.ability);
-                const concept = cmd.concepts[0]!;
-                const level = Math.max(...cmd.concepts.map((c) => conceptLevel(save.concepts, c, now))) as 0 | 1 | 2 | 3;
-                const look = tilePresentation(level, save.settings);
-                const icons = look.icon || hint >= 2;
-                const tint = look.tint || hint >= 2;
-                const el = ability?.element ?? null;
-                const words = (verb && el ? (content.phrasing.with[el] ?? cmd.concepts.map(wordFor).join(' ')) : cmd.concepts.map(wordFor).join(' ')).toUpperCase();
-                const gloss = cmd.concepts.map((c) => content.concept.get(c)?.gloss).join(' ');
-                return (
-                  <Pressable
-                    key={id}
-                    accessibilityRole="button"
-                    accessibilityLabel={verb ? commandSentence(content, id, verb) : words}
-                    disabled={busy || !state}
-                    onPress={() => choose(id)}
-                    style={({ pressed }) => [
-                      styles.tile,
-                      tint && { backgroundColor: elementColor(el) + '22', borderColor: elementColor(el) },
-                      { opacity: busy ? 0.55 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] },
-                    ]}>
-                    {icons && content.concept.get(concept)?.icon && <Icon name={content.concept.get(concept)!.icon!} size={26} />}
-                    <View style={{ alignItems: 'center' }}>
-                      <Txt style={verb ? styles.phrase : type.tile}>{words}</Txt>
-                      {hint >= 3 && <Txt style={[type.small, { color: color.inkSoft }]}>{verb ? `with ${gloss}` : gloss}</Txt>}
+        <View style={{ flex: 1 }} onLayout={(e) => setApronH(e.nativeEvent.layout.height)}>
+          <Apron id={background} width={stage.frame} height={apronH} />
+          <SeamFade id={background} width={stage.frame} height={sceneH * 0.07} />
+          <View style={[styles.dock, { paddingBottom: insets.bottom + space.md }]}>
+            <Panel>
+              {result ? (
+                <View style={{ gap: space.md }}>
+                  <Txt style={[type.title, { textAlign: 'center' }]}>{result === 'win' ? `${name ? name : `The ${foeName}`} backs off!` : 'Milo is worn out.'}</Txt>
+                  <Txt style={[type.body, { textAlign: 'center', color: color.inkSoft }]}>
+                    {result === 'win' ? `+${content.lexling.get(enemy)?.battle?.xp ?? 0} XP` : 'No harm done. You can always try again.'}
+                  </Txt>
+                  <Button label="Continue" onPress={() => onEnd(result)} />
+                </View>
+              ) : (
+                <>
+                  <View style={styles.panelHead}>
+                    <Txt style={[type.label, { color: color.inkMuted }]}>{busy ? ' ' : 'Your call'}</Txt>
+                    <View style={{ flexDirection: 'row', gap: space.sm }}>
+                      {lastTelegraph && (
+                        <Pressable accessibilityRole="button" accessibilityLabel="Hear it again" onPress={() => speakLine(lastTelegraph)} style={styles.chip}>
+                          <Icon name="speaker" size={16} color={color.inkSoft} />
+                        </Pressable>
+                      )}
+                      {hint < 3 && (
+                        <Pressable accessibilityRole="button" accessibilityLabel="Help" onPress={askHint} disabled={busy} style={[styles.chip, busy && { opacity: 0.4 }]}>
+                          <Icon name="question" size={16} color={color.inkSoft} />
+                          <Txt style={[type.small, { color: color.inkSoft }]}>Help</Txt>
+                        </Pressable>
+                      )}
                     </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </>
-        )}
+                  </View>
+                  {hint >= 1 && <Txt style={[type.body, { fontStyle: 'italic', color: color.inkSoft, marginBottom: space.sm }]}>{content.lexling.get(enemy)?.battle?.clue}</Txt>}
+                  {verbs.length >= 2 && (
+                    <View style={styles.verbs} testID="verbs">
+                      {verbs.map((id) => {
+                        const v = content.milo.verbs.find((x) => x.id === id)!;
+                        const concept = v.concepts[0]!;
+                        const look = tilePresentation(conceptLevel(save.concepts, concept, now), save.settings);
+                        const icon = (look.icon || hint >= 2) && content.concept.get(concept)?.icon;
+                        const word = (content.phrasing.verbs[id] ?? wordFor(concept)).toUpperCase();
+                        const on = verb === id;
+                        return (
+                          <Pressable
+                            key={id}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: on }}
+                            accessibilityLabel={word}
+                            disabled={busy || !state}
+                            onPress={() => {
+                              tapFeedback();
+                              setVerb(on ? null : id);
+                            }}
+                            style={({ pressed }) => [styles.verb, on && styles.verbOn, { opacity: busy ? 0.55 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}>
+                            {icon && <Icon name={icon} size={20} color={on ? color.white : undefined} />}
+                            <View style={{ alignItems: 'center' }}>
+                              <Txt style={[type.tile, { fontSize: 17 }, on && { color: color.white }]}>{word}</Txt>
+                              {hint >= 3 && <Txt style={[type.small, { color: on ? color.white : color.inkSoft }]}>{content.concept.get(concept)?.gloss}</Txt>}
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  )}
+                  <View style={styles.tiles}>
+                    {(state?.order ?? content.milo.commands.map((c) => c.id)).map((id) => {
+                      const cmd = content.milo.commands.find((c) => c.id === id)!;
+                      const ability = content.ability.get(cmd.ability);
+                      const concept = cmd.concepts[0]!;
+                      const level = Math.max(...cmd.concepts.map((c) => conceptLevel(save.concepts, c, now))) as 0 | 1 | 2 | 3;
+                      const look = tilePresentation(level, save.settings);
+                      const icons = look.icon || hint >= 2;
+                      const tint = look.tint || hint >= 2;
+                      const el = ability?.element ?? null;
+                      const words = (verb && el ? (content.phrasing.with[el] ?? cmd.concepts.map(wordFor).join(' ')) : cmd.concepts.map(wordFor).join(' ')).toUpperCase();
+                      const gloss = cmd.concepts.map((c) => content.concept.get(c)?.gloss).join(' ');
+                      return (
+                        <Pressable
+                          key={id}
+                          accessibilityRole="button"
+                          accessibilityLabel={verb ? commandSentence(content, id, verb) : words}
+                          disabled={busy || !state}
+                          onPress={() => choose(id)}
+                          style={({ pressed }) => [
+                            styles.tile,
+                            tint && { backgroundColor: elementColor(el) + '22', borderColor: elementColor(el) },
+                            { opacity: busy ? 0.55 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] },
+                          ]}>
+                          {icons && content.concept.get(concept)?.icon && <Icon name={content.concept.get(concept)!.icon!} size={26} />}
+                          <View style={{ alignItems: 'center' }}>
+                            <Txt style={verb ? styles.phrase : type.tile}>{words}</Txt>
+                            {hint >= 3 && <Txt style={[type.small, { color: color.inkSoft }]}>{verb ? `with ${gloss}` : gloss}</Txt>}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+            </Panel>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -683,38 +698,39 @@ function DamagePop({ popup, at, reduced }: { popup: Popup; at: { x: number; y: n
 }
 
 const styles = StyleSheet.create({
-  hpCard: { position: 'absolute', width: 150, backgroundColor: 'rgba(251,245,234,0.92)', borderRadius: radius.md, padding: space.sm, gap: 4, ...shadow.card },
-  hpName: { ...type.small, fontWeight: '800' },
-  hpNum: { ...type.small, fontSize: 11, color: color.inkSoft, textAlign: 'right' },
-  panel: { flex: 1, backgroundColor: color.paperDeep, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.lg, marginTop: -space.lg },
-  panelHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: space.sm },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: space.md, paddingVertical: 7, borderRadius: radius.pill, backgroundColor: color.paper, borderWidth: 1, borderColor: color.paperLine },
+  hpCard: { position: 'absolute', width: 150, backgroundColor: 'rgba(28,21,14,0.8)', borderRadius: radius.md, borderWidth: 1.5, borderColor: '#C9A35E', paddingHorizontal: space.md, paddingVertical: space.sm, gap: 5, ...shadow.card },
+  hpName: { fontFamily: font.displaySemi, fontSize: 15, color: color.paper },
+  hpNum: { fontFamily: font.uiBold, fontSize: 11, color: '#D9C9A8', textAlign: 'right' },
+  dock: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: space.md, paddingTop: space.lg },
+  panelHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: space.md, paddingVertical: 7, borderRadius: radius.pill, backgroundColor: color.paperDeep, borderWidth: 1.5, borderColor: color.paperLine },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  verbs: { flexDirection: 'row', gap: space.sm, marginBottom: space.md },
+  verbs: { flexDirection: 'row', gap: space.sm },
   verb: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 44,
     borderRadius: radius.pill,
-    backgroundColor: color.paper,
+    backgroundColor: color.paperDeep,
     borderWidth: 2,
-    borderColor: color.paperLine,
+    borderColor: color.edge,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: space.xs,
   },
-  verbOn: { backgroundColor: color.ink, borderColor: color.ink },
+  verbOn: { backgroundColor: color.ink, borderColor: color.edgeDark },
   phrase: { ...type.tile, fontSize: 16, letterSpacing: 0.5, textAlign: 'center' },
-  call: { position: 'absolute', backgroundColor: 'rgba(251,245,234,0.95)', borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderWidth: 2, borderColor: color.amber, ...shadow.card },
+  call: { position: 'absolute', backgroundColor: color.paper, borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.xs + 2, borderWidth: 2, borderColor: color.amberDeep, ...shadow.card },
   callText: { ...type.body, fontWeight: '800', fontStyle: 'italic' },
   tile: {
     flexBasis: '46%',
     flexGrow: 1,
-    minHeight: 72,
-    borderRadius: radius.lg,
+    minHeight: 66,
+    borderRadius: radius.md,
     backgroundColor: color.paper,
-    borderWidth: 2.5,
-    borderColor: color.paperLine,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: color.edge,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
